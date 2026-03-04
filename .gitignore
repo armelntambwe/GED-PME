@@ -1,0 +1,28 @@
+﻿# Environnement virtuel
+venv/
+env/
+ENV/
+.venv/
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Base de données
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# Fichiers de configuration locaux
+.env
+*.local
+
+# Distributions / packages
+dist/
+build/
+*.egg-info/
