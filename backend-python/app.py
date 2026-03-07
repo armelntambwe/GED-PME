@@ -8,6 +8,14 @@ from werkzeug.security import generate_password_hash, check_password_hash  # Has
 from config import Config                   # Configuration DB
 from utils.jwt_manager import generer_token # Gestionnaire JWT
 from middleware.auth import token_required, role_required, get_current_user
+
+# ============================================
+# IMPORTS POUR UPLOAD (À AJOUTER)
+# ============================================
+import os
+from werkzeug.utils import secure_filename
+from utils.file_upload import allowed_file, get_file_size, secure_filename_with_path
+from config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS
 # ==============================
 # INITIALISATION APP
 # ==============================
@@ -485,7 +493,7 @@ def rejeter_document(doc_id):
     finally:
         # Toujours fermer le curseur
         cur.close()
-        
+
 
         # 📤 Route pour soumettre un document (passer de BROUILLON à SOUMIS)
 # URL: PUT http://localhost:5000/documents/6/soumettre
@@ -582,6 +590,122 @@ def profile():
         "role": request.user_role,
         "message": "Accès autorisé !"
     }), 200
+
+# ============================================
+# ROUTE D'UPLOAD DE FICHIERS
+# ============================================
+@app.route("/documents/upload", methods=["POST"])
+@token_required
+def upload_document():
+    """
+    📤 UPLOAD DE FICHIER
+    ---
+    Permet à un utilisateur authentifié d'uploader un document.
+    Le fichier est stocké sur le disque et une entrée est créée en base.
+    
+    Format attendu: multipart/form-data
+    Champs:
+        - file: (obligatoire) Le fichier à uploader
+        - titre: (optionnel) Titre du document (sinon nom du fichier)
+        - description: (optionnel) Description
+        - categorie_id: (optionnel) ID de la catégorie
+    """
+    
+    # ===== ÉTAPE 1 : VÉRIFICATION DU FICHIER =====
+    if 'file' not in request.files:
+        return jsonify({
+            "success": False,
+            "message": "Aucun fichier fourni. Champ 'file' requis."
+        }), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({
+            "success": False,
+            "message": "Nom de fichier vide."
+        }), 400
+    
+    # ===== ÉTAPE 2 : VALIDATION DE L'EXTENSION =====
+    if not allowed_file(file.filename):
+        return jsonify({
+            "success": False,
+            "message": f"Format non autorisé. Formats acceptés: {', '.join(ALLOWED_EXTENSIONS)}"
+        }), 415
+    
+    # ===== ÉTAPE 3 : VALIDATION DE LA TAILLE =====
+    file_size = get_file_size(file)
+    if file_size > MAX_CONTENT_LENGTH:
+        return jsonify({
+            "success": False,
+            "message": f"Fichier trop volumineux. Taille max: {MAX_CONTENT_LENGTH/1024/1024:.0f} Mo"
+        }), 413
+    
+    # ===== ÉTAPE 4 : PRÉPARATION DU STOCKAGE =====
+    try:
+        # Générer un nom de fichier unique et sécurisé
+        secure_name = secure_filename_with_path(file.filename, request.user_id)
+        
+        # Créer le chemin complet
+        filepath = os.path.join(UPLOAD_FOLDER, secure_name)
+        
+        # ===== ÉTAPE 5 : SAUVEGARDE DU FICHIER =====
+        file.save(filepath)
+        
+        # ===== ÉTAPE 6 : RÉCUPÉRATION DES MÉTADONNÉES =====
+        titre = request.form.get('titre', file.filename)
+        description = request.form.get('description', '')
+        categorie_id = request.form.get('categorie_id')
+        
+        # ===== ÉTAPE 7 : ENREGISTREMENT EN BASE =====
+        cur = mysql.connection.cursor()
+        
+        query = """
+            INSERT INTO documents 
+            (titre, description, fichier_nom, fichier_chemin, fichier_taille, 
+             type_mime, auteur_id, statut, categorie_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'brouillon', %s)
+        """
+        params = (
+            titre, 
+            description, 
+            file.filename,  # Nom original pour l'affichage
+            filepath,       # Chemin physique pour le téléchargement
+            file_size,      # Taille en octets
+            file.mimetype,  # Type MIME (ex: application/pdf)
+            request.user_id,
+            categorie_id
+        )
+        
+        cur.execute(query, params)
+        doc_id = cur.lastrowid
+        mysql.connection.commit()
+        cur.close()
+        
+        # ===== ÉTAPE 8 : RÉPONSE SUCCÈS =====
+        return jsonify({
+            "success": True,
+            "message": "Fichier uploadé avec succès",
+            "document": {
+                "id": doc_id,
+                "titre": titre,
+                "fichier_original": file.filename,
+                "fichier_stocke": secure_name,
+                "taille": file_size,
+                "type": file.mimetype,
+                "statut": "brouillon"
+            }
+        }), 201
+        
+    except Exception as e:
+        # En cas d'erreur, nettoyer le fichier si déjà créé
+        if 'filepath' in locals() and os.path.exists(filepath):
+            os.remove(filepath)
+        
+        return jsonify({
+            "success": False,
+            "message": f"Erreur lors de l'upload: {str(e)}"
+        }), 500
 
 # ==============================
 # LANCEMENT SERVEUR
