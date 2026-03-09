@@ -789,6 +789,292 @@ def download_document(doc_id):
             "message": f"Erreur lors du téléchargement: {str(e)}"
         }), 500
     
+
+    # ============================================
+# ROUTES POUR LES CATÉGORIES
+# ============================================
+
+@app.route("/categories", methods=["POST"])
+@token_required
+@role_required(['admin_global', 'admin_pme'])
+def create_category():
+    """
+    📁 CRÉER UNE CATÉGORIE
+    ---
+    Permet à un admin de créer une nouvelle catégorie.
+    
+    Body (JSON):
+        - nom: (obligatoire) Nom de la catégorie
+        - description: (optionnelle) Description
+    
+    Retour:
+        - 201: Catégorie créée
+        - 400: Données manquantes
+        - 409: Catégorie déjà existante
+    """
+    
+    # ===== ÉTAPE 1 : RÉCUPÉRATION DES DONNÉES =====
+    data = request.json
+    
+    if not data or "nom" not in data:
+        return jsonify({
+            "success": False,
+            "message": "Le nom de la catégorie est requis"
+        }), 400
+    
+    nom = data["nom"].strip()
+    description = data.get("description", "")
+    
+    # ===== ÉTAPE 2 : VÉRIFIER QUE LA CATÉGORIE N'EXISTE PAS =====
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id FROM categories WHERE nom = %s", (nom,))
+    existing = cur.fetchone()
+    
+    if existing:
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": f"Une catégorie '{nom}' existe déjà"
+        }), 409
+    
+    # ===== ÉTAPE 3 : INSÉRER LA NOUVELLE CATÉGORIE =====
+    try:
+        cur.execute("""
+            INSERT INTO categories (nom, description)
+            VALUES (%s, %s)
+        """, (nom, description))
+        
+        category_id = cur.lastrowid
+        mysql.connection.commit()
+        cur.close()
+        
+        # ===== ÉTAPE 4 : RETOURNER LA CATÉGORIE CRÉÉE =====
+        return jsonify({
+            "success": True,
+            "message": "Catégorie créée avec succès",
+            "category": {
+                "id": category_id,
+                "nom": nom,
+                "description": description
+            }
+        }), 201
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": f"Erreur: {str(e)}"
+        }), 500
+
+
+        # ============================================
+# LISTER LES CATÉGORIES
+# ============================================
+@app.route("/categories", methods=["GET"])
+@token_required
+def get_categories():
+    """
+    📋 LISTER LES CATÉGORIES
+    ---
+    Retourne la liste de toutes les catégories.
+    Accessible à tous les utilisateurs authentifiés.
+    
+    Retour:
+        - 200: Liste des catégories
+    """
+    
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT id, nom, description, date_creation 
+        FROM categories 
+        ORDER BY nom ASC
+    """)
+    
+    categories = cur.fetchall()
+    cur.close()
+    
+    # Convertir les tuples en dictionnaires
+    result = []
+    for cat in categories:
+        result.append({
+            "id": cat[0],
+            "nom": cat[1],
+            "description": cat[2],
+            "date_creation": str(cat[3])
+        })
+    
+    return jsonify({
+        "success": True,
+        "count": len(result),
+        "categories": result
+    }), 200
+    
+# ============================================
+# MODIFIER UNE CATÉGORIE
+# ============================================
+@app.route("/categories/<int:categorie_id>", methods=["PUT"])
+@token_required
+@role_required(['admin_global', 'admin_pme'])
+def update_category(categorie_id):
+    """
+    ✏️ MODIFIER UNE CATÉGORIE
+    ---
+    Permet à un admin de modifier une catégorie existante.
+    
+    Args:
+        categorie_id: ID de la catégorie à modifier
+    
+    Body (JSON):
+        - nom: (optionnel) Nouveau nom
+        - description: (optionnel) Nouvelle description
+    
+    Retour:
+        - 200: Catégorie modifiée
+        - 404: Catégorie non trouvée
+        - 409: Nom déjà utilisé
+    """
+    
+    # ===== ÉTAPE 1 : RÉCUPÉRATION DES DONNÉES =====
+    data = request.json
+    
+    if not data or ("nom" not in data and "description" not in data):
+        return jsonify({
+            "success": False,
+            "message": "Rien à modifier. Fournissez 'nom' ou 'description'."
+        }), 400
+    
+    # ===== ÉTAPE 2 : VÉRIFIER QUE LA CATÉGORIE EXISTE =====
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id, nom, description FROM categories WHERE id = %s", (categorie_id,))
+    category = cur.fetchone()
+    
+    if not category:
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": "Catégorie non trouvée"
+        }), 404
+    
+    # ===== ÉTAPE 3 : SI LE NOM EST MODIFIÉ, VÉRIFIER QU'IL N'EXISTE PAS DÉJÀ =====
+    if "nom" in data and data["nom"] != category[1]:
+        cur.execute("SELECT id FROM categories WHERE nom = %s AND id != %s", 
+                   (data["nom"], categorie_id))
+        existing = cur.fetchone()
+        
+        if existing:
+            cur.close()
+            return jsonify({
+                "success": False,
+                "message": f"Une catégorie '{data['nom']}' existe déjà"
+            }), 409
+    
+    # ===== ÉTAPE 4 : CONSTRUIRE LA REQUÊTE DE MISE À JOUR =====
+    updates = []
+    params = []
+    
+    if "nom" in data:
+        updates.append("nom = %s")
+        params.append(data["nom"])
+    
+    if "description" in data:
+        updates.append("description = %s")
+        params.append(data["description"])
+    
+    params.append(categorie_id)
+    
+    # ===== ÉTAPE 5 : EXÉCUTER LA MISE À JOUR =====
+    try:
+        query = f"UPDATE categories SET {', '.join(updates)} WHERE id = %s"
+        cur.execute(query, params)
+        mysql.connection.commit()
+        
+        # Récupérer la catégorie mise à jour
+        cur.execute("SELECT id, nom, description, date_creation FROM categories WHERE id = %s", 
+                   (categorie_id,))
+        updated = cur.fetchone()
+        cur.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Catégorie modifiée avec succès",
+            "category": {
+                "id": updated[0],
+                "nom": updated[1],
+                "description": updated[2],
+                "date_creation": str(updated[3])
+            }
+        }), 200
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": f"Erreur: {str(e)}"
+        }), 500
+
+# ============================================
+# SUPPRIMER UNE CATÉGORIE
+# ============================================
+@app.route("/categories/<int:categorie_id>", methods=["DELETE"])
+@token_required
+@role_required(['admin_global', 'admin_pme'])
+def delete_category(categorie_id):
+    """
+    🗑️ SUPPRIMER UNE CATÉGORIE
+    ---
+    Permet à un admin de supprimer une catégorie.
+    Les documents liés à cette catégorie auront categorie_id = NULL.
+    
+    Args:
+        categorie_id: ID de la catégorie à supprimer
+    
+    Retour:
+        - 200: Catégorie supprimée
+        - 404: Catégorie non trouvée
+        - 409: Catégorie utilisée (optionnel)
+    """
+    
+    # ===== ÉTAPE 1 : VÉRIFIER QUE LA CATÉGORIE EXISTE =====
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id, nom FROM categories WHERE id = %s", (categorie_id,))
+    category = cur.fetchone()
+    
+    if not category:
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": "Catégorie non trouvée"
+        }), 404
+    
+    # ===== ÉTAPE 2 : OPTIONNEL - VÉRIFIER SI DES DOCUMENTS SONT LIÉS =====
+    cur.execute("SELECT COUNT(*) FROM documents WHERE categorie_id = %s", (categorie_id,))
+    count = cur.fetchone()[0]
+    
+    # ===== ÉTAPE 3 : SUPPRIMER LA CATÉGORIE =====
+    try:
+        cur.execute("DELETE FROM categories WHERE id = %s", (categorie_id,))
+        mysql.connection.commit()
+        cur.close()
+        
+        message = f"Catégorie '{category[1]}' supprimée"
+        if count > 0:
+            message += f". {count} document(s) n'ont plus de catégorie."
+        
+        return jsonify({
+            "success": True,
+            "message": message
+        }), 200
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": f"Erreur: {str(e)}"
+        }), 500
+
 # ==============================
 # LANCEMENT SERVEUR
 # ==============================
