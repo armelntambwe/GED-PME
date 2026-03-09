@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash  # Has
 from config import Config                   # Configuration DB
 from utils.jwt_manager import generer_token # Gestionnaire JWT
 from middleware.auth import token_required, role_required, get_current_user
-
+from utils.logger import ajouter_log  # ← 
 import os
 from werkzeug.utils import secure_filename
 from utils.file_upload import allowed_file, get_file_size, secure_filename_with_path
@@ -17,6 +17,7 @@ from config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS
 from flask import send_file
 import os
 import mimetypes
+
 # ==============================
 # INITIALISATION APP
 # ==============================
@@ -378,6 +379,13 @@ def valider_document(doc_id):
         """, (validateur_id, doc_id))
         
         mysql.connection.commit()
+
+        ajouter_log(
+    action='VALIDATION',
+    description=f"Document {doc_id} validé",
+    user_id=request.user_id,
+    document_id=doc_id
+)
         
         # Étape 4: Vérification du nombre de lignes affectées
         if cur.rowcount == 0:
@@ -469,6 +477,13 @@ def rejeter_document(doc_id):
         """, (validateur_id, commentaire, doc_id))
         
         mysql.connection.commit()
+
+        ajouter_log(
+    action='REJET',
+    description=f"Document {doc_id} rejeté: {commentaire}",
+    user_id=request.user_id,
+    document_id=doc_id
+)
         
         # Étape 6: Vérification du nombre de lignes affectées
         if cur.rowcount == 0:
@@ -551,6 +566,13 @@ def soumettre_document(doc_id):
         """, (doc_id,))
         
         mysql.connection.commit()
+
+        ajouter_log(
+    action='SOUMISSION',
+    description=f"Document {doc_id} soumis",
+    user_id=request.user_id,
+    document_id=doc_id
+)
         
         # Étape 3: Vérification que la mise à jour a bien eu lieu
         if cur.rowcount == 0:
@@ -683,6 +705,12 @@ def upload_document():
         mysql.connection.commit()
         cur.close()
         
+        ajouter_log(
+    action='CREATION',
+    description=f"Document '{titre}' uploadé",
+    user_id=request.user_id,
+    document_id=doc_id
+)
         # ===== ÉTAPE 8 : RÉPONSE SUCCÈS =====
         return jsonify({
             "success": True,
@@ -764,6 +792,12 @@ def download_document(doc_id):
             "message": "Vous n'avez pas le droit de télécharger ce document"
         }), 403
     
+    ajouter_log(
+    action='TELECHARGEMENT',
+    description=f"Document {doc_id} téléchargé",
+    user_id=request.user_id,
+    document_id=doc_id
+)
     # ===== ÉTAPE 3 : VÉRIFIER QUE LE FICHIER EXISTE =====
     if not os.path.exists(fichier_chemin):
         return jsonify({
