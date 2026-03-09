@@ -512,92 +512,124 @@ def rejeter_document(doc_id):
 
 
         # 📤 Route pour soumettre un document (passer de BROUILLON à SOUMIS)
-# URL: PUT http://localhost:5000/documents/6/soumettre
-# Headers: Authorization: Bearer <token>
+
+
+# ============================================
+# SOUMETTRE UN DOCUMENT (AVEC WORKFLOW)
+# ============================================
 @app.route("/documents/<int:doc_id>/soumettre", methods=["PUT"])
-@token_required  # ← DÉCORATEUR : Vérifie que l'utilisateur est authentifié
+@token_required
 def soumettre_document(doc_id):
     """
-    Soumet un document pour validation.
-    Change le statut de 'brouillon' à 'soumis'.
-    Seul le propriétaire du document peut le soumettre.
-    
-    Args:
-        doc_id: ID du document à soumettre (récupéré depuis l'URL)
+    📤 SOUMETTRE UN DOCUMENT POUR VALIDATION
+    ---
+    Soumet un document et démarre le workflow de validation.
     """
     
     cur = mysql.connection.cursor()
     
     try:
-        # Étape 1: Vérifier que l'utilisateur est le propriétaire du document
-        # On récupère l'auteur du document
+        # ===== ÉTAPE 1 : VÉRIFIER LE PROPRIÉTAIRE =====
         cur.execute("SELECT auteur_id, statut FROM documents WHERE id = %s", (doc_id,))
         doc = cur.fetchone()
         
-        # Si le document n'existe pas
         if not doc:
             cur.close()
-            return jsonify({
-                "success": False,
-                "message": "Document non trouvé"
-            }), 404
+            return jsonify({"message": "Document non trouvé"}), 404
         
-        # Vérification du propriétaire (SÉCURITÉ)
         if doc[0] != request.user_id:
             cur.close()
-            return jsonify({
-                "success": False,
-                "message": "Vous ne pouvez soumettre que vos propres documents"
-            }), 403
+            return jsonify({"message": "Vous ne pouvez soumettre que vos propres documents"}), 403
         
-        # Vérification du statut (un document déjà soumis ne peut pas l'être à nouveau)
         if doc[1] != 'brouillon':
             cur.close()
-            return jsonify({
-                "success": False,
-                "message": f"Impossible de soumettre un document en statut '{doc[1]}'"
-            }), 400
+            return jsonify({"message": f"Document déjà soumis (statut: {doc[1]})"}), 400
         
-        # Étape 2: Mise à jour du statut
+        # ===== ÉTAPE 2 : RÉCUPÉRER L'ENTREPRISE DE L'UTILISATEUR =====
+        cur.execute("SELECT entreprise_id FROM users WHERE id = %s", (request.user_id,))
+        user_entreprise = cur.fetchone()
+        
+        if not user_entreprise or not user_entreprise[0]:
+            # Pas de multi-entreprise, workflow simple
+            cur.execute("""
+                UPDATE documents SET statut = 'soumis' WHERE id = %s
+            """, (doc_id,))
+            mysql.connection.commit()
+            cur.close()
+            
+            ajouter_log(
+                action='SOUMISSION',
+                description=f"Document {doc_id} soumis",
+                user_id=request.user_id,
+                document_id=doc_id
+            )
+            
+            return jsonify({"message": "Document soumis pour validation"}), 200
+        
+        entreprise_id = user_entreprise[0]
+        
+        # ===== ÉTAPE 3 : RÉCUPÉRER LA PREMIÈRE ÉTAPE DU WORKFLOW =====
         cur.execute("""
-            UPDATE documents 
-            SET statut = 'soumis' 
-            WHERE id = %s AND statut = 'brouillon'
-        """, (doc_id,))
+            SELECT id FROM niveaux_validation 
+            WHERE entreprise_id = %s
+            ORDER BY ordre ASC LIMIT 1
+        """, (entreprise_id,))
+        
+        premiere_etape = cur.fetchone()
+        
+        if premiere_etape:
+            # Workflow personnalisé
+            niveau_id = premiere_etape[0]
+            
+            # Créer l'entrée dans validations_document
+            cur.execute("""
+                INSERT INTO validations_document (document_id, niveau_id)
+                VALUES (%s, %s)
+            """, (doc_id, niveau_id))
+            
+            # Mettre à jour le document
+            cur.execute("""
+                UPDATE documents 
+                SET statut = 'soumis', niveau_validation_actuel = 1 
+                WHERE id = %s
+            """, (doc_id,))
+            
+            # Compter le nombre total d'étapes
+            cur.execute("SELECT COUNT(*) FROM niveaux_validation WHERE entreprise_id = %s", (entreprise_id,))
+            total_etapes = cur.fetchone()[0]
+            
+            message = f"Document soumis - Étape 1/{total_etapes}"
+        else:
+            # Pas de workflow configuré, validation simple
+            cur.execute("""
+                UPDATE documents SET statut = 'soumis' WHERE id = %s
+            """, (doc_id,))
+            message = "Document soumis pour validation"
         
         mysql.connection.commit()
-
+        
+        # ===== ÉTAPE 4 : LOG =====
         ajouter_log(
-    action='SOUMISSION',
-    description=f"Document {doc_id} soumis",
-    user_id=request.user_id,
-    document_id=doc_id
-)
+            action='SOUMISSION',
+            description=f"Document {doc_id} soumis",
+            user_id=request.user_id,
+            document_id=doc_id
+        )
         
-        # Étape 3: Vérification que la mise à jour a bien eu lieu
-        if cur.rowcount == 0:
-            return jsonify({
-                "success": False,
-                "message": "Document déjà soumis ou non modifiable"
-            }), 400
-        
-        # Étape 4: Réponse de succès
+        cur.close()
         return jsonify({
             "success": True,
-            "message": "Document soumis pour validation"
+            "message": message
         }), 200
         
     except Exception as e:
-        # En cas d'erreur, annuler la transaction
         mysql.connection.rollback()
+        cur.close()
         return jsonify({
             "success": False,
             "message": f"Erreur: {str(e)}"
         }), 500
-    finally:
-        # Toujours fermer le curseur
-        cur.close()
-
+    
 # ============================================
 # ROUTE TEST PROTÉGÉE
 # ============================================
@@ -1108,6 +1140,269 @@ def delete_category(categorie_id):
             "success": False,
             "message": f"Erreur: {str(e)}"
         }), 500
+
+# ============================================
+# CONFIGURATION DU WORKFLOW DE VALIDATION
+# ============================================
+@app.route("/entreprise/workflow", methods=["POST"])
+@token_required
+@role_required(['admin_global', 'admin_pme'])
+def configurer_workflow():
+    """
+    🔧 CONFIGURER LE WORKFLOW DE VALIDATION
+    ---
+    Permet à un admin de définir les étapes de validation pour son entreprise.
+    
+    Body (JSON):
+        - etapes: Liste des étapes avec pour chacune:
+            - nom: Nom de l'étape (ex: "Chef d'équipe")
+            - role: Rôle requis ('admin_global', 'admin_pme', 'manager', 'employe')
+            - delai: (optionnel) Délai en heures (défaut: 48)
+    
+    Exemple:
+    {
+        "etapes": [
+            {"nom": "Chef d'équipe", "role": "employe", "delai": 24},
+            {"nom": "Manager", "role": "admin_pme", "delai": 48},
+            {"nom": "Direction", "role": "admin_global"}
+        ]
+    }
+    """
+    
+    # ===== ÉTAPE 1 : RÉCUPÉRER L'ENTREPRISE DE L'UTILISATEUR =====
+    # On récupère l'entreprise_id de l'utilisateur connecté
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT entreprise_id FROM users WHERE id = %s", (request.user_id,))
+    result = cur.fetchone()
+    
+    if not result or not result[0]:
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": "Vous n'êtes pas associé à une entreprise"
+        }), 400
+    
+    entreprise_id = result[0]
+    
+    # ===== ÉTAPE 2 : RÉCUPÉRER LES DONNÉES =====
+    data = request.json
+    
+    if not data or "etapes" not in data:
+        return jsonify({
+            "success": False,
+            "message": "La liste des étapes est requise"
+        }), 400
+    
+    etapes = data["etapes"]
+    
+    if not isinstance(etapes, list) or len(etapes) == 0:
+        return jsonify({
+            "success": False,
+            "message": "Au moins une étape est requise"
+        }), 400
+    
+    # ===== ÉTAPE 3 : SUPPRIMER L'ANCIENNE CONFIGURATION =====
+    try:
+        # Supprimer les anciennes étapes de cette entreprise
+        cur.execute("DELETE FROM niveaux_validation WHERE entreprise_id = %s", (entreprise_id,))
+        
+        # ===== ÉTAPE 4 : AJOUTER LES NOUVELLES ÉTAPES =====
+        for i, etape in enumerate(etapes, 1):
+            # Valider que le rôle est correct
+            if etape["role"] not in ['admin_global', 'admin_pme', 'manager', 'employe']:
+                continue
+            
+            delai = etape.get("delai", 48)
+            
+            cur.execute("""
+                INSERT INTO niveaux_validation 
+                (entreprise_id, nom_niveau, ordre, role_requis, delai_heures)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (entreprise_id, etape["nom"], i, etape["role"], delai))
+        
+        mysql.connection.commit()
+        cur.close()
+        
+        # ===== ÉTAPE 5 : JOURNALISATION =====
+        ajouter_log(
+            action='CONFIG_WORKFLOW',
+            description=f"Workflow configuré avec {len(etapes)} étapes",
+            user_id=request.user_id
+        )
+        
+        return jsonify({
+            "success": True,
+            "message": f"Workflow configuré avec {len(etapes)} étapes"
+        }), 200
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": f"Erreur: {str(e)}"
+        }), 500
+
+        # ============================================
+# VOIR L'ÉTAT DU WORKFLOW D'UN DOCUMENT
+# ============================================
+@app.route("/documents/<int:doc_id>/workflow", methods=["GET"])
+@token_required
+def get_workflow_document(doc_id):
+    """
+    📋 VOIR L'ÉTAT DU WORKFLOW D'UN DOCUMENT
+    ---
+    Retourne l'historique des validations pour un document.
+    """
+    
+    cur = mysql.connection.cursor()
+    
+    # Récupérer les validations
+    cur.execute("""
+        SELECT v.id, v.statut, v.date_action, v.commentaire,
+               n.nom_niveau, n.ordre, n.role_requis,
+               u.nom as validateur_nom
+        FROM validations_document v
+        JOIN niveaux_validation n ON v.niveau_id = n.id
+        LEFT JOIN users u ON v.validateur_id = u.id
+        WHERE v.document_id = %s
+        ORDER BY n.ordre ASC
+    """, (doc_id,))
+    
+    validations = cur.fetchall()
+    cur.close()
+    
+    result = []
+    for v in validations:
+        result.append({
+            "id": v[0],
+            "statut": v[1],
+            "date": str(v[2]) if v[2] else None,
+            "commentaire": v[3],
+            "etape_nom": v[4],
+            "etape_ordre": v[5],
+            "role_requis": v[6],
+            "valideur": v[7]
+        })
+    
+    return jsonify({
+        "success": True,
+        "validations": result,
+        "count": len(result)
+    }), 200
+
+
+
+# ============================================
+# VALIDER UNE ÉTAPE DU WORKFLOW
+# ============================================
+@app.route("/documents/<int:doc_id>/valider-etape", methods=["PUT"])
+@token_required
+def valider_etape(doc_id):
+    """
+    ✅ VALIDER UNE ÉTAPE DU WORKFLOW
+    ---
+    Valide l'étape courante et passe à l'étape suivante.
+    
+    Body (optionnel):
+        - commentaire: Commentaire sur la validation
+    """
+    
+    data = request.json or {}
+    commentaire = data.get("commentaire", "")
+    
+    cur = mysql.connection.cursor()
+    
+    try:
+        # ===== ÉTAPE 1 : RÉCUPÉRER L'ÉTAPE COURANTE =====
+        cur.execute("""
+            SELECT d.niveau_validation_actuel, d.auteur_id,
+                   n.id, n.ordre, n.role_requis, n.nom_niveau,
+                   (SELECT COUNT(*) FROM niveaux_validation nv 
+                    WHERE nv.entreprise_id = (SELECT entreprise_id FROM users WHERE id = d.auteur_id)) as total_etapes
+            FROM documents d
+            LEFT JOIN niveaux_validation n ON n.entreprise_id = 
+                (SELECT entreprise_id FROM users WHERE id = d.auteur_id)
+                AND n.ordre = d.niveau_validation_actuel
+            WHERE d.id = %s
+        """, (doc_id,))
+        
+        result = cur.fetchone()
+        
+        if not result:
+            cur.close()
+            return jsonify({"message": "Document non trouvé"}), 404
+        
+        niveau_actuel, auteur_id, niveau_id, ordre, role_requis, nom_niveau, total_etapes = result
+        
+        # ===== ÉTAPE 2 : VÉRIFIER LE RÔLE =====
+        if role_requis and request.user_role != role_requis:
+            cur.close()
+            return jsonify({
+                "success": False,
+                "message": f"Cette étape nécessite le rôle '{role_requis}'"
+            }), 403
+        
+        # ===== ÉTAPE 3 : MARQUER L'ÉTAPE COMME VALIDÉE =====
+        if niveau_id:
+            cur.execute("""
+                UPDATE validations_document 
+                SET statut = 'valide', validateur_id = %s, 
+                    date_action = NOW(), commentaire = %s
+                WHERE document_id = %s AND niveau_id = %s
+            """, (request.user_id, commentaire, doc_id, niveau_id))
+        
+        # ===== ÉTAPE 4 : PASSER À L'ÉTAPE SUIVANTE =====
+        if ordre < total_etapes:
+            # Il reste des étapes
+            cur.execute("""
+                UPDATE documents 
+                SET niveau_validation_actuel = %s 
+                WHERE id = %s
+            """, (ordre + 1, doc_id))
+            
+            # Créer l'entrée pour la prochaine étape
+            cur.execute("""
+                INSERT INTO validations_document (document_id, niveau_id)
+                SELECT %s, id FROM niveaux_validation 
+                WHERE entreprise_id = (SELECT entreprise_id FROM users WHERE id = %s)
+                AND ordre = %s
+            """, (doc_id, auteur_id, ordre + 1))
+            
+            message = f"Étape '{nom_niveau}' validée. Prochaine étape: {ordre + 1}/{total_etapes}"
+        else:
+            # Workflow terminé
+            cur.execute("""
+                UPDATE documents 
+                SET workflow_termine = TRUE, statut = 'valide' 
+                WHERE id = %s
+            """, (doc_id,))
+            message = f"Workflow terminé! Document validé."
+        
+        mysql.connection.commit()
+        
+        # ===== ÉTAPE 5 : LOG =====
+        ajouter_log(
+            action='VALIDATION_ETAPE',
+            description=f"Document {doc_id} - Étape {ordre}/{total_etapes} validée",
+            user_id=request.user_id,
+            document_id=doc_id
+        )
+        
+        cur.close()
+        return jsonify({
+            "success": True,
+            "message": message
+        }), 200
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        cur.close()
+        return jsonify({
+            "success": False,
+            "message": f"Erreur: {str(e)}"
+        }), 500
+    
 
 # ==============================
 # LANCEMENT SERVEUR
