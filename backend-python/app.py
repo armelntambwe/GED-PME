@@ -9,13 +9,14 @@ from config import Config                   # Configuration DB
 from utils.jwt_manager import generer_token # Gestionnaire JWT
 from middleware.auth import token_required, role_required, get_current_user
 
-# ============================================
-# IMPORTS POUR UPLOAD (À AJOUTER)
-# ============================================
 import os
 from werkzeug.utils import secure_filename
 from utils.file_upload import allowed_file, get_file_size, secure_filename_with_path
 from config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS
+
+from flask import send_file
+import os
+import mimetypes
 # ==============================
 # INITIALISATION APP
 # ==============================
@@ -707,6 +708,87 @@ def upload_document():
             "message": f"Erreur lors de l'upload: {str(e)}"
         }), 500
 
+
+# ============================================
+# ROUTE DE TÉLÉCHARGEMENT
+# ============================================
+from flask import send_file
+import os
+import mimetypes
+
+@app.route("/documents/<int:doc_id>/download", methods=["GET"])
+@token_required
+def download_document(doc_id):
+    """
+    📥 TÉLÉCHARGEMENT DE FICHIER
+    ---
+    Permet à un utilisateur authentifié de télécharger un document.
+    
+    Args:
+        doc_id: ID du document à télécharger
+    
+    Retour:
+        - Le fichier (200) si succès
+        - 404 si document non trouvé
+        - 403 si accès non autorisé
+        - 404 si fichier manquant sur disque
+    """
+    
+    # ===== ÉTAPE 1 : RÉCUPÉRER LES INFOS DU DOCUMENT =====
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT titre, fichier_chemin, auteur_id 
+        FROM documents 
+        WHERE id = %s
+    """, (doc_id,))
+    
+    doc = cur.fetchone()
+    cur.close()
+    
+    # Vérifier que le document existe
+    if not doc:
+        return jsonify({
+            "success": False,
+            "message": "Document non trouvé"
+        }), 404
+    
+    titre, fichier_chemin, auteur_id = doc
+    
+    # ===== ÉTAPE 2 : VÉRIFICATION DES DROITS =====
+    # Règles :
+    # - Admin peut tout voir
+    # - Employé ne peut voir que ses documents
+    if request.user_role == 'employe' and auteur_id != request.user_id:
+        return jsonify({
+            "success": False,
+            "message": "Vous n'avez pas le droit de télécharger ce document"
+        }), 403
+    
+    # ===== ÉTAPE 3 : VÉRIFIER QUE LE FICHIER EXISTE =====
+    if not os.path.exists(fichier_chemin):
+        return jsonify({
+            "success": False,
+            "message": "Fichier introuvable sur le serveur"
+        }), 404
+    
+    # ===== ÉTAPE 4 : JOURNALISATION (optionnelle) =====
+    # On ajoutera un log plus tard
+    print(f"📥 Téléchargement: doc {doc_id} par user {request.user_id}")
+    
+    # ===== ÉTAPE 5 : ENVOYER LE FICHIER =====
+    try:
+        return send_file(
+            fichier_chemin,
+            as_attachment=True,  # Force le téléchargement
+            download_name=titre,  # Nom du fichier proposé
+            mimetype=mimetypes.guess_type(fichier_chemin)[0]
+        )
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Erreur lors du téléchargement: {str(e)}"
+        }), 500
+    
 # ==============================
 # LANCEMENT SERVEUR
 # ==============================
