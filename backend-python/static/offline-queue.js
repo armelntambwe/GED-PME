@@ -109,7 +109,59 @@ class OfflineQueue {
             store.delete(action.id);
         });
     }
+
+    // ===== NOUVELLES MÉTHODES =====
+
+    // Synchroniser toutes les actions en attente
+    async syncAll() {
+        const actions = await this.getPendingActions();
+        
+        if (actions.length === 0) {
+            console.log('✅ Rien à synchroniser');
+            return [];
+        }
+        
+        console.log(`🔄 Synchronisation de ${actions.length} action(s)...`);
+        
+        const results = [];
+        
+        for (const action of actions) {
+            try {
+                // Rejouer l'action sur le serveur
+                const result = await this.replayAction(action);
+                
+                if (result.success) {
+                    await this.markAsSynced(action.id);
+                    results.push({ id: action.id, success: true });
+                    console.log(`✅ Action ${action.id} synchronisée`);
+                } else {
+                    results.push({ id: action.id, success: false, error: result.error });
+                    console.error(`❌ Action ${action.id} échouée:`, result.error);
+                }
+            } catch (error) {
+                results.push({ id: action.id, success: false, error: error.message });
+                console.error(`❌ Erreur action ${action.id}:`, error);
+            }
+        }
+        
+        return results;
+    }
+
+    // Rejouer une action spécifique
+    async replayAction(action) {
+        console.log(`🔄 Rejouer ${action.action}:`, action.data);
+        
+        // Simulation de succès (à remplacer par vraie API plus tard)
+        return { success: true };
+    }
+
+    // Obtenir le nombre d'actions en attente
+    async getPendingCount() {
+        const actions = await this.getPendingActions();
+        return actions.length;
+    }
 }
 
 // Instance globale
 const offlineQueue = new OfflineQueue();
+

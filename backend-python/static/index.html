@@ -5,6 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GED-PME - Test hors-ligne</title>
     <script src="offline-queue.js"></script>
+
+    <style>
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+    }
+    
+    .online {
+        background-color: #4CAF50;
+        color: white;
+    }
+    
+    .offline {
+        background-color: #f44336;
+        color: white;
+    }
+
+    #status {
+        font-size: 18px;
+        margin: 20px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>
 </head>
 <body>
     <h1>GED-PME - Test mode hors-ligne</h1>
