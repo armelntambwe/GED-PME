@@ -1,7 +1,4 @@
-\# 📁 GED-PME
-
-
-
+ GED-PME
 Système de Gestion Électronique de Documents adapté aux Petites et Moyennes Entreprises en République Démocratique du Congo.
 
 
@@ -16,17 +13,9 @@ Système de Gestion Électronique de Documents adapté aux Petites et Moyennes E
 
 !\[Statut](https://img.shields.io/badge/statut-en%20développement-yellow)
 
+Fonctionnalités déjà réalisées
 
-
----
-
-
-
-\## ✅ \*\*Fonctionnalités déjà réalisées\*\*
-
-
-
-\### 🔐 \*\*Authentification \& Sécurité\*\*
+\\*\*Authentification \& Sécurité\*\*
 
 \- ✅ Inscription et connexion sécurisées
 
@@ -36,9 +25,7 @@ Système de Gestion Électronique de Documents adapté aux Petites et Moyennes E
 
 \- ✅ Isolation des données (employé voit ses docs)
 
-
-
-\### 📄 \*\*Gestion des documents\*\*
+ \*\*Gestion des documents\*\*
 
 \- ✅ Upload de fichiers (PDF, DOCX, JPG, PNG, TXT)
 
@@ -48,9 +35,7 @@ Système de Gestion Électronique de Documents adapté aux Petites et Moyennes E
 
 \- ✅ Métadonnées (titre, description, date, auteur)
 
-
-
-\### 🔄 \*\*Workflow documentaire\*\*
+Workflow documentaire\*\*
 
 \- ✅ Brouillon → Soumis → Validé / Rejeté
 
@@ -59,22 +44,14 @@ Système de Gestion Électronique de Documents adapté aux Petites et Moyennes E
 \- ✅ Validation/Rejet par l'admin (avec commentaire)
 
 \- ✅ Traçabilité (qui a fait quoi, quand)
+ Téléchargement des fichiers (`GET /documents/{id}/download`)
+
+\-  ✅ Gestion des catégories (CRUD)
+
+\- ✅ Logs et traçabilité complète
 
 
-
----
-
-
-
-\## 🚧 \*\*Fonctionnalités en cours de développement\*\*
-
-
-
-\- ⏳ Téléchargement des fichiers (`GET /documents/{id}/download`)
-
-\- ⏳ Gestion des catégories (CRUD)
-
-\- ⏳ Logs et traçabilité complète
+Fonctionnalités en cours de développement\*\*
 
 \- ⏳ Mode hors-ligne (stockage local)
 
@@ -82,19 +59,11 @@ Système de Gestion Électronique de Documents adapté aux Petites et Moyennes E
 
 \- ⏳ Interface utilisateur (frontend)
 
-
-
----
-
-
-
-\## 🛠️ \*\*Technologies utilisées\*\*
+\*\*Technologies utilisées\*\*
 
 
 
 | Technologie | Version | Rôle |
-
-|-------------|---------|------|
 
 | \*\*Flask\*\* | 2.3.3 | Framework web (API REST) |
 
@@ -104,27 +73,17 @@ Système de Gestion Électronique de Documents adapté aux Petites et Moyennes E
 
 | \*\*Werkzeug\*\* | 2.3.7 | Hashage des mots de passe |
 
-
-
----
-
-
-
-\## 🚀 \*\*Installation\*\*
-
-
+Installation
 
 ```bash
 
-\# 1. Cloner le dépôt
+\1. Cloner le dépôt
 
 git clone https://github.com/armelntambwe/GED-PME.git
 
 cd GED-PME/backend-python
 
-
-
-\# 2. Installer l'environnement virtuel
+\ 2. Installer l'environnement virtuel
 
 python -m venv venv
 
@@ -132,39 +91,26 @@ venv\\Scripts\\activate  # Windows
 
 pip install -r requirements.txt
 
+\ 3. Configurer MySQL (XAMPP)
 
+\ - Créer une base 'ged\_pme'
 
-\# 3. Configurer MySQL (XAMPP)
-
-\# - Créer une base 'ged\_pme'
-
-
-
-\# 4. Initialiser la base
+\ 4. Initialiser la base
 
 python database/init\_db.py
 
-
-
-\# 5. Lancer le serveur
+\ 5. Lancer le serveur
 
 python app.py
 
 ```
 
-
-
----
-
-
-
-\## 📊 \*\*Routes API disponibles\*\*
+Routes API disponibles
 
 
 
 | Méthode | Route | Description |
 
-|---------|-------|-------------|
 
 | `POST` | `/register` | Inscription |
 
@@ -180,27 +126,11 @@ python app.py
 
 | `PUT` | `/documents/{id}/rejeter` | Rejeter (admin) |
 
-
-
----
-
-
-
-\## 👨‍💻 \*\*Auteur\*\*
-
-
-
-\*\*Armel NTAMBWE\*\*  
+Armel  MBUYI NTAMBWE
 
 Étudiant en Licence 4 - Génie Logiciel  
 
-Projet de mémoire : \*Conception et déploiement d'une GED adaptée aux PME locales en RDC\*
+Projet de mémoire : Conception et déploiement d'une GED adaptée aux PME locales en RDC
 
 
-
----
-
-
-
-\*Document mis à jour le : 7 Mars 2026\*
 
