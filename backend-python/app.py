@@ -1403,6 +1403,25 @@ def valider_etape(doc_id):
             "message": f"Erreur: {str(e)}"
         }), 500
     
+# ============================================
+# ROUTES POUR LES FICHIERS STATIQUES
+# ============================================
+from flask import send_from_directory
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    """
+    Sert les fichiers statiques (sw.js, offline.html, etc.)
+    """
+    return send_from_directory('static', filename)
+
+@app.route('/sw.js')
+def serve_sw():
+    """
+    Sert spécifiquement le service worker à la racine
+    """
+    return send_from_directory('static', 'sw.js')
+
 
 # ==============================
 # LANCEMENT SERVEUR

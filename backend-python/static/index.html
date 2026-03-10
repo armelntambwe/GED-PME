@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GED-PME - Test hors-ligne</title>
+    <script src="offline-queue.js"></script>
+</head>
+<body>
+    <h1>GED-PME - Test mode hors-ligne</h1>
+    
+    <div id="status">🟢 En ligne</div>
+    
+    <button onclick="testerUpload()">Tester upload</button>
+    <button onclick="testerSync()">Forcer synchronisation</button>
+
+    <script>
+        // Détection de la connexion
+        function updateStatus() {
+            const status = document.getElementById('status');
+            if (navigator.onLine) {
+                status.innerHTML = '🟢 En ligne';
+                status.style.color = 'green';
+            } else {
+                status.innerHTML = '🔴 Hors-ligne';
+                status.style.color = 'red';
+            }
+        }
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
+
+        // Fonction de test
+        async function testerUpload() {
+            const resultat = await apiRequest('/documents/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer VOTRE_TOKEN'
+                },
+                body: new FormData() // Simuler un fichier
+            });
+            console.log('Résultat:', resultat);
+        }
+
+        async function testerSync() {
+            if (navigator.onLine) {
+                const actions = await offlineQueue.getPendingActions();
+                console.log('Actions en attente:', actions);
+                alert('Voir console pour les actions en attente');
+            } else {
+                alert('Vous êtes hors-ligne, impossible de synchroniser');
+            }
+        }
+
+        // Intercepter les requêtes API
+        async function apiRequest(url, options) {
+            if (!navigator.onLine) {
+                // Mode hors-ligne : mettre en file d'attente
+                await offlineQueue.addAction(options.method || 'GET', {
+                    url: url,
+                    headers: options.headers,
+                    body: options.body
+                });
+                alert('📴 Action mise en attente (mode hors-ligne)');
+                return { offline: true };
+            }
+            
+            // Mode en ligne : exécuter normalement
+            try {
+                const response = await fetch(url, options);
+                return response;
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Enregistrer le service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('✅ Service Worker enregistré', reg))
+                .catch(err => console.error('❌ Erreur Service Worker', err));
+        }
+    </script>
+</body>
+</html>
