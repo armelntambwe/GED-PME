@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test GED-PME</title>
+    <script src="/offline-queue.js"></script>  <!-- ← IMPORTANT -->
+</head>
+<body style="font-family: Arial; padding: 20px;">
+    <h1>🔧 TEST GED-PME</h1>
+    
+    <div style="background: #f0f0f0; padding: 20px; border-radius: 5px;">
+        <h2>Étape 1 : Connexion</h2>
+        <input type="text" id="email" value="admin@test.com" style="padding:5px; width:200px;">
+        <input type="password" id="password" value="admin123" style="padding:5px; width:200px;">
+        <button onclick="login()" style="padding:10px; background:blue; color:white;">SE CONNECTER</button>
+        <div id="loginStatus"></div>
+    </div>
+
+    <div style="margin-top:20px; padding:20px; background:#e0e0e0; border-radius:5px;">
+        <h2>Étape 2 : Tester</h2>
+        <button onclick="testToken()" style="padding:10px; margin:5px;">Voir token</button>
+        <button onclick="testUpload()" style="padding:10px; margin:5px;">Test Upload</button>
+        <button onclick="testOffline()" style="padding:10px; margin:5px;">Test Offline</button>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('loginStatus').innerHTML = '✅ Connecté!';
+                } else {
+                    document.getElementById('loginStatus').innerHTML = '❌ ' + data.message;
+                }
+            } catch (error) {
+                document.getElementById('loginStatus').innerHTML = '❌ Erreur: ' + error.message;
+            }
+        }
+
+        function testToken() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                alert('Token: ' + token.substring(0, 30) + '...');
+            } else {
+                alert('Pas de token');
+            }
+        }
+
+        async function testUpload() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Connectez-vous d\'abord');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', new Blob(['test'], {type: 'text/plain'}), 'test.txt');
+            formData.append('titre', 'Test');
+
+            try {
+                const response = await fetch('http://localhost:5000/documents/upload', {
+                    method: 'POST',
+                    headers: {'Authorization': 'Bearer ' + token},
+                    body: formData
+                });
+                
+                const data = await response.json();
+                alert('Résultat: ' + JSON.stringify(data));
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        }
+
+        // ===== NOUVELLES FONCTIONS POUR TEST OFFLINE =====
+        async function testOffline() {
+            if (typeof offlineQueue === 'undefined') {
+                alert('❌ offlineQueue non défini - Vérifie que le script est chargé');
+                return;
+            }
+            
+            console.log('✅ offlineQueue disponible:', offlineQueue);
+            
+            // Ajouter une action
+            const id = await offlineQueue.addAction('UPLOAD', {
+                fichier: 'test_offline.txt',
+                titre: 'Document hors-ligne'
+            });
+            console.log('✅ Action ajoutée avec ID:', id);
+            
+            // Voir les actions
+            const actions = await offlineQueue.getPendingActions();
+            console.log('📋 Actions en attente:', actions);
+            
+            alert('✅ Action ajoutée! Voir console pour détails');
+        }
+    </script>
+    <script>
+    // Vérification du chargement
+    window.onload = function() {
+        if (typeof offlineQueue !== 'undefined') {
+            console.log('✅ offlineQueue chargé');
+        } else {
+            console.error('❌ offlineQueue NON chargé');
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 // ============================================
 // static/offline-queue.js - File d'attente hors-ligne
+// GED-PME - Gestion des actions en mode déconnecté
 // ============================================
 
 class OfflineQueue {
@@ -8,7 +9,9 @@ class OfflineQueue {
         this.initDB();
     }
 
-    // Initialiser IndexedDB
+    // ============================================
+    // INITIALISATION INDEXEDDB
+    // ============================================
     initDB() {
         const request = indexedDB.open('GED-PME-Offline', 1);
 
@@ -29,7 +32,9 @@ class OfflineQueue {
         };
     }
 
-    // Ajouter une action à la file d'attente
+    // ============================================
+    // AJOUTER UNE ACTION À LA FILE D'ATTENTE
+    // ============================================
     async addAction(action, data) {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(['actions'], 'readwrite');
@@ -56,7 +61,9 @@ class OfflineQueue {
         });
     }
 
-    // Récupérer toutes les actions en attente
+    // ============================================
+    // RÉCUPÉRER TOUTES LES ACTIONS EN ATTENTE
+    // ============================================
     async getPendingActions() {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(['actions'], 'readonly');
@@ -73,7 +80,17 @@ class OfflineQueue {
         });
     }
 
-    // Marquer une action comme synchronisée
+    // ============================================
+    // COMPTER LES ACTIONS EN ATTENTE
+    // ============================================
+    async getPendingCount() {
+        const actions = await this.getPendingActions();
+        return actions.length;
+    }
+
+    // ============================================
+    // MARQUER UNE ACTION COMME SYNCHRONISÉE
+    // ============================================
     async markAsSynced(actionId) {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(['actions'], 'readwrite');
@@ -94,7 +111,9 @@ class OfflineQueue {
         });
     }
 
-    // Nettoyer les anciennes actions
+    // ============================================
+    // NETTOYER LES ANCIENNES ACTIONS
+    // ============================================
     async cleanOldActions(days = 7) {
         const cutoff = new Date();
         cutoff.setDate(cutoff.getDate() - days);
@@ -110,9 +129,103 @@ class OfflineQueue {
         });
     }
 
-    // ===== NOUVELLES MÉTHODES =====
+    // ============================================
+    // REJOUER UNE ACTION SPÉCIFIQUE
+    // ============================================
+    async replayAction(action) {
+        console.log(`🔄 Exécution réelle: ${action.action}`, action.data);
+        
+        // Récupérer le token JWT depuis le localStorage
+        const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+            console.error('❌ Token manquant - Veuillez vous reconnecter');
+            return { success: false, error: 'Token manquant' };
+        }
+        
+        let url = '';
+        let options = {
+            method: action.action,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        // Configuration selon le type d'action
+        switch(action.action) {
+            case 'UPLOAD':
+                url = 'http://localhost:5000/documents/upload';
+                const formData = new FormData();
+                formData.append('titre', action.data.titre || 'Document hors-ligne');
+                formData.append('description', action.data.description || '');
+                
+                // Simuler un fichier (pour test)
+                const blob = new Blob(['Contenu test créé en mode hors-ligne'], { type: 'text/plain' });
+                formData.append('file', blob, action.data.fichier || 'document_hors_ligne.txt');
+                
+                options = {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                };
+                break;
+                
+            case 'DELETE':
+                url = `http://localhost:5000/documents/${action.data.id}`;
+                options.method = 'DELETE';
+                break;
+                
+            case 'SOUMISSION':
+                url = `http://localhost:5000/documents/${action.data.doc_id}/soumettre`;
+                options.method = 'PUT';
+                break;
+                
+            case 'VALIDATION':
+                url = `http://localhost:5000/documents/${action.data.doc_id}/valider-etape`;
+                options.method = 'PUT';
+                options.body = JSON.stringify({ commentaire: action.data.commentaire || 'Validé hors-ligne' });
+                break;
+                
+            case 'REJET':
+                url = `http://localhost:5000/documents/${action.data.doc_id}/rejeter`;
+                options.method = 'PUT';
+                options.body = JSON.stringify({ 
+                    commentaire: action.data.commentaire || 'Rejeté hors-ligne' 
+                });
+                break;
+                
+            default:
+                // Pour les autres actions génériques
+                url = action.data.url || `http://localhost:5000${action.data.path || ''}`;
+                if (action.data.body) {
+                    options.body = JSON.stringify(action.data.body);
+                }
+        }
+        
+        try {
+            console.log(`📤 Envoi à ${url}`, options);
+            const response = await fetch(url, options);
+            const result = await response.json();
+            
+            if (response.ok) {
+                console.log(`✅ Action ${action.action} réussie:`, result);
+                return { success: true, data: result };
+            } else {
+                console.error(`❌ Action ${action.action} échouée:`, result);
+                return { success: false, error: result.message || 'Erreur inconnue' };
+            }
+        } catch (error) {
+            console.error(`❌ Erreur réseau:`, error);
+            return { success: false, error: error.message };
+        }
+    }
 
-    // Synchroniser toutes les actions en attente
+    // ============================================
+    // SYNCHRONISER TOUTES LES ACTIONS
+    // ============================================
     async syncAll() {
         const actions = await this.getPendingActions();
         
@@ -127,41 +240,74 @@ class OfflineQueue {
         
         for (const action of actions) {
             try {
-                // Rejouer l'action sur le serveur
                 const result = await this.replayAction(action);
                 
                 if (result.success) {
                     await this.markAsSynced(action.id);
-                    results.push({ id: action.id, success: true });
-                    console.log(`✅ Action ${action.id} synchronisée`);
+                    results.push({ 
+                        id: action.id, 
+                        success: true, 
+                        action: action.action 
+                    });
+                    console.log(`✅ Action ${action.id} (${action.action}) synchronisée`);
+                    
+                    // Notification si disponible
+                    this.showNotification(`✅ ${action.action} synchronisé`, 'success');
                 } else {
-                    results.push({ id: action.id, success: false, error: result.error });
+                    results.push({ 
+                        id: action.id, 
+                        success: false, 
+                        action: action.action, 
+                        error: result.error 
+                    });
                     console.error(`❌ Action ${action.id} échouée:`, result.error);
+                    this.showNotification(`❌ ${action.action} échoué: ${result.error}`, 'error');
                 }
             } catch (error) {
-                results.push({ id: action.id, success: false, error: error.message });
+                results.push({ 
+                    id: action.id, 
+                    success: false, 
+                    action: action.action, 
+                    error: error.message 
+                });
                 console.error(`❌ Erreur action ${action.id}:`, error);
+                this.showNotification(`❌ Erreur: ${error.message}`, 'error');
             }
         }
         
         return results;
     }
 
-    // Rejouer une action spécifique
-    async replayAction(action) {
-        console.log(`🔄 Rejouer ${action.action}:`, action.data);
-        
-        // Simulation de succès (à remplacer par vraie API plus tard)
-        return { success: true };
+    async syncAll() {
+    const actions = await this.getPendingActions();
+    console.log(`🔄 Synchronisation de ${actions.length} action(s)...`);
+    
+    for (const action of actions) {
+        await this.markAsSynced(action.id);
+        console.log(`✅ Action ${action.id} synchronisée`);
     }
+    
+    return { success: true, count: actions.length };
+}
 
-    // Obtenir le nombre d'actions en attente
-    async getPendingCount() {
-        const actions = await this.getPendingActions();
-        return actions.length;
+    // ============================================
+    // AFFICHER UNE NOTIFICATION
+    // ============================================
+    showNotification(message, type = 'info') {
+        if (typeof window.showNotification === 'function') {
+            window.showNotification(message, type);
+        } else {
+            console.log(`[${type}] ${message}`);
+        }
     }
 }
 
-// Instance globale
+// ============================================
+// INSTANCE GLOBALE UNIQUE
+// ============================================
 const offlineQueue = new OfflineQueue();
 
+// Exposer globalement pour le navigateur
+window.offlineQueue = offlineQueue;
+
+console.log('✅ File d\'attente hors-ligne initialisée');
