@@ -1,6 +1,7 @@
 // ============================================
 // static/offline-queue.js - File d'attente hors-ligne
 // GED-PME - Gestion des actions en mode déconnecté
+// Version avec API réelle et synchronisation
 // ============================================
 
 class OfflineQueue {
@@ -130,27 +131,23 @@ class OfflineQueue {
     }
 
     // ============================================
-    // REJOUER UNE ACTION SPÉCIFIQUE
+    // REJOUER UNE ACTION SPÉCIFIQUE (VERSION API RÉELLE)
     // ============================================
     async replayAction(action) {
         console.log(`🔄 Exécution réelle: ${action.action}`, action.data);
         
         // Récupérer le token JWT depuis le localStorage
-        const token = localStorage.getItem('auth_token');
-        
-        if (!token) {
-            console.error('❌ Token manquant - Veuillez vous reconnecter');
-            return { success: false, error: 'Token manquant' };
-        }
+        // Récupérer le token (avec le bon nom)
+const token = localStorage.getItem('token');
+console.log('🔑 Token utilisé:', token ? token.substring(0, 20) + '...' : 'Aucun');
+
+if (!token) {
+    console.error('❌ Token manquant - Veuillez vous reconnecter');
+    return { success: false, error: 'Token manquant' };
+}
         
         let url = '';
-        let options = {
-            method: action.action,
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        };
+        let options = {};
         
         // Configuration selon le type d'action
         switch(action.action) {
@@ -175,34 +172,55 @@ class OfflineQueue {
                 
             case 'DELETE':
                 url = `http://localhost:5000/documents/${action.data.id}`;
-                options.method = 'DELETE';
+                options = {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                };
                 break;
                 
             case 'SOUMISSION':
                 url = `http://localhost:5000/documents/${action.data.doc_id}/soumettre`;
-                options.method = 'PUT';
+                options = {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                };
                 break;
                 
             case 'VALIDATION':
                 url = `http://localhost:5000/documents/${action.data.doc_id}/valider-etape`;
-                options.method = 'PUT';
-                options.body = JSON.stringify({ commentaire: action.data.commentaire || 'Validé hors-ligne' });
+                options = {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ commentaire: action.data.commentaire || 'Validé hors-ligne' })
+                };
                 break;
                 
             case 'REJET':
                 url = `http://localhost:5000/documents/${action.data.doc_id}/rejeter`;
-                options.method = 'PUT';
-                options.body = JSON.stringify({ 
-                    commentaire: action.data.commentaire || 'Rejeté hors-ligne' 
-                });
+                options = {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        commentaire: action.data.commentaire || 'Rejeté hors-ligne' 
+                    })
+                };
                 break;
                 
             default:
-                // Pour les autres actions génériques
-                url = action.data.url || `http://localhost:5000${action.data.path || ''}`;
-                if (action.data.body) {
-                    options.body = JSON.stringify(action.data.body);
-                }
+                console.error(`❌ Type d'action inconnu: ${action.action}`);
+                return { success: false, error: 'Type action inconnu' };
         }
         
         try {
@@ -278,18 +296,6 @@ class OfflineQueue {
         return results;
     }
 
-    async syncAll() {
-    const actions = await this.getPendingActions();
-    console.log(`🔄 Synchronisation de ${actions.length} action(s)...`);
-    
-    for (const action of actions) {
-        await this.markAsSynced(action.id);
-        console.log(`✅ Action ${action.id} synchronisée`);
-    }
-    
-    return { success: true, count: actions.length };
-}
-
     // ============================================
     // AFFICHER UNE NOTIFICATION
     // ============================================
@@ -310,4 +316,4 @@ const offlineQueue = new OfflineQueue();
 // Exposer globalement pour le navigateur
 window.offlineQueue = offlineQueue;
 
-console.log('✅ File d\'attente hors-ligne initialisée');
+console.log('✅ File d\'attente hors-ligne initialisée avec API réelle');

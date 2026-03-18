@@ -27,6 +27,21 @@ self.addEventListener('install', event => {
 
 // Interception des requêtes
 self.addEventListener('fetch', event => {
+  // ✅ IGNORER LES MÉTHODES POST (upload, etc.)
+  if (event.request.method === 'POST') {
+    // Ne pas essayer de cacher, laisser passer normalement
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // ✅ IGNORER LES REQUÊTES API (optionnel)
+  if (event.request.url.includes('/documents/') || 
+      event.request.url.includes('/login') || 
+      event.request.url.includes('/register')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
