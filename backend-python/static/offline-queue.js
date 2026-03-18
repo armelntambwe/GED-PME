@@ -9,6 +9,30 @@ class OfflineQueue {
         this.queueName = 'ged-pme-offline-queue';
         this.initDB();
     }
+    // ============================================
+// DÉTECTER UN CONFLIT
+// ============================================
+async detectConflict(action, response, result) {
+    // Conflit basé sur le code HTTP
+    if (response.status === 409) {
+        console.warn('⚠️ Conflit détecté (HTTP 409)');
+        return true;
+    }
+    
+    // Conflit basé sur le message
+    if (result.message && result.message.includes('conflit')) {
+        console.warn('⚠️ Conflit détecté (message)');
+        return true;
+    }
+    
+    // Conflit basé sur la version (si le serveur renvoie une version)
+    if (result.version && action.data.version && result.version > action.data.version) {
+        console.warn('⚠️ Conflit détecté (version plus récente)');
+        return true;
+    }
+    
+    return false;
+}
 
     // ============================================
     // INITIALISATION INDEXEDDB
@@ -224,77 +248,105 @@ if (!token) {
         }
         
         try {
-            console.log(`📤 Envoi à ${url}`, options);
-            const response = await fetch(url, options);
-            const result = await response.json();
-            
-            if (response.ok) {
-                console.log(`✅ Action ${action.action} réussie:`, result);
-                return { success: true, data: result };
-            } else {
-                console.error(`❌ Action ${action.action} échouée:`, result);
-                return { success: false, error: result.message || 'Erreur inconnue' };
-            }
+    console.log(`📤 Envoi à ${url}`, options);
+    const response = await fetch(url, options);
+    const result = await response.json();
+    
+    // Détection des conflits
+    const hasConflict = await this.detectConflict(action, response, result);
+    
+    if (hasConflict) {
+        console.warn('⚠️ Conflit détecté, action mise en attente');
+        return { 
+            success: false, 
+            conflict: true, 
+            error: 'Conflit détecté',
+            data: result 
+        };
+    }
+    
+    if (response.ok) {
+        console.log(`✅ Action ${action.action} réussie:`, result);
+        return { success: true, data: result };
+    } else {
+        console.error(`❌ Action ${action.action} échouée:`, result);
+        return { success: false, error: result.message || 'Erreur inconnue' };
+    }
+
         } catch (error) {
             console.error(`❌ Erreur réseau:`, error);
             return { success: false, error: error.message };
         }
     }
 
-    // ============================================
-    // SYNCHRONISER TOUTES LES ACTIONS
-    // ============================================
-    async syncAll() {
-        const actions = await this.getPendingActions();
-        
-        if (actions.length === 0) {
-            console.log('✅ Rien à synchroniser');
-            return [];
-        }
-        
-        console.log(`🔄 Synchronisation de ${actions.length} action(s)...`);
-        
-        const results = [];
-        
-        for (const action of actions) {
-            try {
-                const result = await this.replayAction(action);
-                
-                if (result.success) {
-                    await this.markAsSynced(action.id);
-                    results.push({ 
-                        id: action.id, 
-                        success: true, 
-                        action: action.action 
-                    });
-                    console.log(`✅ Action ${action.id} (${action.action}) synchronisée`);
-                    
-                    // Notification si disponible
-                    this.showNotification(`✅ ${action.action} synchronisé`, 'success');
-                } else {
-                    results.push({ 
-                        id: action.id, 
-                        success: false, 
-                        action: action.action, 
-                        error: result.error 
-                    });
-                    console.error(`❌ Action ${action.id} échouée:`, result.error);
-                    this.showNotification(`❌ ${action.action} échoué: ${result.error}`, 'error');
-                }
-            } catch (error) {
+   // ============================================
+// SYNCHRONISER TOUTES LES ACTIONS
+// ============================================
+async syncAll() {
+    const actions = await this.getPendingActions();
+    
+    if (actions.length === 0) {
+        console.log('✅ Rien à synchroniser');
+        return [];
+    }
+    
+    console.log(`🔄 Synchronisation de ${actions.length} action(s)...`);
+    
+    const results = [];
+    
+    for (const action of actions) {
+        try {
+            const result = await this.replayAction(action);
+            
+            if (result.success) {
+                await this.markAsSynced(action.id);
+                results.push({ 
+                    id: action.id, 
+                    success: true, 
+                    action: action.action 
+                });
+                console.log(`✅ Action ${action.id} (${action.action}) synchronisée`);
+                this.showNotification(`✅ ${action.action} synchronisé`, 'success');
+            } 
+            // 👇 NOUVEAU : GESTION DES CONFLITS
+            else if (result.conflict) {
+                // Conflit détecté - on garde l'action dans la file
+                results.push({ 
+                    id: action.id, 
+                    success: false, 
+                    conflict: true,
+                    action: action.action, 
+                    error: result.error,
+                    data: result.data 
+                });
+                console.warn(`⚠️ Action ${action.id} (${action.action}) en conflit - sera retentée plus tard`);
+                this.showNotification(`⚠️ ${action.action} en conflit`, 'warning');
+            }
+            // 👇 GESTION DES ERREURS NORMALES
+            else {
                 results.push({ 
                     id: action.id, 
                     success: false, 
                     action: action.action, 
-                    error: error.message 
+                    error: result.error 
                 });
-                console.error(`❌ Erreur action ${action.id}:`, error);
-                this.showNotification(`❌ Erreur: ${error.message}`, 'error');
+                console.error(`❌ Action ${action.id} échouée:`, result.error);
+                this.showNotification(`❌ ${action.action} échoué: ${result.error}`, 'error');
             }
+        } catch (error) {
+            results.push({ 
+                id: action.id, 
+                success: false, 
+                action: action.action, 
+                error: error.message 
+            });
+            console.error(`❌ Erreur action ${action.id}:`, error);
+            this.showNotification(`❌ Erreur: ${error.message}`, 'error');
         }
-        
-        return results;
     }
+    
+    return results;
+}
 
     // ============================================
     // AFFICHER UNE NOTIFICATION
