@@ -7,6 +7,8 @@
 import os
 import time
 from werkzeug.utils import secure_filename
+from config import Config
+
 from config import ALLOWED_EXTENSIONS
 
 def allowed_file(filename):

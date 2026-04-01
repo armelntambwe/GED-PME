@@ -4,34 +4,13 @@ class Config:
     MYSQL_PASSWORD = ''
     MYSQL_DB = 'ged_pme'
 
-    # Clé secrète pour les sessions et tokens JWT
-    # En production, utiliser une variable d'environnement
-    SECRET_KEY = 'votre-clé-secrète-très-longue-et-difficile-à-deviner'
-    
-    # ==============================
-    # CONFIGURATION DES FICHIERS
-    # ==============================
-    
-    # Dossier où seront stockés les fichiers uploadés
-    UPLOAD_FOLDER = 'uploads'
-    
-    # Taille maximale des fichiers (16 Mo)
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+    SECRET_KEY = 'votre-cle-secrete-tres-longue-et-difficile-a-deviner'
 
-     # CONFIGURATION JWT (À AJOUTER)
-    # ==============================
-    JWT_SECRET_KEY = 'votre-clé-secrète-très-longue-2025'
+    JWT_SECRET_KEY = 'votre-cle-secrete-tres-longue-2025'
     JWT_EXPIRATION_HOURS = 24
 
-    # ==============================
-# CONFIGURATION UPLOAD (À AJOUTER)
-# ==============================
 
-# Dossier où seront stockés les fichiers
+# Variables en dehors de la classe pour l'import direct
 UPLOAD_FOLDER = 'uploads'
-
-# Taille maximale des fichiers (16 Mo = 16 * 1024 * 1024)
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024
-
-# Formats de fichiers autorisés (pour commencer)
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'jpg', 'jpeg', 'png', 'txt'}

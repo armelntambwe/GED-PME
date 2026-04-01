@@ -1,122 +1,43 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME - Test hors-ligne</title>
-    <script src="offline-queue.js"></script>
-
-    <style>
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    .status-badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 3px;
-        font-weight: bold;
-    }
-    
-    .online {
-        background-color: #4CAF50;
-        color: white;
-    }
-    
-    .offline {
-        background-color: #f44336;
-        color: white;
-    }
-
-    #status {
-        font-size: 18px;
-        margin: 20px;
-        padding: 10px;
-        border-radius: 5px;
-    }
-</style>
+    <title>GED-PME Test</title>
 </head>
 <body>
-    <h1>GED-PME - Test mode hors-ligne</h1>
+    <h1>📁 GED-PME - TEST CONNEXION</h1>
     
-    <div id="status">🟢 En ligne</div>
-    
-    <button onclick="testerUpload()">Tester upload</button>
-    <button onclick="testerSync()">Forcer synchronisation</button>
+    <div style="border:2px solid blue; padding:20px; margin:20px">
+        <h2>🔐 FORMULAIRE DE CONNEXION</h2>
+        Email: <input type="text" id="email" value="admin@test.com"><br>
+        Mot de passe: <input type="password" id="password" value="admin123"><br>
+        <button onclick="login()" style="background:blue; color:white; padding:10px">SE CONNECTER</button>
+        <div id="login-status"></div>
+    </div>
 
     <script>
-        // Détection de la connexion
-        function updateStatus() {
-            const status = document.getElementById('status');
-            if (navigator.onLine) {
-                status.innerHTML = '🟢 En ligne';
-                status.style.color = 'green';
-            } else {
-                status.innerHTML = '🔴 Hors-ligne';
-                status.style.color = 'red';
-            }
-        }
-
-        window.addEventListener('online', updateStatus);
-        window.addEventListener('offline', updateStatus);
-        updateStatus();
-
-        // Fonction de test
-        async function testerUpload() {
-            const resultat = await apiRequest('/documents/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer VOTRE_TOKEN'
-                },
-                body: new FormData() // Simuler un fichier
-            });
-            console.log('Résultat:', resultat);
-        }
-
-        async function testerSync() {
-            if (navigator.onLine) {
-                const actions = await offlineQueue.getPendingActions();
-                console.log('Actions en attente:', actions);
-                alert('Voir console pour les actions en attente');
-            } else {
-                alert('Vous êtes hors-ligne, impossible de synchroniser');
-            }
-        }
-
-        // Intercepter les requêtes API
-        async function apiRequest(url, options) {
-            if (!navigator.onLine) {
-                // Mode hors-ligne : mettre en file d'attente
-                await offlineQueue.addAction(options.method || 'GET', {
-                    url: url,
-                    headers: options.headers,
-                    body: options.body
-                });
-                alert('📴 Action mise en attente (mode hors-ligne)');
-                return { offline: true };
-            }
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             
-            // Mode en ligne : exécuter normalement
+            document.getElementById('login-status').innerHTML = 'Connexion en cours...';
+            
             try {
-                const response = await fetch(url, options);
-                return response;
+                const response = await fetch('http://localhost:5000/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('login-status').innerHTML = '✅ CONNECTÉ!';
+                } else {
+                    document.getElementById('login-status').innerHTML = '❌ ' + result.message;
+                }
             } catch (error) {
-                console.error('Erreur:', error);
+                document.getElementById('login-status').innerHTML = '❌ Erreur: ' + error.message;
             }
-        }
-
-        // Enregistrer le service worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('✅ Service Worker enregistré', reg))
-                .catch(err => console.error('❌ Erreur Service Worker', err));
         }
     </script>
 </body>
