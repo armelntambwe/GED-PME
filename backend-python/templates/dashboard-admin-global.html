@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GED-PME - Administration Globale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h2 { font-size: 18px; }
+        .header-right { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #10b981;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .online-status.offline { background: #ef4444; }
+        .online-status.offline i { animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .notification-icon { position: relative; cursor: pointer; font-size: 20px; }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            display: none;
+        }
+        .logout {
+            background: #ef4444;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            right: 20px;
+            top: 55px;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .notification-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+            position: sticky;
+            top: 0;
+        }
+        .notification-header button { background: none; border: none; color: #667eea; cursor: pointer; font-size: 12px; }
+        .notification-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .notification-item:hover { background: #f8fafc; }
+        .notification-date { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+        .notification-message { font-size: 13px; color: #1e293b; }
+        .notification-item-lu { opacity: 0.6; background: #f9f9f9; }
+        .empty-notification { padding: 30px; text-align: center; color: #94a3b8; font-size: 13px; }
+
+        .nav {
+            background: white;
+            padding: 0 15px;
+            display: flex;
+            gap: 5px;
+            border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+        }
+        .nav button {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .nav button.active { border-bottom: 3px solid #667eea; color: #667eea; font-weight: bold; }
+
+        .container { padding: 15px; }
+
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-number { font-size: 28px; font-weight: bold; color: #667eea; }
+        .stat-card i { font-size: 20px; color: #667eea; margin-bottom: 8px; }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+        .badge-actif { background: #d1fae5; color: #059669; }
+        .badge-inactif { background: #fee2e2; color: #dc2626; }
+        .badge-admin { background: #e0e7ff; color: #4338ca; }
+        .badge-pme { background: #fef3c7; color: #d97706; }
+        .badge-employe { background: #dbeafe; color: #2563eb; }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-sm { padding: 3px 8px; font-size: 11px; }
+        .btn-success { background: #10b981; }
+        .search-box { padding: 6px 10px; width: 200px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; }
+        .action-icons { display: flex; gap: 10px; }
+        .action-icons i { cursor: pointer; font-size: 14px; }
+        .fa-edit { color: #f59e0b; }
+        .fa-toggle-on { color: #10b981; }
+
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        canvas { max-width: 100%; height: auto; }
+        .loading { text-align: center; padding: 20px; color: #94a3b8; }
+        .error-message { background: #fee2e2; color: #dc2626; padding: 15px; text-align: center; border-radius: 10px; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 95%;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #334155; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.1); }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+        @media (max-width: 768px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2><i class="fas fa-globe-africa"></i> GED-PME | Administration Globale</h2>
+        <div class="header-right">
+            <div class="online-status" id="onlineStatus">
+                <i class="fas fa-wifi"></i>
+                <span id="statusText">En ligne</span>
+            </div>
+            <div class="notification-icon" id="notificationIcon">
+                <i class="fas fa-bell"></i>
+                <span id="notificationBadge" class="notification-badge">0</span>
+            </div>
+            <span id="userName" style="font-size: 14px;"></span>
+            <button class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
+    </div>
+
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            <span>Notifications</span>
+            <button onclick="marquerToutLu()">Tout marquer lu</button>
+        </div>
+        <div id="notificationList">
+            <div class="empty-notification">Aucune notification</div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="active" onclick="showTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
+        <button onclick="showTab('entreprises')"><i class="fas fa-building"></i> Entreprises</button>
+        <button onclick="showTab('users')"><i class="fas fa-users"></i> Utilisateurs</button>
+        <button onclick="showTab('documents')"><i class="fas fa-file-alt"></i> Documents</button>
+        <button onclick="showTab('logs')"><i class="fas fa-history"></i> Logs</button>
+        <button onclick="showTab('storage')"><i class="fas fa-database"></i> Stockage</button>
+    </div>
+
+    <div class="container" id="contentArea">
+        <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Chargement...</div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-building"></i> <span id="modalTitle">Modifier l'entreprise</span></h3>
+            <input type="hidden" id="editId">
+            <div class="form-group"><label>Nom de l'entreprise *</label><input type="text" id="editNom" placeholder="Ex: Congo Tech Solutions"></div>
+            <div class="form-group"><label>Adresse</label><input type="text" id="editAdresse" placeholder="Ex: Kinshasa, Gombe"></div>
+            <div class="form-group"><label>Téléphone</label><input type="text" id="editTel" placeholder="Ex: +243812345678"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="editEmail" placeholder="Ex: contact@entreprise.cd"></div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeModal()" style="background: #ccc; color: #333;">Annuler</button>
+                <button class="btn btn-success" id="modalSaveBtn" onclick="updateEntreprise()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/';
+        
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('userName').textContent = user.nom || 'Admin';
+
+        let entreprisesData = [], usersData = [], documentsData = [];
+        let notificationInterval;
+
+        // ========== INDICATEUR DE CONNEXION ==========
+        function updateOnlineStatus() {
+            const statusDiv = document.getElementById('onlineStatus');
+            const statusText = document.getElementById('statusText');
+            const icon = statusDiv.querySelector('i');
+            
+            if (navigator.onLine) {
+                statusDiv.classList.remove('offline');
+                statusDiv.style.background = '#10b981';
+                icon.className = 'fas fa-wifi';
+                statusText.textContent = 'En ligne';
+            } else {
+                statusDiv.classList.add('offline');
+                statusDiv.style.background = '#ef4444';
+                icon.className = 'fas fa-plug';
+                statusText.textContent = 'Hors-ligne';
+            }
+        }
+
+        window.addEventListener('online', () => {
+            updateOnlineStatus();
+            setTimeout(() => location.reload(), 1000);
+        });
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // ========== NOTIFICATIONS ==========
+        async function chargerNotifications(toutes = true) {
+            if (!navigator.onLine) return;
+            try {
+                const url = toutes ? '/notifications/all' : '/notifications';
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                
+                const badge = document.getElementById('notificationBadge');
+                if (data.notifications) {
+                    const nonLues = data.notifications.filter(n => !n.lue);
+                    badge.style.display = nonLues.length > 0 ? 'inline-block' : 'none';
+                    if (nonLues.length > 0) badge.textContent = nonLues.length;
+                }
+                
+                const list = document.getElementById('notificationList');
+                list.innerHTML = '';
+                if (data.notifications && data.notifications.length > 0) {
+                    for (const notif of data.notifications) {
+                        const date = notif.date_creation ? notif.date_creation.slice(0, 16).replace('T', ' ') : '';
+                        list.innerHTML += `<div class="notification-item ${notif.lue ? 'notification-item-lu' : ''}" onclick="marquerLu(${notif.id}, '${notif.lien || ''}')">
+                            <div class="notification-date">${date} ${notif.lue ? '✓ Lu' : ''}</div>
+                            <div class="notification-message">${notif.message}</div>
+                        </div>`;
+                    }
+                } else {
+                    list.innerHTML = '<div class="empty-notification">Aucune notification</div>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function marquerLu(id, lien) {
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
+            try {
+                await fetch(`/notifications/${id}/lire`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                await chargerNotifications(true);
+                if (lien && lien !== '') {
+                    const tabMatch = lien.match(/tab=(\w+)/);
+                    if (tabMatch) {
+                        const tabName = tabMatch[1];
+                        document.querySelectorAll('.nav button').forEach(btn => {
+                            if (btn.textContent.toLowerCase().includes(tabName)) btn.click();
+                        });
+                    } else {
+                        window.location.href = lien;
+                    }
+                }
+                document.getElementById('notificationDropdown').style.display = 'none';
+            } catch(e) { console.error(e); }
+        }
+
+        async function marquerToutLu() {
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
+            try {
+                await fetch('/notifications/lire-tout', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                await chargerNotifications(true);
+            } catch(e) { console.error(e); }
+        }
+
+        document.getElementById('notificationIcon')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            if (dropdown.style.display === 'block') chargerNotifications(true);
+        });
+        document.addEventListener('click', () => { document.getElementById('notificationDropdown').style.display = 'none'; });
+
+        // ========== NAVIGATION ==========
+        function showTab(tabName) {
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if (tabName === 'dashboard') loadDashboard();
+            else if (tabName === 'entreprises') loadEntreprises();
+            else if (tabName === 'users') loadUsers();
+            else if (tabName === 'documents') loadDocuments();
+            else if (tabName === 'logs') loadLogs();
+            else if (tabName === 'storage') loadStorage();
+        }
+
+        // ========== DASHBOARD ==========
+        async function loadDashboard() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="stats" id="statsGrid"></div>
+                <div class="charts-grid" id="chartsArea"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Dernières activités</h3>
+                        <button class="btn btn-sm" onclick="loadLastLogs()"><i class="fas fa-sync-alt"></i> Actualiser</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="lastLogsTable">
+                            <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th></tr></thead>
+                            <tbody><tr><td colspan="3" class="loading">Chargement...</td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            if (!navigator.onLine) {
+                document.getElementById('statsGrid').innerHTML = '<div class="error-message">⚠️ Hors-ligne - Données potentiellement obsolètes</div>';
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin-global/stats', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('statsGrid').innerHTML = `
+                        <div class="stat-card"><i class="fas fa-building"></i><div class="stat-number">${data.stats.total_entreprises || 0}</div><div>Entreprises</div></div>
+                        <div class="stat-card"><i class="fas fa-file-alt"></i><div class="stat-number">${data.stats.total_documents || 0}</div><div>Documents</div></div>
+                        <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number">${data.stats.total_users || 0}</div><div>Utilisateurs</div></div>
+                    `;
+                }
+            } catch(e) { console.error(e); }
+            
+            document.getElementById('chartsArea').innerHTML = `
+                <div class="card"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Évolution (8 semaines)</h3></div><canvas id="evolutionChart"></canvas></div>
+                <div class="card"><div class="card-header"><h3><i class="fas fa-chart-bar"></i> Top entreprises</h3></div><canvas id="topChart"></canvas></div>
+            `;
+            
+            try {
+                const res = await fetch('/api/admin-global/stats/evolution', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                new Chart(document.getElementById('evolutionChart'), {
+                    type: 'line',
+                    data: { labels: data.labels || [], datasets: [{ label: 'Documents', data: data.data || [], borderColor: '#667eea', tension: 0.3 }] },
+                    options: { responsive: true }
+                });
+            } catch(e) { console.error(e); }
+            
+            try {
+                const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.entreprises) {
+                    const top5 = [...data.entreprises].sort((a,b) => (b.nb_documents||0) - (a.nb_documents||0)).slice(0,5);
+                    new Chart(document.getElementById('topChart'), {
+                        type: 'bar',
+                        data: { labels: top5.map(e => e.nom.substring(0,10)), datasets: [{ label: 'Documents', data: top5.map(e => e.nb_documents||0), backgroundColor: '#667eea' }] },
+                        options: { responsive: true }
+                    });
+                }
+            } catch(e) { console.error(e); }
+            
+            await loadLastLogs();
+        }
+
+        async function loadLastLogs() {
+            try {
+                const res = await fetch('/api/admin-global/all-logs', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const tbody = document.querySelector('#lastLogsTable tbody');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    if (data.logs && data.logs.length > 0) {
+                        for (const log of data.logs.slice(0,10)) {
+                            tbody.innerHTML += `<tr><td>${log.date_action ? log.date_action.slice(0, 16) : '-'}</td>
+                                <td><span class="badge badge-pme">${log.action || '-'}</span></td>
+                                <td>${log.utilisateur_nom || 'Système'}</td></tr>`;
+                        }
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="3">Aucune activité récente</td></tr>';
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // ========== ENTREPRISES ==========
+        async function loadEntreprises() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-building"></i> Entreprises</h3>
+                        <div><input type="text" id="searchEntreprise" placeholder="Rechercher..." class="search-box" onkeyup="filterEntreprises()"> <button class="btn" onclick="showAddEntrepriseModal()"><i class="fas fa-plus"></i> Ajouter</button></div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="entreprisesTable">
+                            <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Employés</th><th>Documents</th><th>Actions</th></tr></thead>
+                            <tbody><tr><td colspan="6" class="loading">Chargement...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            try {
+                const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                entreprisesData = data.entreprises || [];
+                displayEntreprises(entreprisesData);
+            } catch(e) { console.error(e); }
+        }
+
+        function displayEntreprises(data) {
+            const tbody = document.querySelector('#entreprisesTable tbody');
+            tbody.innerHTML = '';
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">Aucune entreprise</td></tr>'; return; }
+            for (const ent of data) {
+                tbody.innerHTML += `<tr>
+                    <td>${ent.id}</td>
+                    <td><strong>${ent.nom || '-'}</strong><br><small>${ent.adresse || ''}</small></td>
+                    <td>${ent.email || '-'}</td>
+                    <td>${ent.nb_employes || 0}</td>
+                    <td>${ent.nb_documents || 0}</td>
+                    <td class="action-icons">
+                        <i class="fas fa-edit" onclick='openEditModal(${ent.id}, "${ent.nom}", "${ent.adresse || ''}", "${ent.telephone || ''}", "${ent.email || ''}")'></i>
+                        <i class="fas fa-toggle-on" onclick="toggleStatus(${ent.id})"></i>
+                    </td>
+                </tr>`;
+            }
+        }
+
+        function filterEntreprises() {
+            const search = document.getElementById('searchEntreprise').value.toLowerCase();
+            displayEntreprises(entreprisesData.filter(e => (e.nom || '').toLowerCase().includes(search)));
+        }
+
+        function openEditModal(id, nom, adresse, tel, email) {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Modifier l\'entreprise';
+            document.getElementById('editId').value = id;
+            document.getElementById('editNom').value = nom;
+            document.getElementById('editAdresse').value = adresse;
+            document.getElementById('editTel').value = tel;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editModal').style.display = 'flex';
+            document.getElementById('modalSaveBtn').innerHTML = 'Enregistrer';
+            document.getElementById('modalSaveBtn').setAttribute('onclick', 'updateEntreprise()');
+        }
+
+        function showAddEntrepriseModal() {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Nouvelle entreprise';
+            document.getElementById('editId').value = '';
+            document.getElementById('editNom').value = '';
+            document.getElementById('editAdresse').value = '';
+            document.getElementById('editTel').value = '';
+            document.getElementById('editEmail').value = '';
+            document.getElementById('editModal').style.display = 'flex';
+            document.getElementById('modalSaveBtn').innerHTML = 'Créer';
+            document.getElementById('modalSaveBtn').setAttribute('onclick', 'createEntreprise()');
+        }
+
+        async function updateEntreprise() {
+            const id = document.getElementById('editId').value;
+            const data = { nom: document.getElementById('editNom').value, adresse: document.getElementById('editAdresse').value, telephone: document.getElementById('editTel').value, email: document.getElementById('editEmail').value };
+            if (!data.nom) { alert('Le nom est requis'); return; }
+            try {
+                const res = await fetch(`/api/admin-global/entreprises/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+                if (res.ok) { alert('Entreprise modifiée'); closeModal(); loadEntreprises(); } else { alert('Erreur modification'); }
+            } catch(e) { alert('Erreur connexion'); }
+        }
+
+        async function createEntreprise() {
+            const data = { nom: document.getElementById('editNom').value, adresse: document.getElementById('editAdresse').value, telephone: document.getElementById('editTel').value, email: document.getElementById('editEmail').value };
+            if (!data.nom) { alert('Le nom est requis'); return; }
+            try {
+                const res = await fetch('/api/admin-global/entreprises', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+                if (res.ok) { alert('Entreprise créée'); closeModal(); loadEntreprises(); } else { alert('Erreur création'); }
+            } catch(e) { alert('Erreur connexion'); }
+        }
+
+        async function toggleStatus(id) {
+            try {
+                await fetch(`/api/admin-global/entreprises/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                loadEntreprises();
+            } catch(e) { alert('Erreur'); }
+        }
+
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        // ========== UTILISATEURS ==========
+        async function loadUsers() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header"><h3><i class="fas fa-users"></i> Utilisateurs</h3><input type="text" id="searchUser" placeholder="Rechercher..." class="search-box" onkeyup="filterUsers()"></div>
+                    <div style="overflow-x: auto;">
+                        <table id="usersTable">
+                            <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Entreprise</th><th>Statut</th></tr></thead>
+                            <tbody><tr><td colspan="6" class="loading">Chargement...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            try {
+                const res = await fetch('/api/admin-global/all-users', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                usersData = data.users || [];
+                displayUsers(usersData);
+            } catch(e) { console.error(e); }
+        }
+
+        function displayUsers(data) {
+            const tbody = document.querySelector('#usersTable tbody');
+            tbody.innerHTML = '';
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">Aucun utilisateur</td></tr>'; return; }
+            for (const u of data) {
+                let roleClass = u.role === 'admin_global' ? 'badge-admin' : (u.role === 'admin_pme' ? 'badge-pme' : 'badge-employe');
+                tbody.innerHTML += `<tr>
+                    <td>${u.id}</td>
+                    <td><strong>${u.nom || '-'}</strong></td>
+                    <td>${u.email || '-'}</td>
+                    <td><span class="badge ${roleClass}">${u.role || '-'}</span></td>
+                    <td>${u.entreprise_nom || '-'}</td>
+                    <td><span class="badge ${u.actif ? 'badge-actif' : 'badge-inactif'}">${u.actif ? 'Actif' : 'Inactif'}</span></td>
+                </tr>`;
+            }
+        }
+
+        function filterUsers() {
+            const search = document.getElementById('searchUser').value.toLowerCase();
+            displayUsers(usersData.filter(u => (u.nom || '').toLowerCase().includes(search)));
+        }
+
+        // ========== DOCUMENTS ==========
+        async function loadDocuments() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header"><h3><i class="fas fa-file-alt"></i> Documents</h3><input type="text" id="searchDoc" placeholder="Rechercher..." class="search-box" onkeyup="filterDocs()"></div>
+                    <div style="overflow-x: auto;">
+                        <table id="documentsTable">
+                            <thead><tr><th>Titre</th><th>Auteur</th><th>Entreprise</th><th>Date</th></tr></thead>
+                            <tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            try {
+                const res = await fetch('/api/admin-global/all-documents', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                documentsData = data.documents || [];
+                displayDocuments(documentsData);
+            } catch(e) { console.error(e); }
+        }
+
+        function displayDocuments(data) {
+            const tbody = document.querySelector('#documentsTable tbody');
+            tbody.innerHTML = '';
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun document</td></tr>'; return; }
+            for (const doc of data) {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${doc.titre || '-'}</strong></td>
+                    <td>${doc.auteur_nom || '-'}</td>
+                    <td>${doc.entreprise_nom || '-'}</td>
+                    <td>${doc.date_creation || '-'}</td>
+                </tr>`;
+            }
+        }
+
+        function filterDocs() {
+            const search = document.getElementById('searchDoc').value.toLowerCase();
+            displayDocuments(documentsData.filter(d => (d.titre || '').toLowerCase().includes(search)));
+        }
+
+        // ========== LOGS ==========
+        async function loadLogs() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header"><h3><i class="fas fa-history"></i> Logs système</h3><button class="btn btn-sm" onclick="exportLogs()"><i class="fas fa-download"></i> Exporter CSV</button></div>
+                    <div style="overflow-x: auto;">
+                        <table id="logsTable">
+                            <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead>
+                            <tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            try {
+                const res = await fetch('/api/admin-global/all-logs', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const tbody = document.querySelector('#logsTable tbody');
+                tbody.innerHTML = '';
+                if (data.logs && data.logs.length > 0) {
+                    for (const log of data.logs) {
+                        tbody.innerHTML += `<tr>
+                            <td>${log.date_action ? log.date_action.slice(0, 16) : '-'}</td>
+                            <td><span class="badge badge-pme">${log.action || '-'}</span></td>
+                            <td>${log.utilisateur_nom || '-'}</td>
+                            <td>${log.description || '-'}</td>
+                        </tr>`;
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4">Aucun log trouvé</td></tr>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function exportLogs() {
+            try {
+                const response = await fetch('/api/admin-global/logs/export', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Erreur export');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `logs_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                alert('Export CSV réussi');
+            } catch(e) {
+                console.error(e);
+                alert('Erreur export: ' + e.message);
+            }
+        }
+
+        // ========== STOCKAGE ==========
+        async function loadStorage() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header"><h3><i class="fas fa-database"></i> Stockage</h3><button class="btn btn-sm" onclick="manualBackup()"><i class="fas fa-database"></i> Sauvegarde</button></div>
+                    <div id="storageInfo" class="loading">Chargement...</div>
+                </div>
+            `;
+            try {
+                const res = await fetch('/api/admin-global/storage', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    const s = data.storage;
+                    document.getElementById('storageInfo').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card"><div class="stat-number">${s.total_gb} GB</div><div>Total</div></div>
+                            <div class="stat-card"><div class="stat-number">${s.used_gb} GB</div><div>Utilisé</div></div>
+                            <div class="stat-card"><div class="stat-number">${s.free_gb} GB</div><div>Libre</div></div>
+                            <div class="stat-card"><div class="stat-number">${s.uploads_mb} MB</div><div>Documents</div></div>
+                        </div>
+                        <div style="max-width: 300px; margin: 0 auto;">
+                            <canvas id="storageChart" style="max-height: 200px;"></canvas>
+                        </div>
+                    `;
+                    new Chart(document.getElementById('storageChart'), {
+                        type: 'doughnut',
+                        data: { labels: ['Utilisé', 'Libre'], datasets: [{ data: [s.used_gb, s.free_gb], backgroundColor: ['#667eea', '#e2e8f0'], borderWidth: 0 }] },
+                        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function manualBackup() {
+            if (confirm('Lancer une sauvegarde manuelle ?')) {
+                try {
+                    const res = await fetch('/api/admin-global/backup', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                    const data = await res.json();
+                    alert(data.success ? 'Sauvegarde réussie' : 'Erreur');
+                } catch(e) { alert('Erreur'); }
+            }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        chargerNotifications(true);
+        if (notificationInterval) clearInterval(notificationInterval);
+        notificationInterval = setInterval(() => chargerNotifications(true), 30000);
+        loadDashboard();
+    </script>
+</body>
+</html>

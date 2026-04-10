@@ -129,8 +129,11 @@
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    if (data.user.role === 'admin_global' || data.user.role === 'admin_pme') {
-                        window.location.href = '/dashboard-admin';
+                    // ✅ CORRECTION : Redirection vers le bon template
+                    if (data.user.role === 'admin_global') {
+                        window.location.href = '/dashboard-admin-global';
+                    } else if (data.user.role === 'admin_pme') {
+                        window.location.href = '/dashboard-pme';
                     } else {
                         window.location.href = '/dashboard-employee';
                     }
