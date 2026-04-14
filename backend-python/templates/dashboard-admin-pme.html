@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GED-PME - Administration PME</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logout { background: #ef4444; border: none; padding: 6px 12px; border-radius: 5px; color: white; cursor: pointer; }
+
+        .nav {
+            background: white;
+            padding: 0 15px;
+            display: flex;
+            gap: 5px;
+            border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+        }
+        .nav button {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav button.active { border-bottom: 3px solid #667eea; color: #667eea; font-weight: bold; }
+
+        .container { padding: 15px; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number { font-size: 28px; font-weight: bold; color: #667eea; }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+        .badge-actif { background: #d1fae5; color: #059669; }
+        .badge-inactif { background: #fee2e2; color: #dc2626; }
+        .badge-soumis { background: #dbeafe; color: #2563eb; }
+        .badge-valide { background: #d1fae5; color: #059669; }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-danger { background: #ef4444; }
+        .search-box {
+            padding: 6px 10px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .action-icons { display: flex; gap: 10px; }
+        .action-icons i { cursor: pointer; font-size: 14px; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .loading { text-align: center; padding: 20px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2><i class="fas fa-building"></i> GED-PME | Administration PME</h2>
+        <div><span id="userName"></span> <button class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button></div>
+    </div>
+
+    <div class="nav">
+        <button class="active" onclick="showTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
+        <button onclick="showTab('employes')"><i class="fas fa-users"></i> Employés</button>
+        <button onclick="showTab('documents')"><i class="fas fa-file-alt"></i> Documents</button>
+        <button onclick="showTab('validation')"><i class="fas fa-check-circle"></i> À valider</button>
+        <button onclick="showTab('categories')"><i class="fas fa-tags"></i> Catégories</button>
+        <button onclick="showTab('corbeille')"><i class="fas fa-trash-alt"></i> Corbeille</button>
+        <button onclick="showTab('workflow')"><i class="fas fa-flowchart"></i> Workflow</button>
+        <button onclick="showTab('profile')"><i class="fas fa-user-cog"></i> Profil</button>
+        <button onclick="showTab('rapports')"><i class="fas fa-chart-line"></i> Rapports</button>
+    </div>
+
+    <div class="container" id="contentArea"><div class="loading"><i class="fas fa-spinner fa-pulse"></i> Chargement...</div></div>
+
+    <!-- MODALS -->
+    <div id="employeModal" class="modal"><div class="modal-content"><h3>Employé</h3><input type="hidden" id="empId"><div class="form-group"><input type="text" id="empNom" placeholder="Nom"></div><div class="form-group"><input type="email" id="empEmail" placeholder="Email"></div><div class="form-group"><input type="text" id="empTel" placeholder="Téléphone"></div><div class="form-group"><input type="password" id="empPassword" placeholder="Mot de passe"></div><div class="modal-buttons"><button class="btn" onclick="closeModal('employeModal')">Annuler</button><button class="btn" id="empSaveBtn" onclick="createEmploye()">Créer</button></div></div></div>
+
+    <div id="categorieModal" class="modal"><div class="modal-content"><h3 id="catTitle">Catégorie</h3><input type="hidden" id="catId"><div class="form-group"><input type="text" id="catNom" placeholder="Nom"></div><div class="form-group"><input type="text" id="catDesc" placeholder="Description"></div><div class="modal-buttons"><button class="btn" onclick="closeModal('categorieModal')">Annuler</button><button class="btn" id="catSaveBtn" onclick="createCategorie()">Créer</button></div></div></div>
+
+    <div id="rejetModal" class="modal"><div class="modal-content"><h3>Rejeter</h3><input type="hidden" id="rejetId"><div class="form-group"><textarea id="rejetComment" rows="3" placeholder="Motif du rejet"></textarea></div><div class="modal-buttons"><button class="btn" onclick="closeModal('rejetModal')">Annuler</button><button class="btn btn-danger" onclick="confirmRejet()">Rejeter</button></div></div></div>
+
+    <div id="workflowModal" class="modal"><div class="modal-content"><h3>Configuration du workflow</h3><div id="workflowList"></div><div style="display:flex; gap:5px; margin-top:10px;"><input type="text" id="newEtape" placeholder="Nom étape"><select id="newRole"><option value="employe">Employé</option><option value="admin_pme">Admin PME</option></select><button class="btn" onclick="addEtape()"><i class="fas fa-plus"></i></button></div><div class="modal-buttons"><button class="btn" onclick="closeModal('workflowModal')">Annuler</button><button class="btn" onclick="saveWorkflow()">Enregistrer</button></div></div></div>
+
+    <div id="profileModal" class="modal"><div class="modal-content"><h3>Mon profil</h3><div class="form-group"><input type="text" id="profileNom" placeholder="Nom"></div><div class="form-group"><input type="email" id="profileEmail" placeholder="Email" disabled></div><div class="form-group"><input type="password" id="profilePassword" placeholder="Nouveau mot de passe"></div><div class="modal-buttons"><button class="btn" onclick="closeModal('profileModal')">Annuler</button><button class="btn" onclick="updateProfile()">Enregistrer</button></div></div></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/';
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('userName').textContent = user.nom || 'Admin';
+
+        let employesData = [], docsData = [], catsData = [], workflowEtapes = [];
+
+        function showTab(tabName) {
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if (tabName === 'dashboard') loadDashboard();
+            else if (tabName === 'employes') loadEmployes();
+            else if (tabName === 'documents') loadDocuments();
+            else if (tabName === 'validation') loadValidation();
+            else if (tabName === 'categories') loadCategories();
+            else if (tabName === 'corbeille') loadCorbeille();
+            else if (tabName === 'workflow') loadWorkflow();
+            else if (tabName === 'profile') loadProfile();
+            else if (tabName === 'rapports') loadRapports();
+        }
+
+        async function loadDashboard() {
+            document.getElementById('contentArea').innerHTML = `<div class="stats" id="statsGrid"></div><div class="card"><div class="card-header"><h3>Derniers documents</h3><button class="btn" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i></button></div><table id="recentTable"><thead><tr><th>Titre</th><th>Statut</th><th>Date</th></tr></thead><tbody><tr><td colspan="3" class="loading">Chargement...</td></tr></tbody></table></div>`;
+            try {
+                const res = await fetch('/api/dashboard/stats', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card"><div class="stat-number">${data.total_documents||0}</div><div>Documents</div></div>
+                    <div class="stat-card"><div class="stat-number">${data.total_users||0}</div><div>Utilisateurs</div></div>
+                    <div class="stat-card"><div class="stat-number">${data.soumis||0}</div><div>En attente</div></div>
+                    <div class="stat-card"><div class="stat-number">${data.valide||0}</div><div>Validés</div></div>`;
+            } catch(e) {}
+            try {
+                const res = await fetch('/documents', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const tbody = document.querySelector('#recentTable tbody');
+                tbody.innerHTML = '';
+                if (data.documents && data.documents.length) {
+                    for (const d of data.documents.slice(0,5)) {
+                        let cls = d.statut === 'valide' ? 'badge-valide' : (d.statut === 'soumis' ? 'badge-soumis' : 'badge-inactif');
+                        tbody.innerHTML += `<tr><td>${d.titre||'-'}</td><td><span class="badge ${cls}">${d.statut||'-'}</span></td><td>${d.date_creation||'-'}</td></tr>`;
+                    }
+                } else { tbody.innerHTML = '<tr><td colspan="3">Aucun document</td></tr>'; }
+            } catch(e) {}
+        }
+
+        async function loadEmployes() {
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Employés</h3><div><input type="text" id="searchEmp" placeholder="Rechercher..." class="search-box" onkeyup="filterEmployes()"><button class="btn" onclick="openEmployeModal()"><i class="fas fa-plus"></i> Ajouter</button></div></div><table id="empTable"><thead><tr><th>Nom</th><th>Email</th><th>Statut</th><th>Actions</th></tr></thead><tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody></table></div>`;
+            try {
+                const res = await fetch('/users', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                employesData = data.users || [];
+                displayEmployes(employesData);
+            } catch(e) {}
+        }
+
+        function displayEmployes(data) {
+            const tbody = document.querySelector('#empTable tbody');
+            tbody.innerHTML = '';
+            if (!data.length) { tbody.innerHTML = '<tr><td colspan="4">Aucun employé</td></tr>'; return; }
+            for (const e of data) {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${e.nom||'-'}</strong><br><small>${e.telephone||''}</small></td>
+                    <td>${e.email||'-'}</td>
+                    <td><span class="badge ${e.actif ? 'badge-actif' : 'badge-inactif'}">${e.actif ? 'Actif' : 'Inactif'}</span></td>
+                    <td class="action-icons">
+                        <i class="fas fa-edit" onclick="editEmploye(${e.id}, '${e.nom}', '${e.email}', '${e.telephone||''}')"></i>
+                        ${e.actif ? `<i class="fas fa-trash-alt" onclick="desactiverEmploye(${e.id})"></i>` : `<i class="fas fa-undo" style="color:#10b981;" onclick="reactiverEmploye(${e.id})"></i>`}
+                        <i class="fas fa-key" onclick="resetPassword(${e.id})"></i>
+                    </td>
+                </tr>`;
+            }
+        }
+
+        function filterEmployes() { const s = document.getElementById('searchEmp').value.toLowerCase(); displayEmployes(employesData.filter(e => (e.nom||'').toLowerCase().includes(s))); }
+        function openEmployeModal() { document.getElementById('empId').value=''; document.getElementById('empNom').value=''; document.getElementById('empEmail').value=''; document.getElementById('empTel').value=''; document.getElementById('empPassword').value='employe123'; document.getElementById('empSaveBtn').innerHTML='Créer'; document.getElementById('empSaveBtn').setAttribute('onclick','createEmploye()'); document.getElementById('employeModal').style.display='flex'; }
+        function editEmploye(id,nom,email,tel) { document.getElementById('empId').value=id; document.getElementById('empNom').value=nom; document.getElementById('empEmail').value=email; document.getElementById('empTel').value=tel; document.getElementById('empPassword').value=''; document.getElementById('empSaveBtn').innerHTML='Modifier'; document.getElementById('empSaveBtn').setAttribute('onclick','updateEmploye()'); document.getElementById('employeModal').style.display='flex'; }
+        async function createEmploye() { const data={nom:document.getElementById('empNom').value, email:document.getElementById('empEmail').value, telephone:document.getElementById('empTel').value, password:document.getElementById('empPassword').value||'employe123'}; if(!data.nom||!data.email){alert('Nom et email requis');return;} await fetch('/admin/employes',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(data)}); closeModal('employeModal'); loadEmployes(); }
+        async function updateEmploye() { const id=document.getElementById('empId').value; const data={nom:document.getElementById('empNom').value, telephone:document.getElementById('empTel').value}; await fetch(`/users/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(data)}); closeModal('employeModal'); loadEmployes(); }
+        async function desactiverEmploye(id) { if(confirm('Désactiver ?')){ await fetch(`/users/${id}/desactiver`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`}}); loadEmployes(); } }
+        async function reactiverEmploye(id) { await fetch(`/users/${id}/reactiver`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`}}); loadEmployes(); }
+        async function resetPassword(id) { const pwd=prompt('Nouveau mot de passe','employe123'); if(pwd){ await fetch(`/users/${id}/reset-password`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({password:pwd})}); alert('Mot de passe réinitialisé'); } }
+
+        async function loadDocuments() {
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Documents</h3><input type="text" id="searchDoc" placeholder="Rechercher..." class="search-box" onkeyup="filterDocs()"></div><table id="docsTable"><thead><tr><th>Titre</th><th>Auteur</th><th>Date</th><th>Statut</th></tr></thead><tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody></table></div>`;
+            try {
+                const res = await fetch('/documents', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                docsData = data.documents || [];
+                displayDocuments(docsData);
+            } catch(e) {}
+        }
+
+        function displayDocuments(data) {
+            const tbody = document.querySelector('#docsTable tbody');
+            tbody.innerHTML = '';
+            if (!data.length) { tbody.innerHTML = '<tr><td colspan="4">Aucun document</div></div>'; return; }
+            for (const d of data) {
+                let cls = d.statut === 'valide' ? 'badge-valide' : (d.statut === 'soumis' ? 'badge-soumis' : 'badge-inactif');
+                tbody.innerHTML += `<tr>
+                    <td>${d.titre||'-'}</td>
+                    <td>${d.auteur_nom||'-'}</td>
+                    <td>${d.date_creation||'-'}</td>
+                    <td><span class="badge ${cls}">${d.statut||'-'}</span></div>
+                </tr>`;
+            }
+        }
+        function filterDocs() { const s = document.getElementById('searchDoc').value.toLowerCase(); displayDocuments(docsData.filter(d => (d.titre||'').toLowerCase().includes(s))); }
+
+        async function loadValidation() {
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Documents en attente</h3></div><table id="valTable"><thead><tr><th>Titre</th><th>Auteur</th><th>Date</th><th>Actions</th></tr></thead><tbody><tr><td colspan="4" class="loading">Chargement...</div></div></tbody></table></div>`;
+            try {
+                const res = await fetch('/documents?statut=soumis', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const tbody = document.querySelector('#valTable tbody');
+                tbody.innerHTML = '';
+                if (data.documents && data.documents.length) {
+                    for (const d of data.documents) {
+                        tbody.innerHTML += `<tr>
+                            <td>${d.titre||'-'}</td>
+                            <td>${d.auteur_nom||'-'}</td>
+                            <td>${d.date_creation||'-'}</div>
+                            <td class="action-icons"><i class="fas fa-check-circle" style="color:#10b981;cursor:pointer;" onclick="validerDoc(${d.id})"></i><i class="fas fa-times-circle" style="color:#ef4444;cursor:pointer;" onclick="openRejetModal(${d.id})"></i></div>
+                        </tr>`;
+                    }
+                } else { tbody.innerHTML = '<tr><td colspan="4">Aucun document en attente</div></div>'; }
+            } catch(e) {}
+        }
+        async function validerDoc(id) { await fetch(`/documents/${id}/valider`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`}}); alert('Validé'); loadValidation(); loadDashboard(); }
+        function openRejetModal(id) { document.getElementById('rejetId').value=id; document.getElementById('rejetComment').value=''; document.getElementById('rejetModal').style.display='flex'; }
+        async function confirmRejet() { const id=document.getElementById('rejetId').value, comment=document.getElementById('rejetComment').value; if(!comment){alert('Motif requis');return;} await fetch(`/documents/${id}/rejeter`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({commentaire:comment})}); alert('Rejeté'); closeModal('rejetModal'); loadValidation(); loadDashboard(); }
+
+        async function loadCategories() {
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Catégories</h3><button class="btn" onclick="openCategorieModal()"><i class="fas fa-plus"></i> Ajouter</button></div><table id="catTable"><thead><tr><th>Nom</th><th>Description</th><th>Actions</th></tr></thead><tbody><tr><td colspan="3" class="loading">Chargement...</div></div></tbody></table></div>`;
+            try {
+                const res = await fetch('/categories', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                catsData = data.categories || [];
+                displayCategories(catsData);
+            } catch(e) {}
+        }
+        function displayCategories(data) {
+            const tbody = document.querySelector('#catTable tbody');
+            tbody.innerHTML = '';
+            if (!data.length) { tbody.innerHTML = '<tr><td colspan="3">Aucune catégorie</div></div>'; return; }
+            for (const c of data) {
+                tbody.innerHTML += `<tr>
+                    <td>${c.nom||'-'}</td>
+                    <td>${c.description||'-'}</td>
+                    <td class="action-icons"><i class="fas fa-edit" onclick="editCategorie(${c.id},'${c.nom}','${c.description||''}')"></i><i class="fas fa-trash-alt" onclick="deleteCategorie(${c.id})"></i></div>
+                </tr>`;
+            }
+        }
+        function openCategorieModal() { document.getElementById('catId').value=''; document.getElementById('catNom').value=''; document.getElementById('catDesc').value=''; document.getElementById('catTitle').innerHTML='Nouvelle catégorie'; document.getElementById('catSaveBtn').innerHTML='Créer'; document.getElementById('catSaveBtn').setAttribute('onclick','createCategorie()'); document.getElementById('categorieModal').style.display='flex'; }
+        function editCategorie(id,nom,desc) { document.getElementById('catId').value=id; document.getElementById('catNom').value=nom; document.getElementById('catDesc').value=desc; document.getElementById('catTitle').innerHTML='Modifier catégorie'; document.getElementById('catSaveBtn').innerHTML='Modifier'; document.getElementById('catSaveBtn').setAttribute('onclick','updateCategorie()'); document.getElementById('categorieModal').style.display='flex'; }
+        async function createCategorie() { const data={nom:document.getElementById('catNom').value, description:document.getElementById('catDesc').value}; if(!data.nom){alert('Nom requis');return;} await fetch('/categories',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(data)}); closeModal('categorieModal'); loadCategories(); }
+        async function updateCategorie() { const id=document.getElementById('catId').value, data={nom:document.getElementById('catNom').value, description:document.getElementById('catDesc').value}; await fetch(`/categories/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(data)}); closeModal('categorieModal'); loadCategories(); }
+        async function deleteCategorie(id) { if(confirm('Supprimer ?')){ await fetch(`/categories/${id}`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}}); loadCategories(); } }
+
+        async function loadCorbeille() {
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Corbeille</h3><button class="btn btn-danger" onclick="viderCorbeille()">Vider</button></div><table id="corbeilleTable"><thead><tr><th>Titre</th><th>Date suppression</th><th>Actions</th></tr></thead><tbody><tr><td colspan="3" class="loading">Chargement...</div></div></tbody></table></div>`;
+            try {
+                const res = await fetch('/documents/corbeille', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const tbody = document.querySelector('#corbeilleTable tbody');
+                tbody.innerHTML = '';
+                if (data.documents && data.documents.length) {
+                    for (const d of data.documents) {
+                        tbody.innerHTML += `<tr>
+                            <td>${d.titre||'-'}</td>
+                            <td>${d.date_suppression||'-'}</td>
+                            <td class="action-icons"><i class="fas fa-trash-restore" style="color:#10b981;" onclick="restaurerDoc(${d.id})"></i><i class="fas fa-trash-alt" onclick="supprimerDefinitif(${d.id})"></i></div>
+                        </tr>`;
+                    }
+                } else { tbody.innerHTML = '<td><td colspan="3">Aucun document dans la corbeille</div></div>'; }
+            } catch(e) {}
+        }
+        async function restaurerDoc(id) { await fetch(`/documents/${id}/restaurer`,{method:'PUT',headers:{'Authorization':`Bearer ${token}`}}); loadCorbeille(); loadDashboard(); }
+        async function supprimerDefinitif(id) { if(confirm('Supprimer définitivement ?')){ await fetch(`/documents/${id}/effacer`,{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}}); loadCorbeille(); } }
+        async function viderCorbeille() { if(confirm('Vider la corbeille ?')){ await fetch('/documents/corbeille/vider',{method:'DELETE',headers:{'Authorization':`Bearer ${token}`}}); loadCorbeille(); } }
+
+        async function loadWorkflow() { document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Configuration workflow</h3><button class="btn" onclick="openWorkflowModal()">Configurer</button></div><div id="workflowDisplay"></div></div>`; try { const res = await fetch('/api/workflow/config', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); const container = document.getElementById('workflowDisplay'); if (data.config && data.config.length) { let html = ''; for (const e of data.config) html += `<div style="padding:10px; background:#f8f9fa; margin:5px 0; border-radius:5px;">${e.nom_etape} (${e.role_requis}) - Délai: ${e.delai_heures}h</div>`; container.innerHTML = html; } else { container.innerHTML = '<div class="loading">Aucune étape configurée</div>'; } } catch(e) {} }
+        function openWorkflowModal() { workflowEtapes = []; document.getElementById('workflowList').innerHTML = '<div class="loading">Aucune étape</div>'; document.getElementById('workflowModal').style.display = 'flex'; loadCurrentWorkflow(); }
+        async function loadCurrentWorkflow() { try { const res = await fetch('/api/workflow/config', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); if (data.config && data.config.length) { workflowEtapes = data.config.map(e => ({ nom: e.nom_etape, role: e.role_requis, delai: e.delai_heures })); renderWorkflowList(); } } catch(e) {} }
+        function renderWorkflowList() { const container = document.getElementById('workflowList'); if (!workflowEtapes.length) { container.innerHTML = '<div class="loading">Aucune étape</div>'; return; } let html = ''; workflowEtapes.forEach((e,i) => { html += `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8f9fa; margin:5px 0; border-radius:5px;"><span><strong>${i+1}.</strong> ${e.nom} (${e.role}) - ${e.delai}h</span><i class="fas fa-trash-alt" style="color:#ef4444; cursor:pointer;" onclick="removeEtape(${i})"></i></div>`; }); container.innerHTML = html; }
+        function addEtape() { const nom = document.getElementById('newEtape').value; const role = document.getElementById('newRole').value; if (!nom) { alert('Nom requis'); return; } workflowEtapes.push({ nom, role, delai: 48 }); renderWorkflowList(); document.getElementById('newEtape').value = ''; }
+        function removeEtape(i) { workflowEtapes.splice(i,1); renderWorkflowList(); }
+        async function saveWorkflow() { if (!workflowEtapes.length) { alert('Ajoutez au moins une étape'); return; } await fetch('/api/workflow/config', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ etapes: workflowEtapes }) }); alert('Workflow enregistré'); closeModal('workflowModal'); loadWorkflow(); }
+
+        async function loadProfile() { try { const res = await fetch('/api/user/profile', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); document.getElementById('profileNom').value = data.nom || ''; document.getElementById('profileEmail').value = data.email || ''; } catch(e) {} document.getElementById('profileModal').style.display = 'flex'; }
+        async function updateProfile() { const nom = document.getElementById('profileNom').value; const pwd = document.getElementById('profilePassword').value; const data = { nom }; if (pwd) data.password = pwd; await fetch('/api/user/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) }); alert('Profil mis à jour'); if (pwd) { alert('Reconnectez-vous'); logout(); } else { closeModal('profileModal'); } }
+
+        async function loadRapports() { document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3>Export des rapports</h3></div><div style="padding:20px;text-align:center;"><button class="btn" onclick="exportLogs()"><i class="fas fa-download"></i> Exporter les logs</button> <button class="btn" onclick="exportDocuments()"><i class="fas fa-file-csv"></i> Exporter les documents</button></div></div>`; }
+        async function exportLogs() { const res = await fetch('/api/admin-global/logs/export', { headers: { 'Authorization': `Bearer ${token}` } }); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `logs_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(url); }
+        async function exportDocuments() { const res = await fetch('/api/pme/documents/export', { headers: { 'Authorization': `Bearer ${token}` } }); const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `documents_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(url); }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
