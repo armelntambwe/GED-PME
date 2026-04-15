@@ -10,7 +10,7 @@
 - MySQL 8.0 installé
 - Base de données ged_pme créée
 - Tables créées : users, entreprises, documents, categories, logs, notifications
-- Relations définies (clés étrangères)
+- Relations définies
 
 ## Module 3 : API – 22 routes
 - POST /register
@@ -40,13 +40,13 @@
 - Génération de token JWT
 - Middleware token_required
 - Middleware role_required
-- Hashage des mots de passe (Werkzeug)
-- Expiration des tokens (24 heures)
+- Hashage des mots de passe
+- Expiration des tokens (24h)
 
 ## Module 5 : Upload et téléchargement
-- Upload de fichiers avec vérification d'extension
-- Sécurisation des noms de fichiers (secure_filename)
-- Limitation de taille configurable
+- Upload avec vérification d'extension
+- Sécurisation des noms de fichiers
+- Limitation de taille
 - Téléchargement avec contrôle d'accès
 
 ## Module 6 : Catégories
@@ -55,19 +55,19 @@
 - Modification d'une catégorie
 - Suppression d'une catégorie
 
-## Module 7 : Logs et traçabilité
+## Module 7 : Logs
 - Journalisation des actions
 - Table logs en base de données
-- Consultation des logs (admin global)
+- Consultation des logs
 - Export CSV des logs
 
-## Module 8 : Workflow documentaire
-- Soumission d'un document (brouillon -> soumis)
-- Validation d'un document (soumis -> valide)
-- Rejet d'un document avec commentaire (soumis -> rejeté)
+## Module 8 : Workflow
+- Soumission (brouillon -> soumis)
+- Validation (soumis -> valide)
+- Rejet avec commentaire (soumis -> rejeté)
 - Vérification des droits pour chaque transition
 
-## Module 9 : Mode hors ligne (PWA)
+## Module 9 : Mode hors ligne PWA
 - Service Worker (sw.js)
 - Mise en cache des ressources statiques
 - Page offline.html
@@ -85,7 +85,7 @@
 - Isolation des données par entreprise
 - Inscription d'une nouvelle entreprise
 
-## Module 12 : Interface utilisateur (templates)
+## Module 12 : Interface utilisateur
 - Page de connexion (login.html)
 - Page d'inscription entreprise (register_company.html)
 - Page d'accueil publique (home.html)
@@ -96,12 +96,12 @@
 ### Admin Global
 - Dashboard avec statistiques globales
 - Graphiques d'évolution (Chart.js)
-- Gestion des entreprises (CRUD, activation/désactivation)
+- Gestion des entreprises (CRUD)
 - Gestion des utilisateurs
 - Consultation des logs
 - Sauvegarde manuelle
 
-### Admin PME (bug présent : création employé échoue)
+### Admin PME
 - Dashboard avec statistiques entreprise
 - Gestion des catégories (CRUD)
 - Gestion des documents (liste, recherche)
@@ -109,31 +109,33 @@
 - Notifications in-app
 - Export CSV
 - Profil utilisateur
-- Bug : création d'employé – request.user_entreprise_id non défini dans le middleware
 
-### Dashboard Employé (bug présent : soumission instable)
+### Dashboard Employé
 - Dashboard personnel
 - Upload de documents
 - Consultation des documents
-- Bug : soumission pour validation – échoue parfois
-- Bug : liste des documents – affichage parfois vide
 
-## Module 14 : OCR (non démarré)
-- Intégration Tesseract à prévoir
+## Module 14 : OCR
+- Intégration Tesseract
 - Extraction de texte depuis images et PDF
 - Indexation du texte extrait
 - Recherche full-text
 
-## Module 15 : Tests terrain (non démarré)
+## Module 15 : Tests terrain
 - Déploiement dans des PME réelles
 - Collecte des retours utilisateurs
 - Correction des bugs remontés
 
-## Module 16 : Documentation utilisateur (non démarrée)
+## Module 16 : Documentation utilisateur
 - Guide d'installation
 - Guide d'utilisation (Admin Global)
 - Guide d'utilisation (Admin PME et Employé)
 
-## Module 17 : Mémoire (en cours)
-- Chapitres 1 et 2 rédigés
-- Chapitres 3 à 5 à rédiger
+## Module 17 : Mémoire
+- Rédaction chapitre 1 (Introduction)
+- Rédaction chapitre 2 (État de l'art)
+- Rédaction chapitre 3 (Méthodologie)
+- Rédaction chapitre 4 (Implémentation)
+- Rédaction chapitre 5 (Résultats, tests et perspectives)
+- Captures d'écran
+- Relecture et corrections
