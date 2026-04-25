@@ -1,212 +1,551 @@
-# routes/admin_routes.py
 from flask import request, jsonify, send_file
 from middleware.auth import token_required, role_required
-from services.admin_service import AdminService
-from services.document_service import DocumentService
-from models.document import Document
-from models.log import Log
-from models.notification import Notification
-from config import Config, UPLOAD_FOLDER
 from utils.db import get_db
-import os
 import csv
 from io import StringIO
 from datetime import datetime
+import os
 import subprocess
 import shutil
+from config import Config
 
 def register_admin_routes(app):
 
+    # ============================================
+    # STATISTIQUES
+    # ============================================
+    
     @app.route("/api/admin-global/stats", methods=["GET"])
     @token_required
     @role_required(['admin_global'])
     def admin_global_stats():
-        stats = AdminService.get_global_stats()
-        return jsonify({"success": True, "stats": stats}), 200
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) as total FROM entreprises")
+            entreprises = cur.fetchone()['total']
+            cur.execute("SELECT COUNT(*) as total FROM users")
+            users = cur.fetchone()['total']
+            cur.execute("SELECT COUNT(*) as total FROM documents WHERE supprime_le IS NULL OR supprime_le = ''")
+            documents = cur.fetchone()['total']
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "stats": {"entreprises": entreprises or 0, "users": users or 0, "documents": documents or 0}}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
+
+    # ============================================
+    # DÉSACTIVER / RÉACTIVER UN UTILISATEUR
+    # ============================================
+    @app.route("/api/admin-global/users/<int:user_id>/toggle", methods=["PUT"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_toggle_user(user_id):
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT actif, nom FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+            if not user:
+                return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 404
+            
+            new_status = 0 if user['actif'] == 1 else 1
+            cur.execute("UPDATE users SET actif = %s WHERE id = %s", (new_status, user_id))
+            
+            # Notification
+            from datetime import datetime
+            status_text = "activé" if new_status == 1 else "désactivé"
+            cur.execute("""
+                INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
+                VALUES (%s, %s, %s, %s, 0, %s)
+            """, (request.user_id, 'USER_TOGGLE', f"L'utilisateur {user['nom']} a été {status_text}", f"/dashboard-admin-global?tab=users", datetime.now()))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "message": f"Utilisateur {status_text}"}), 200
+        except Exception as e:
+            print(f"[ERREUR] admin_global_toggle_user: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    # ============================================
+    # RÉINITIALISER MOT DE PASSE UTILISATEUR
+    # ============================================
+    @app.route("/api/admin-global/users/<int:user_id>/reset-password", methods=["PUT"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_reset_password(user_id):
+        try:
+            from werkzeug.security import generate_password_hash
+            data = request.json
+            new_password = data.get('password', 'employe123')
+            password_hash = generate_password_hash(new_password)
+            
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT nom FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+            if not user:
+                return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 404
+            
+            cur.execute("UPDATE users SET password = %s WHERE id = %s", (password_hash, user_id))
+            
+            # Notification
+            from datetime import datetime
+            cur.execute("""
+                INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
+                VALUES (%s, %s, %s, %s, 0, %s)
+            """, (request.user_id, 'PASSWORD_RESET', f"Le mot de passe de l'utilisateur {user['nom']} a été réinitialisé", f"/dashboard-admin-global?tab=users", datetime.now()))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "message": f"Mot de passe réinitialisé à {new_password}"}), 200
+        except Exception as e:
+            print(f"[ERREUR] admin_global_reset_password: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+    # ============================================
+    # SUPPRIMER UNE ENTREPRISE (soft delete)
+    # ============================================
+    @app.route("/api/admin-global/entreprises/<int:entreprise_id>/delete", methods=["DELETE"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_delete_entreprise(entreprise_id):
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT nom, statut FROM entreprises WHERE id = %s", (entreprise_id,))
+            ent = cur.fetchone()
+            if not ent:
+                return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
+            
+            # Soft delete : changer le statut à 'supprime' ou ajouter une colonne deleted_at
+            # Ici on utilise le champ statut (actif/suspendu) -> on met 'suspendu'
+            cur.execute("UPDATE entreprises SET statut = 'suspendu' WHERE id = %s", (entreprise_id,))
+            
+            # Notification
+            from datetime import datetime
+            cur.execute("""
+                INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
+                VALUES (%s, %s, %s, %s, 0, %s)
+            """, (request.user_id, 'ENTREPRISE_SUPPRIMEE', f"L'entreprise {ent['nom']} a été supprimée (soft delete)", f"/dashboard-admin-global?tab=entreprises", datetime.now()))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "message": "Entreprise supprimée (soft delete)"}), 200
+        except Exception as e:
+            print(f"[ERREUR] admin_global_delete_entreprise: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    # ============================================
+    # EXPORT ENTREPRISES CSV
+    # ============================================
+    @app.route("/api/admin-global/entreprises/export", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_export_entreprises():
+        try:
+            import csv
+            from io import StringIO
+            from datetime import datetime
+            
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT id, nom, email, telephone, adresse, statut, date_creation,
+                       (SELECT COUNT(*) FROM users WHERE entreprise_id = entreprises.id) as nb_employes,
+                       (SELECT COUNT(*) FROM documents WHERE entreprise_id = entreprises.id) as nb_documents
+                FROM entreprises
+                ORDER BY id DESC
+            """)
+            entreprises = cur.fetchall()
+            cur.close()
+            conn.close()
+            
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['ID', 'Nom', 'Email', 'Téléphone', 'Adresse', 'Statut', 'Date création', 'Employés', 'Documents'])
+            for e in entreprises:
+                writer.writerow([e['id'], e['nom'], e['email'] or '', e['telephone'] or '', e['adresse'] or '', e['statut'], e['date_creation'], e['nb_employes'], e['nb_documents']])
+            
+            output.seek(0)
+            return send_file(output, as_attachment=True, download_name=f"entreprises_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mimetype='text/csv')
+        except Exception as e:
+            print(f"[ERREUR] admin_global_export_entreprises: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    # ============================================
+    # EXPORT UTILISATEURS CSV
+    # ============================================
+    @app.route("/api/admin-global/users/export", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_export_users():
+        try:
+            import csv
+            from io import StringIO
+            from datetime import datetime
+            
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT u.id, u.nom, u.email, u.telephone, u.role, u.actif, u.date_inscription, e.nom as entreprise_nom
+                FROM users u
+                LEFT JOIN entreprises e ON e.id = u.entreprise_id
+                ORDER BY u.id DESC
+            """)
+            users = cur.fetchall()
+            cur.close()
+            conn.close()
+            
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['ID', 'Nom', 'Email', 'Téléphone', 'Rôle', 'Actif', 'Date inscription', 'Entreprise'])
+            for u in users:
+                writer.writerow([u['id'], u['nom'], u['email'] or '', u['telephone'] or '', u['role'], 'Actif' if u['actif'] else 'Inactif', u['date_inscription'], u['entreprise_nom'] or ''])
+            
+            output.seek(0)
+            return send_file(output, as_attachment=True, download_name=f"utilisateurs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mimetype='text/csv')
+        except Exception as e:
+            print(f"[ERREUR] admin_global_export_users: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+        
+    # ============================================
+    # FILTRE LOGS PAR DATE
+    # ============================================
+    @app.route("/api/admin-global/logs/filter", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_filter_logs():
+        try:
+            date_debut = request.args.get('date_debut')
+            date_fin = request.args.get('date_fin')
+            action = request.args.get('action')
+            
+            conn = get_db()
+            cur = conn.cursor()
+            
+            query = """
+                SELECT l.date_action, l.action, l.description, u.nom as utilisateur_nom
+                FROM logs l
+                LEFT JOIN users u ON u.id = l.user_id
+                WHERE 1=1
+            """
+            params = []
+            
+            if date_debut:
+                query += " AND DATE(l.date_action) >= %s"
+                params.append(date_debut)
+            if date_fin:
+                query += " AND DATE(l.date_action) <= %s"
+                params.append(date_fin)
+            if action:
+                query += " AND l.action = %s"
+                params.append(action)
+            
+            query += " ORDER BY l.date_action DESC LIMIT 500"
+            
+            cur.execute(query, params)
+            logs = cur.fetchall()
+            cur.close()
+            conn.close()
+            
+            for log in logs:
+                if log.get('date_action'):
+                    log['date_action'] = str(log['date_action'])
+            
+            return jsonify({"success": True, "logs": logs}), 200
+        except Exception as e:
+            print(f"[ERREUR] admin_global_filter_logs: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+    # ============================================
+    # ENTREPRISES (CRUD)
+    # ============================================
+    
     @app.route("/api/admin-global/entreprises", methods=["GET"])
     @token_required
     @role_required(['admin_global'])
-    def get_all_entreprises():
-        entreprises = AdminService.get_all_entreprises()
-        return jsonify({"success": True, "entreprises": entreprises}), 200
+    def admin_global_entreprises():
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT e.*, 
+                       (SELECT COUNT(*) FROM users WHERE entreprise_id = e.id AND role = 'employe') as nb_employes,
+                       (SELECT COUNT(*) FROM documents WHERE entreprise_id = e.id) as nb_documents
+                FROM entreprises e
+                ORDER BY e.id DESC
+            """)
+            entreprises = cur.fetchall()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "entreprises": entreprises}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/api/admin-global/entreprises", methods=["POST"])
     @token_required
     @role_required(['admin_global'])
-    def create_entreprise():
-        data = request.json
-        if not data or not data.get('nom'):
-            return jsonify({"success": False, "message": "Nom requis"}), 400
-        
-        success, message, entreprise_id = AdminService.create_entreprise(
-            data['nom'], data.get('adresse', ''), data.get('telephone', ''), data.get('email', '')
-        )
-        
-        if success:
-            Notification.create(
-                user_id=request.user_id,
-                type_notif='ENTREPRISE_CREEE',
-                message=f"L'entreprise {data['nom']} a été créée",
-                lien='/dashboard-admin-global?tab=entreprises'
-            )
-        
-        return jsonify({"success": success, "message": message, "entreprise_id": entreprise_id}), 201 if success else 400
+    def admin_global_create_entreprise():
+        try:
+            data = request.json
+            if not data.get('nom'):
+                return jsonify({"success": False, "message": "Nom requis"}), 400
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO entreprises (nom, email, telephone, adresse, statut)
+                VALUES (%s, %s, %s, %s, 'actif')
+            """, (data.get('nom'), data.get('email'), data.get('telephone'), data.get('adresse')))
+            entreprise_id = cur.lastrowid
+            
+            # CREER UNE NOTIFICATION
+            cur.execute("""
+                INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
+                VALUES (%s, %s, %s, %s, 0, %s)
+            """, (request.user_id, 'ENTREPRISE_CREEE', f"L'entreprise {data.get('nom')} a été créée", f"/dashboard-admin-global?tab=entreprises", datetime.now()))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return jsonify({"success": True, "message": "Entreprise créée", "entreprise_id": entreprise_id}), 201
+        except Exception as e:
+            print(f"[ERREUR] admin_global_create_entreprise: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/api/admin-global/entreprises/<int:entreprise_id>", methods=["PUT"])
     @token_required
     @role_required(['admin_global'])
-    def update_entreprise(entreprise_id):
-        data = request.json
-        conn = get_db()
-        cur = conn.cursor()
-        
-        cur.execute("SELECT nom FROM entreprises WHERE id = %s", (entreprise_id,))
-        ent = cur.fetchone()
-        if not ent:
-            return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
-        
-        success, message = AdminService.update_entreprise(
-            entreprise_id, data.get('nom'), data.get('adresse'), data.get('telephone'), data.get('email')
-        )
-        
-        if success:
-            Notification.create(
-                user_id=request.user_id,
-                type_notif='ENTREPRISE_MODIFIEE',
-                message=f"L'entreprise {data.get('nom', ent['nom'])} a été modifiée",
-                lien='/dashboard-admin-global?tab=entreprises'
-            )
-        
-        return jsonify({"success": success, "message": message}), 200 if success else 400
+    def admin_global_update_entreprise(entreprise_id):
+        try:
+            data = request.json
+            conn = get_db()
+            cur = conn.cursor()
+            
+            cur.execute("SELECT nom FROM entreprises WHERE id = %s", (entreprise_id,))
+            old_nom = cur.fetchone()['nom']
+            
+            cur.execute("""
+                UPDATE entreprises 
+                SET nom = %s, email = %s, telephone = %s, adresse = %s
+                WHERE id = %s
+            """, (data.get('nom'), data.get('email'), data.get('telephone'), data.get('adresse'), entreprise_id))
+            
+            # CREER UNE NOTIFICATION
+            cur.execute("""
+                INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
+                VALUES (%s, %s, %s, %s, 0, %s)
+            """, (request.user_id, 'ENTREPRISE_MODIFIEE', f"L'entreprise {old_nom} a été modifiée", f"/dashboard-admin-global?tab=entreprises", datetime.now()))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return jsonify({"success": True, "message": "Entreprise modifiée"}), 200
+        except Exception as e:
+            print(f"[ERREUR] admin_global_update_entreprise: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/api/admin-global/entreprises/<int:entreprise_id>/toggle", methods=["PUT"])
     @token_required
     @role_required(['admin_global'])
-    def toggle_entreprise(entreprise_id):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT nom, statut FROM entreprises WHERE id = %s", (entreprise_id,))
-        ent = cur.fetchone()
-        if not ent:
-            return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
-        
-        nouvel_etat = 'suspendu' if ent['statut'] == 'actif' else 'actif'
-        success, message = AdminService.toggle_entreprise(entreprise_id)
-        
-        if success:
-            Notification.create(
-                user_id=request.user_id,
-                type_notif='ENTREPRISE_TOGGLE',
-                message=f"L'entreprise {ent['nom']} est maintenant {nouvel_etat}",
-                lien='/dashboard-admin-global?tab=entreprises'
-            )
-        
-        return jsonify({"success": success, "message": message}), 200 if success else 404
+    def admin_global_toggle_entreprise(entreprise_id):
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT nom, statut FROM entreprises WHERE id = %s", (entreprise_id,))
+            ent = cur.fetchone()
+            if not ent:
+                return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
+            
+            new_status = 'suspendu' if ent['statut'] == 'actif' else 'actif'
+            cur.execute("UPDATE entreprises SET statut = %s WHERE id = %s", (new_status, entreprise_id))
+            
+            # CREER UNE NOTIFICATION
+            cur.execute("""
+                INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
+                VALUES (%s, %s, %s, %s, 0, %s)
+            """, (request.user_id, 'ENTREPRISE_TOGGLE', f"L'entreprise {ent['nom']} est maintenant {new_status}", f"/dashboard-admin-global?tab=entreprises", datetime.now()))
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return jsonify({"success": True, "message": f"Statut changé en {new_status}"}), 200
+        except Exception as e:
+            print(f"[ERREUR] admin_global_toggle_entreprise: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
 
+    # ============================================
+    # UTILISATEURS
+    # ============================================
+    
     @app.route("/api/admin-global/all-users", methods=["GET"])
     @token_required
     @role_required(['admin_global'])
-    def get_all_users():
-        users = AdminService.get_all_users()
-        return jsonify({"success": True, "users": users}), 200
+    def admin_global_all_users():
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT u.id, u.nom, u.email, u.role, u.actif, e.nom as entreprise_nom
+                FROM users u
+                LEFT JOIN entreprises e ON e.id = u.entreprise_id
+                ORDER BY u.id DESC
+            """)
+            users = cur.fetchall()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "users": users}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
+    # ============================================
+    # DOCUMENTS
+    # ============================================
+    
     @app.route("/api/admin-global/all-documents", methods=["GET"])
     @token_required
     @role_required(['admin_global'])
-    def get_all_documents():
-        limit = request.args.get('limit', 100, type=int)
-        documents = AdminService.get_all_documents(limit)
-        return jsonify({"success": True, "documents": documents}), 200
+    def admin_global_all_documents():
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT d.id, d.titre, d.date_creation, u.nom as auteur_nom, e.nom as entreprise_nom
+                FROM documents d
+                LEFT JOIN users u ON u.id = d.auteur_id
+                LEFT JOIN entreprises e ON e.id = d.entreprise_id
+                WHERE d.supprime_le IS NULL OR d.supprime_le = ''
+                ORDER BY d.date_creation DESC
+                LIMIT 100
+            """)
+            documents = cur.fetchall()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "documents": documents}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
+    # ============================================
+    # LOGS
+    # ============================================
+    
     @app.route("/api/admin-global/all-logs", methods=["GET"])
     @token_required
     @role_required(['admin_global'])
-    def get_all_logs():
-        limit = request.args.get('limit', 200, type=int)
-        logs = AdminService.get_all_logs(limit)
-        return jsonify({"success": True, "logs": logs}), 200
+    def admin_global_all_logs():
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT l.date_action, l.action, l.description, u.nom as utilisateur_nom
+                FROM logs l
+                LEFT JOIN users u ON u.id = l.user_id
+                ORDER BY l.date_action DESC
+                LIMIT 200
+            """)
+            logs = cur.fetchall()
+            cur.close()
+            conn.close()
+            return jsonify({"success": True, "logs": logs}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
+    @app.route("/api/admin-global/logs/export", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_logs_export():
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT date_action, action, description, (SELECT nom FROM users WHERE id = logs.user_id) as utilisateur_nom
+                FROM logs
+                ORDER BY date_action DESC
+                LIMIT 1000
+            """)
+            logs = cur.fetchall()
+            cur.close()
+            conn.close()
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['Date', 'Action', 'Description', 'Utilisateur'])
+            for log in logs:
+                writer.writerow([log['date_action'], log['action'], log['description'], log['utilisateur_nom']])
+            output.seek(0)
+            return send_file(output, as_attachment=True, download_name=f"logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mimetype='text/csv')
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    # ============================================
+    # STOCKAGE
+    # ============================================
+    
+    @app.route("/api/admin-global/storage", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_storage():
+        try:
+            import os
+            upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+            total_size = 0
+            if os.path.exists(upload_folder):
+                for dirpath, dirnames, filenames in os.walk(upload_folder):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        if os.path.exists(fp):
+                            total_size += os.path.getsize(fp)
+            used_mb = total_size // (1024 * 1024)
+            total_mb = 1024
+            used_gb = round(used_mb / 1024, 2)
+            total_gb = 1
+            free_gb = round(total_gb - used_gb, 2)
+            return jsonify({"success": True, "storage": {"used_mb": used_mb, "total_mb": total_mb, "used_gb": used_gb, "total_gb": total_gb, "free_gb": free_gb, "uploads_mb": used_mb, "percent": round((used_mb / total_mb) * 100, 1)}}), 200
+        except Exception as e:
+            return jsonify({"success": True, "storage": {"used_mb": 0, "total_mb": 1024, "used_gb": 0, "total_gb": 1, "free_gb": 1, "uploads_mb": 0, "percent": 0}}), 200
+
+    @app.route("/api/admin-global/backup", methods=["POST"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_backup():
+        try:
+            import subprocess, shutil, os
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_dir = f"backups/backup_{timestamp}"
+            os.makedirs(backup_dir, exist_ok=True)
+            subprocess.run(['mysqldump', '-u', Config.MYSQL_USER, f'-p{Config.MYSQL_PASSWORD}', Config.MYSQL_DB, '--result-file', f"{backup_dir}/database.sql"], check=True)
+            upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+            if os.path.exists(upload_folder):
+                shutil.copytree(upload_folder, f"{backup_dir}/uploads", dirs_exist_ok=True)
+            return jsonify({"success": True, "message": "Sauvegarde effectuée"}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    # ============================================
+    # STATISTIQUES ÉVOLUTION
+    # ============================================
+    
     @app.route("/api/admin-global/stats/evolution", methods=["GET"])
     @token_required
     @role_required(['admin_global'])
-    def stats_evolution():
-        conn = get_db()
-        cur = conn.cursor()
+    def admin_global_stats_evolution():
         try:
+            conn = get_db()
+            cur = conn.cursor()
             cur.execute("""
                 SELECT DATE_FORMAT(date_creation, '%Y-%m-%d') as date_jour, COUNT(*) as total
                 FROM documents
-                WHERE date_creation >= DATE_SUB(NOW(), INTERVAL 8 WEEK) AND supprime_le IS NULL
+                WHERE date_creation >= DATE_SUB(NOW(), INTERVAL 8 WEEK)
                 GROUP BY DATE(date_creation)
                 ORDER BY date_jour ASC
             """)
             results = cur.fetchall()
             cur.close()
             conn.close()
-            return jsonify({
-                "success": True,
-                "labels": [r['date_jour'] for r in results],
-                "data": [r['total'] for r in results]
-            }), 200
-        except Exception as e:
-            cur.close()
-            conn.close()
-            return jsonify({"success": False, "message": str(e)}), 500
-
-    @app.route("/api/admin-global/storage", methods=["GET"])
-    @token_required
-    @role_required(['admin_global'])
-    def get_storage_info():
-        storage = AdminService.get_storage_info()
-        return jsonify({"success": True, "storage": storage}), 200
-
-    @app.route("/api/admin-global/logs/export", methods=["GET"])
-    @token_required
-    @role_required(['admin_global'])
-    def export_logs_csv():
-        logs = Log.get_all(limit=1000)
-        output = StringIO()
-        writer = csv.writer(output)
-        writer.writerow(['Date', 'Action', 'Description', 'Utilisateur', 'Entreprise'])
-        for log in logs:
-            writer.writerow([
-                log.get('date_action', ''),
-                log.get('action', ''),
-                log.get('description', ''),
-                log.get('utilisateur_nom', ''),
-                log.get('entreprise_nom', '')
-            ])
-        output.seek(0)
-        return send_file(
-            output,
-            as_attachment=True,
-            download_name=f"logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mimetype='text/csv'
-        )
-
-    @app.route("/api/admin-global/backup", methods=["POST"])
-    @token_required
-    @role_required(['admin_global'])
-    def manual_backup():
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_dir = f"backups/backup_{timestamp}"
-        os.makedirs(backup_dir, exist_ok=True)
-        try:
-            subprocess.run([
-                'mysqldump', '-u', Config.MYSQL_USER,
-                f'-p{Config.MYSQL_PASSWORD}', Config.MYSQL_DB,
-                '--result-file', f"{backup_dir}/database.sql"
-            ], check=True)
-            shutil.copytree(UPLOAD_FOLDER, f"{backup_dir}/uploads")
-            
-            Notification.create(
-                user_id=request.user_id,
-                type_notif='BACKUP_EFFECTUE',
-                message=f"Sauvegarde manuelle effectuée à {timestamp}",
-                lien='/dashboard-admin-global?tab=storage'
-            )
-            
-            return jsonify({"success": True, "backup_path": backup_dir}), 200
+            return jsonify({"success": True, "labels": [r['date_jour'] for r in results], "data": [r['total'] for r in results]}), 200
         except Exception as e:
             return jsonify({"success": False, "message": str(e)}), 500

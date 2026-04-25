@@ -138,4 +138,4 @@
 - Rédaction chapitre 4 (Implémentation)
 - Rédaction chapitre 5 (Résultats, tests et perspectives)
 - Captures d'écran
-- Relecture et corrections
+- Relecture et corrections2

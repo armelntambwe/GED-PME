@@ -3,472 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME - Administration Globale</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>GED-PME - Admin Global</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ========================================== */
-        /* STYLES DE BASE */
-        /* ========================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
-
-        /* ========================================== */
-        /* HEADER (Barre supérieure) */
-        /* ========================================== */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .header h2 { font-size: 18px; }
-        .header-right { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-
-        /* ========================================== */
-        /* INDICATEUR DE CONNEXION (Mode hors-ligne) */
-        /* ========================================== */
-        .online-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #10b981;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f9ff; }
+        .sidebar { background: linear-gradient(180deg, #0c4a6e 0%, #075985 100%); min-height: 100vh; transition: all 0.3s; }
+        .sidebar a { color: #e0f2fe; text-decoration: none; padding: 12px 20px; display: block; transition: 0.3s; border-radius: 12px; margin: 4px 12px; cursor: pointer; }
+        .sidebar a:hover { background-color: #0ea5e9; transform: translateX(4px); }
+        .sidebar a.active { background-color: #0ea5e9; box-shadow: 0 4px 10px rgba(14,165,233,0.3); }
+        .card-stats { border: none; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.2s; background: white; }
+        .card-stats:hover { transform: translateY(-4px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+        .btn-primary-custom { background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none; border-radius: 12px; padding: 8px 20px; font-weight: 500; color: white; cursor: pointer; }
+        .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(14,165,233,0.4); }
+        .badge-active { background-color: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-inactive { background-color: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-admin { background-color: #8b5cf6; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-pme { background-color: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-employe { background-color: #3b82f6; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .online-status { display: inline-flex; align-items: center; gap: 8px; background: #10b981; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: white; }
         .online-status.offline { background: #ef4444; }
-        .online-status.offline i { animation: pulse 1s infinite; }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        /* ========================================== */
-        /* NOTIFICATIONS */
-        /* ========================================== */
-        .notification-icon { position: relative; cursor: pointer; font-size: 20px; }
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 10px;
-            display: none;
-        }
-        .logout {
-            background: #ef4444;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-        }
-
-        /* ========================================== */
-        /* DROPDOWN NOTIFICATIONS */
-        /* ========================================== */
-        .notification-dropdown {
-            display: none;
-            position: absolute;
-            right: 20px;
-            top: 55px;
-            width: 350px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            z-index: 1000;
-            max-height: 450px;
-            overflow-y: auto;
-        }
-        .notification-header {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            background: #f8fafc;
-            border-radius: 12px 12px 0 0;
-            position: sticky;
-            top: 0;
-        }
-        .notification-header button { background: none; border: none; color: #667eea; cursor: pointer; font-size: 12px; }
-        .notification-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .notification-icon { position: relative; cursor: pointer; }
+        .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
+        .notification-dropdown { display: none; position: absolute; right: 20px; top: 60px; width: 350px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 1000; max-height: 450px; overflow-y: auto; }
+        .notification-header { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: bold; display: flex; justify-content: space-between; background: #f8fafc; border-radius: 12px 12px 0 0; }
+        .notification-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
         .notification-item:hover { background: #f8fafc; }
         .notification-date { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
         .notification-message { font-size: 13px; color: #1e293b; }
-        .notification-item-lu { opacity: 0.6; background: #f9f9f9; }
-        .empty-notification { padding: 30px; text-align: center; color: #94a3b8; font-size: 13px; }
-
-        /* ========================================== */
-        /* NAVIGATION (Onglets) */
-        /* ========================================== */
-        .nav {
-            background: white;
-            padding: 0 15px;
-            display: flex;
-            gap: 5px;
-            border-bottom: 1px solid #ddd;
-            overflow-x: auto;
-        }
-        .nav button {
-            padding: 10px 15px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-        .nav button.active { border-bottom: 3px solid #667eea; color: #667eea; font-weight: bold; }
-
-        /* ========================================== */
-        /* CONTENEUR PRINCIPAL */
-        /* ========================================== */
-        .container { padding: 15px; }
-
-        /* ========================================== */
-        /* CARTES STATISTIQUES (3 cartes) */
-        /* ========================================== */
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-card {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .stat-number { font-size: 28px; font-weight: bold; color: #667eea; }
-        .stat-card i { font-size: 20px; color: #667eea; margin-bottom: 8px; }
-
-        /* ========================================== */
-        /* CARTES CONTENANT LES TABLEAUX */
-        /* ========================================== */
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            overflow-x: auto;
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-
-        /* ========================================== */
-        /* TABLEAUX */
-        /* ========================================== */
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; }
-
-        /* ========================================== */
-        /* BADGES DE STATUT */
-        /* ========================================== */
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-        .badge-actif { background: #d1fae5; color: #059669; }
-        .badge-inactif { background: #fee2e2; color: #dc2626; }
-        .badge-admin { background: #e0e7ff; color: #4338ca; }
-        .badge-pme { background: #fef3c7; color: #d97706; }
-        .badge-employe { background: #dbeafe; color: #2563eb; }
-
-        /* ========================================== */
-        /* BOUTONS */
-        /* ========================================== */
-        .btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn-sm { padding: 3px 8px; font-size: 11px; }
-        .btn-success { background: #10b981; }
-        .search-box { padding: 6px 10px; width: 200px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; }
-
-        /* ========================================== */
-        /* ACTIONS (icônes dans les tableaux) */
-        /* ========================================== */
-        .action-icons { display: flex; gap: 10px; }
-        .action-icons i { cursor: pointer; font-size: 14px; }
-        .fa-edit { color: #f59e0b; }
-        .fa-toggle-on { color: #10b981; }
-
-        /* ========================================== */
-        /* GRAPHIQUES */
-        /* ========================================== */
-        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        canvas { max-width: 100%; height: auto; }
-        .loading { text-align: center; padding: 20px; color: #94a3b8; }
-        .error-message { background: #fee2e2; color: #dc2626; padding: 15px; text-align: center; border-radius: 10px; }
-
-        /* ========================================== */
-        /* MODAL (fenêtre popup pour ajout/modification entreprise) */
-        /* ========================================== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 500px;
-            max-width: 95%;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #334155; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
-        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.1); }
-        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-
-        /* ========================================== */
-        /* RESPONSIVE (adaptation mobile) */
-        /* ========================================== */
-        @media (max-width: 768px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } }
+        .empty-notification { padding: 30px; text-align: center; color: #94a3b8; }
+        .modal-content-custom { border-radius: 20px; border: none; }
+        .form-control-custom { border-radius: 12px; padding: 10px 15px; border: 1px solid #e2e8f0; }
+        .form-control-custom:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.2); }
+        .loading { text-align: center; padding: 40px; color: #94a3b8; }
+        .search-box { border-radius: 20px; padding: 8px 15px; border: 1px solid #e2e8f0; width: 250px; }
+        .pagination .page-link { border-radius: 10px; margin: 0 3px; color: #0ea5e9; }
+        .pagination .active .page-link { background-color: #0ea5e9; border-color: #0ea5e9; color: white; }
     </style>
 </head>
 <body>
-
-    <!-- ========================================== -->
-    <!-- HEADER AVEC INDICATEUR DE CONNEXION -->
-    <!-- ========================================== -->
-    <div class="header">
-        <h2><i class="fas fa-globe-africa"></i> GED-PME | Administration Globale</h2>
-        <div class="header-right">
-            <!-- Indicateur de connexion (vert = en ligne, rouge = hors-ligne) -->
-            <div class="online-status" id="onlineStatus">
-                <i class="fas fa-wifi"></i>
-                <span id="statusText">En ligne</span>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-auto px-0 sidebar" style="width: 260px;">
+                <div class="p-4 text-white text-center fw-bold fs-4 border-bottom">
+                    <i class="bi bi-folder2-open me-2"></i>GED-PME
+                </div>
+                <nav class="nav flex-column mt-3">
+                    <a class="active" data-tab="dashboard"><i class="bi bi-speedometer2 me-2"></i> Tableau de bord</a>
+                    <a data-tab="entreprises"><i class="bi bi-building me-2"></i> Entreprises</a>
+                    <a data-tab="users"><i class="bi bi-people me-2"></i> Utilisateurs</a>
+                    <a data-tab="documents"><i class="bi bi-file-earmark-text me-2"></i> Documents</a>
+                    <a data-tab="logs"><i class="bi bi-journal me-2"></i> Logs</a>
+                    <a data-tab="storage"><i class="bi bi-hdd-stack me-2"></i> Stockage</a>
+                </nav>
             </div>
-            <!-- Icône des notifications -->
-            <div class="notification-icon" id="notificationIcon">
-                <i class="fas fa-bell"></i>
-                <span id="notificationBadge" class="notification-badge">0</span>
+
+            <!-- Main content -->
+            <div class="col p-4">
+                <!-- Top bar -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 id="pageTitle" class="fw-bold" style="color: #0c4a6e;">Tableau de bord</h2>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="online-status" id="onlineStatus">
+                            <i class="bi bi-wifi"></i>
+                            <span id="statusText">En ligne</span>
+                        </div>
+                        <div class="notification-icon position-relative" id="notificationIcon">
+                            <i class="bi bi-bell fs-5" style="color: #0ea5e9;"></i>
+                            <span id="notificationBadge" class="notification-badge">0</span>
+                        </div>
+                        <span class="fw-semibold" id="userName">Admin Global</span>
+                        <button class="btn btn-danger btn-sm rounded-pill px-3" onclick="logout()">Déconnexion</button>
+                    </div>
+                </div>
+
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <span>Notifications</span>
+                        <button class="btn btn-link btn-sm" onclick="marquerToutLu()">Tout marquer lu</button>
+                    </div>
+                    <div id="notificationList">
+                        <div class="empty-notification">Aucune notification</div>
+                    </div>
+                </div>
+
+                <!-- Tab content -->
+                <div id="tabDashboard" class="tab-content">
+                    <div class="row g-4 mb-4" id="statsGrid"></div>
+                    <div class="row">
+                        <div class="col-md-8"><div class="card border-0 shadow-sm rounded-4"><div class="card-header bg-white border-0 pt-4"><h5 class="fw-semibold">Évolution des documents (8 semaines)</h5></div><div class="card-body"><canvas id="evolutionChart" height="200"></canvas></div></div></div>
+                        <div class="col-md-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-header bg-white border-0 pt-4"><h5 class="fw-semibold">Top entreprises</h5></div><div class="card-body"><canvas id="topChart" height="200"></canvas></div></div></div>
+                    </div>
+                    <div class="card border-0 shadow-sm rounded-4 mt-4">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
+                            <h5 class="fw-semibold">Dernières activités</h5>
+                            <button class="btn btn-primary-custom btn-sm" onclick="loadLastLogs()">Actualiser</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="table" id="lastLogsTable">
+                                <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th></tr></thead>
+                                <tbody><tr><td colspan="3" class="loading">Chargement...NonNull</tbody>
+                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabEntreprises" class="tab-content d-none">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-4">
+                            <h5 class="fw-semibold">Entreprises</h5>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="searchEntreprise" class="search-box" placeholder="Rechercher..." onkeyup="filterEntreprises()">
+                                <button class="btn btn-primary-custom btn-sm" onclick="showAddEntrepriseModal()">+ Nouvelle entreprise</button>
+                                <button class="btn btn-success btn-sm" onclick="exportEntreprisesCSV()"><i class="bi bi-file-earmark-excel"></i> Export CSV</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="entreprisesTable">
+                                <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Employés</th><th>Documents</th><th>Actions</th></tr></thead>
+                                <tbody><tr><td colspan="6" class="loading">Chargement...</td></tr></tbody>
+                            </table>
+                            <div id="paginationEntreprises" class="mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabUsers" class="tab-content d-none">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
+                            <h5 class="fw-semibold">Utilisateurs</h5>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="searchUser" class="search-box" placeholder="Rechercher..." onkeyup="filterUsers()">
+                                <button class="btn btn-success btn-sm" onclick="exportUsersCSV()"><i class="bi bi-file-earmark-excel"></i> Export CSV</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="usersTable">
+                                <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Entreprise</th><th>Statut</th><th>Actions</th></tr></thead>
+                                <tbody><tr><td colspan="7" class="loading">Chargement...</td></tr></tbody>
+                            </table>
+                            <div id="paginationUsers" class="mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabDocuments" class="tab-content d-none">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
+                            <h5 class="fw-semibold">Documents</h5>
+                            <input type="text" id="searchDoc" class="search-box" placeholder="Rechercher..." onkeyup="filterDocs()">
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="documentsTable">
+                                <thead><tr><th>Titre</th><th>Auteur</th><th>Entreprise</th><th>Date</th></tr></thead>
+                                <tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+                            </table>
+                            <div id="paginationDocuments" class="mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabLogs" class="tab-content d-none">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
+                            <h5 class="fw-semibold">Logs système</h5>
+                            <button class="btn btn-primary-custom btn-sm" onclick="exportLogs()">Exporter CSV</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>Date début</label>
+                                    <input type="date" id="logDateDebut" class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Date fin</label>
+                                    <input type="date" id="logDateFin" class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Action</label>
+                                    <select id="logAction" class="form-select">
+                                        <option value="">Toutes</option>
+                                        <option value="CREATION_ENTREPRISE">Création entreprise</option>
+                                        <option value="MODIFICATION_ENTREPRISE">Modification entreprise</option>
+                                        <option value="SUPPRESSION_ENTREPRISE">Suppression entreprise</option>
+                                        <option value="CONNEXION">Connexion</option>
+                                        <option value="USER_TOGGLE">Activation/Désactivation utilisateur</option>
+                                        <option value="PASSWORD_RESET">Réinitialisation mot de passe</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-primary-custom btn-sm" onclick="filterLogs()">Filtrer</button>
+                                    <button class="btn btn-secondary btn-sm ms-2" onclick="resetLogsFilter()">Réinitialiser</button>
+                                </div>
+                            </div>
+                            <table class="table table-striped" id="logsTable">
+                                <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead>
+                                <tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tabStorage" class="tab-content d-none">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
+                            <h5 class="fw-semibold">Stockage</h5>
+                            <button class="btn btn-primary-custom btn-sm" onclick="manualBackup()">Sauvegarde manuelle</button>
+                        </div>
+                        <div class="card-body" id="storageInfo">
+                            <div class="loading">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <span id="userName" style="font-size: 14px;"></span>
-            <button class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- DROPDOWN DES NOTIFICATIONS -->
-    <!-- ========================================== -->
-    <div class="notification-dropdown" id="notificationDropdown">
-        <div class="notification-header">
-            <span>Notifications</span>
-            <button onclick="marquerToutLu()">Tout marquer lu</button>
-        </div>
-        <div id="notificationList">
-            <div class="empty-notification">Aucune notification</div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- NAVIGATION (Onglets) -->
-    <!-- ========================================== -->
-    <div class="nav">
-        <button class="active" onclick="showTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
-        <button onclick="showTab('entreprises')"><i class="fas fa-building"></i> Entreprises</button>
-        <button onclick="showTab('users')"><i class="fas fa-users"></i> Utilisateurs</button>
-        <button onclick="showTab('documents')"><i class="fas fa-file-alt"></i> Documents</button>
-        <button onclick="showTab('logs')"><i class="fas fa-history"></i> Logs</button>
-        <button onclick="showTab('storage')"><i class="fas fa-database"></i> Stockage</button>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- CONTENEUR PRINCIPAL (contenu dynamique) -->
-    <!-- ========================================== -->
-    <div class="container" id="contentArea">
-        <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Chargement...</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- MODAL (Ajout/Modification d'entreprise) -->
-    <!-- ========================================== -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 20px;"><i class="fas fa-building"></i> <span id="modalTitle">Modifier l'entreprise</span></h3>
-            <input type="hidden" id="editId">
-            <div class="form-group"><label>Nom de l'entreprise *</label><input type="text" id="editNom" placeholder="Ex: Congo Tech Solutions"></div>
-            <div class="form-group"><label>Adresse</label><input type="text" id="editAdresse" placeholder="Ex: Kinshasa, Gombe"></div>
-            <div class="form-group"><label>Téléphone</label><input type="text" id="editTel" placeholder="Ex: +243812345678"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="editEmail" placeholder="Ex: contact@entreprise.cd"></div>
-            <div class="modal-buttons">
-                <button class="btn" onclick="closeModal()" style="background: #ccc; color: #333;">Annuler</button>
-                <button class="btn btn-success" id="modalSaveBtn" onclick="updateEntreprise()">Enregistrer</button>
+    <!-- Modal Ajout/Modification Entreprise -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-custom">
+                <div class="modal-header border-0">
+                    <h5 class="fw-bold" id="modalTitle">Nouvelle entreprise</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId">
+                    <div class="mb-3"><label class="form-label">Nom *</label><input type="text" id="editNom" class="form-control form-control-custom" placeholder="Nom de l'entreprise"></div>
+                    <div class="mb-3"><label class="form-label">Adresse</label><input type="text" id="editAdresse" class="form-control form-control-custom" placeholder="Adresse"></div>
+                    <div class="mb-3"><label class="form-label">Téléphone</label><input type="text" id="editTel" class="form-control form-control-custom" placeholder="Téléphone"></div>
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" id="editEmail" class="form-control form-control-custom" placeholder="Email"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-primary-custom" id="modalSaveBtn" onclick="createEntreprise()">Créer</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ==========================================
         // VARIABLES GLOBALES
         // ==========================================
-        const token = localStorage.getItem('token');  // Récupère le token JWT
-        if (!token) window.location.href = '/';       // Redirige si non connecté
-        
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        document.getElementById('userName').textContent = user.nom || 'Admin';
+        document.getElementById('userName').innerText = user.nom || 'Admin Global';
 
         let entreprisesData = [], usersData = [], documentsData = [];
+        let evolutionChart, topChart;
         let notificationInterval;
 
-        // ==========================================
-        // FILE D'ATTENTE POUR LE MODE HORS-LIGNE
-        // ==========================================
-        // Récupère les actions stockées lors du mode hors-ligne
-        let offlineQueue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
-
-        // Fonction pour ajouter une action à la file d'attente
-        function addToOfflineQueue(action, data) {
-            offlineQueue.push({ 
-                id: Date.now(),           // Identifiant unique basé sur le timestamp
-                action: action,           // Type d'action (CREATE_ENTREPRISE, etc.)
-                data: data,               // Données de l'action
-                timestamp: new Date().toISOString()  // Date de création
-            });
-            localStorage.setItem('offline_queue', JSON.stringify(offlineQueue));
-            console.log(`📦 Action ajoutée à la file d'attente: ${action}`);
-        }
-
-        // Fonction pour synchroniser les actions quand la connexion revient
-        async function syncOfflineQueue() {
-            // Ne rien faire si pas de connexion
-            if (!navigator.onLine) return;
-            // Ne rien faire si la file est vide
-            if (offlineQueue.length === 0) return;
-            
-            console.log(`🔄 Synchronisation de ${offlineQueue.length} action(s)...`);
-            
-            // Parcourir toutes les actions en attente
-            for (const item of offlineQueue) {
-                try {
-                    let response;
-                    switch (item.action) {
-                        case 'CREATE_ENTREPRISE':
-                            response = await fetch('/api/admin-global/entreprises', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                body: JSON.stringify(item.data)
-                            });
-                            break;
-                        default:
-                            console.warn(`Action inconnue: ${item.action}`);
-                            continue;
-                    }
-                    
-                    if (response.ok) {
-                        console.log(`✅ Action synchronisée: ${item.action}`);
-                        // Supprimer l'action de la queue une fois synchronisée
-                        offlineQueue = offlineQueue.filter(i => i.id !== item.id);
-                    } else {
-                        console.error(`❌ Échec synchronisation: ${item.action}`);
-                    }
-                } catch(e) {
-                    console.error(`❌ Erreur synchronisation: ${e}`);
-                }
-            }
-            
-            // Sauvegarder la file d'attente mise à jour
-            localStorage.setItem('offline_queue', JSON.stringify(offlineQueue));
-            
-            if (offlineQueue.length === 0) {
-                console.log('✅ Toutes les actions ont été synchronisées');
-                // Recharger les données après synchronisation
-                if (document.querySelector('.nav button.active').textContent.includes('Entreprises')) {
-                    loadEntreprises();
-                } else {
-                    loadDashboard();
-                }
-            }
-        }
+        // Pagination variables
+        let currentPageEntreprises = 1;
+        let currentPageUsers = 1;
+        let currentPageDocuments = 1;
+        const itemsPerPage = 10;
+        let filteredEntreprises = [];
+        let filteredUsers = [];
+        let filteredDocuments = [];
 
         // ==========================================
-        // INDICATEUR DE CONNEXION (Mode hors-ligne)
+        // INDICATEUR DE CONNEXION
         // ==========================================
         function updateOnlineStatus() {
             const statusDiv = document.getElementById('onlineStatus');
             const statusText = document.getElementById('statusText');
             const icon = statusDiv.querySelector('i');
-            
             if (navigator.onLine) {
-                // Connexion rétablie
                 statusDiv.classList.remove('offline');
                 statusDiv.style.background = '#10b981';
-                icon.className = 'fas fa-wifi';
+                icon.className = 'bi bi-wifi';
                 statusText.textContent = 'En ligne';
-                console.log('📶 Connexion rétablie');
             } else {
-                // Hors-ligne
                 statusDiv.classList.add('offline');
                 statusDiv.style.background = '#ef4444';
-                icon.className = 'fas fa-plug';
+                icon.className = 'bi bi-plug';
                 statusText.textContent = 'Hors-ligne';
-                console.warn('⚠️ Vous êtes hors-ligne');
             }
         }
-
-        // Écouter les changements de connexion
-        window.addEventListener('online', () => {
-            updateOnlineStatus();
-            // Synchroniser les actions en attente
-            syncOfflineQueue();
-            // Recharger la page après 1 seconde
-            setTimeout(() => location.reload(), 1000);
-        });
+        window.addEventListener('online', () => { updateOnlineStatus(); setTimeout(() => location.reload(), 1000); });
         window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();  // Vérifier au chargement
+        updateOnlineStatus();
 
         // ==========================================
         // NOTIFICATIONS
         // ==========================================
-        async function chargerNotifications(toutes = true) {
-            if (!navigator.onLine) return;  // Ne pas charger si hors-ligne
+        async function chargerNotifications() {
+            if (!navigator.onLine) return;
             try {
-                const url = toutes ? '/notifications/all' : '/notifications';
-                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('/notifications/all', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                
-                // Mettre à jour le badge (nombre de notifications non lues)
                 const badge = document.getElementById('notificationBadge');
                 if (data.notifications) {
                     const nonLues = data.notifications.filter(n => !n.lue);
                     badge.style.display = nonLues.length > 0 ? 'inline-block' : 'none';
                     if (nonLues.length > 0) badge.textContent = nonLues.length;
                 }
-                
-                // Afficher la liste des notifications
                 const list = document.getElementById('notificationList');
                 list.innerHTML = '';
                 if (data.notifications && data.notifications.length > 0) {
                     for (const notif of data.notifications) {
                         const date = notif.date_creation ? notif.date_creation.slice(0, 16).replace('T', ' ') : '';
-                        list.innerHTML += `<div class="notification-item ${notif.lue ? 'notification-item-lu' : ''}" onclick="marquerLu(${notif.id}, '${notif.lien || ''}')">
+                        list.innerHTML += `<div class="notification-item" onclick="marquerLu(${notif.id})">
                             <div class="notification-date">${date} ${notif.lue ? '✓ Lu' : ''}</div>
                             <div class="notification-message">${notif.message}</div>
                         </div>`;
@@ -479,142 +323,90 @@
             } catch(e) { console.error(e); }
         }
 
-        async function marquerLu(id, lien) {
-            if (!navigator.onLine) { alert('Hors-ligne: impossible de marquer comme lu'); return; }
-            try {
-                await fetch(`/notifications/${id}/lire`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-                await chargerNotifications(true);
-                if (lien && lien !== '') {
-                    const tabMatch = lien.match(/tab=(\w+)/);
-                    if (tabMatch) {
-                        const tabName = tabMatch[1];
-                        document.querySelectorAll('.nav button').forEach(btn => {
-                            if (btn.textContent.toLowerCase().includes(tabName)) btn.click();
-                        });
-                    } else {
-                        window.location.href = lien;
-                    }
-                }
-                document.getElementById('notificationDropdown').style.display = 'none';
-            } catch(e) { console.error(e); }
+        async function marquerLu(id) {
+            if (!navigator.onLine) return;
+            await fetch(`/notifications/${id}/lire`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+            chargerNotifications();
         }
 
         async function marquerToutLu() {
-            if (!navigator.onLine) { alert('Hors-ligne: impossible'); return; }
-            try {
-                await fetch('/notifications/lire-tout', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-                await chargerNotifications(true);
-            } catch(e) { console.error(e); }
+            if (!navigator.onLine) return;
+            await fetch('/notifications/lire-tout', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+            chargerNotifications();
         }
 
-        // Ouverture/fermeture du dropdown des notifications
         document.getElementById('notificationIcon')?.addEventListener('click', (e) => {
             e.stopPropagation();
             const dropdown = document.getElementById('notificationDropdown');
             dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-            if (dropdown.style.display === 'block') chargerNotifications(true);
+            if (dropdown.style.display === 'block') chargerNotifications();
         });
         document.addEventListener('click', () => { document.getElementById('notificationDropdown').style.display = 'none'; });
 
         // ==========================================
-        // NAVIGATION ENTRE LES ONGLETS
+        // NAVIGATION
         // ==========================================
-        function showTab(tabName) {
-            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            if (tabName === 'dashboard') loadDashboard();
-            else if (tabName === 'entreprises') loadEntreprises();
-            else if (tabName === 'users') loadUsers();
-            else if (tabName === 'documents') loadDocuments();
-            else if (tabName === 'logs') loadLogs();
-            else if (tabName === 'storage') loadStorage();
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('d-none'));
+            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('d-none');
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            const titles = { dashboard: 'Tableau de bord', entreprises: 'Entreprises', users: 'Utilisateurs', documents: 'Documents', logs: 'Logs', storage: 'Stockage' };
+            document.getElementById('pageTitle').innerText = titles[tab];
+            if (tab === 'dashboard') loadDashboard();
+            else if (tab === 'entreprises') loadEntreprises();
+            else if (tab === 'users') loadUsers();
+            else if (tab === 'documents') loadDocuments();
+            else if (tab === 'logs') loadLogs();
+            else if (tab === 'storage') loadStorage();
         }
+        document.querySelectorAll('.sidebar a').forEach(a => {
+            a.addEventListener('click', (e) => { e.preventDefault(); showTab(a.dataset.tab); });
+        });
 
         // ==========================================
-        // DASHBOARD (avec cache pour mode hors-ligne)
+        // DASHBOARD
         // ==========================================
         async function loadDashboard() {
-            // Structure de base du dashboard
-            document.getElementById('contentArea').innerHTML = `
-                <div class="stats" id="statsGrid"></div>
-                <div class="charts-grid" id="chartsArea"></div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-history"></i> Dernières activités</h3>
-                        <button class="btn btn-sm" onclick="loadLastLogs()"><i class="fas fa-sync-alt"></i> Actualiser</button>
-                    </div>
-                    <div style="overflow-x: auto;">
-                        <table id="lastLogsTable">
-                            <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th></tr></thead>
-                            <tbody><tr><td colspan="3" class="loading">Chargement...</div></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // ========== MODE HORS-LIGNE : Utiliser le cache ==========
+            document.getElementById('statsGrid').innerHTML = '<div class="col-12"><div class="loading">Chargement...</div></div>';
             if (!navigator.onLine) {
-                const cachedStats = localStorage.getItem('entreprises_cache');
-                if (cachedStats) {
-                    const stats = JSON.parse(cachedStats);
-                    document.getElementById('statsGrid').innerHTML = `
-                        <div class="stat-card"><i class="fas fa-building"></i><div class="stat-number">${stats.total_entreprises || 0}</div><div>Entreprises</div></div>
-                        <div class="stat-card"><i class="fas fa-file-alt"></i><div class="stat-number">${stats.total_documents || 0}</div><div>Documents</div></div>
-                        <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number">${stats.total_users || 0}</div><div>Utilisateurs</div></div>
-                    `;
-                    document.getElementById('chartsArea').innerHTML = '<div class="error-message">⚠️ Hors-ligne - Graphiques non disponibles</div>';
-                    return;
-                }
-                document.getElementById('statsGrid').innerHTML = '<div class="error-message">⚠️ Hors-ligne - Aucune donnée en cache</div>';
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">0</div><div>Entreprises</div></div></div>
+                    <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">0</div><div>Documents</div></div></div>
+                    <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">0</div><div>Utilisateurs</div></div></div>`;
                 return;
             }
-            
-            // ========== MODE EN LIGNE : Charger depuis l'API ==========
             try {
                 const res = await fetch('/api/admin-global/stats', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if (data.success) {
-                    // Sauvegarder en cache pour le mode hors-ligne
-                    localStorage.setItem('entreprises_cache', JSON.stringify(data.stats));
-                    localStorage.setItem('lastUpdate', new Date().toISOString());
-                    
                     document.getElementById('statsGrid').innerHTML = `
-                        <div class="stat-card"><i class="fas fa-building"></i><div class="stat-number">${data.stats.total_entreprises || 0}</div><div>Entreprises</div></div>
-                        <div class="stat-card"><i class="fas fa-file-alt"></i><div class="stat-number">${data.stats.total_documents || 0}</div><div>Documents</div></div>
-                        <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number">${data.stats.total_users || 0}</div><div>Utilisateurs</div></div>
-                    `;
+                        <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.entreprises || 0}</div><div>Entreprises</div></div></div>
+                        <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.documents || 0}</div><div>Documents</div></div></div>
+                        <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.users || 0}</div><div>Utilisateurs</div></div></div>`;
                 }
             } catch(e) { console.error(e); }
-            
-            // Graphiques
-            document.getElementById('chartsArea').innerHTML = `
-                <div class="card"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Évolution (8 semaines)</h3></div><canvas id="evolutionChart"></canvas></div>
-                <div class="card"><div class="card-header"><h3><i class="fas fa-chart-bar"></i> Top entreprises</h3></div><canvas id="topChart"></canvas></div>
-            `;
-            
+
             try {
                 const res = await fetch('/api/admin-global/stats/evolution', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                new Chart(document.getElementById('evolutionChart'), {
-                    type: 'line',
-                    data: { labels: data.labels || [], datasets: [{ label: 'Documents', data: data.data || [], borderColor: '#667eea', tension: 0.3 }] },
-                    options: { responsive: true }
+                if (evolutionChart) evolutionChart.destroy();
+                evolutionChart = new Chart(document.getElementById('evolutionChart'), {
+                    type: 'line', data: { labels: data.labels || [], datasets: [{ label: 'Documents', data: data.data || [], borderColor: '#0ea5e9', tension: 0.4 }] }
                 });
             } catch(e) { console.error(e); }
-            
+
             try {
                 const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if (data.entreprises) {
                     const top5 = [...data.entreprises].sort((a,b) => (b.nb_documents||0) - (a.nb_documents||0)).slice(0,5);
-                    new Chart(document.getElementById('topChart'), {
-                        type: 'bar',
-                        data: { labels: top5.map(e => e.nom.substring(0,10)), datasets: [{ label: 'Documents', data: top5.map(e => e.nb_documents||0), backgroundColor: '#667eea' }] },
-                        options: { responsive: true }
+                    if (topChart) topChart.destroy();
+                    topChart = new Chart(document.getElementById('topChart'), {
+                        type: 'bar', data: { labels: top5.map(e => e.nom.substring(0,10)), datasets: [{ label: 'Documents', data: top5.map(e => e.nb_documents||0), backgroundColor: '#0ea5e9', borderRadius: 8 }] }
                     });
                 }
             } catch(e) { console.error(e); }
-            
             await loadLastLogs();
         }
 
@@ -628,249 +420,284 @@
                     tbody.innerHTML = '';
                     if (data.logs && data.logs.length > 0) {
                         for (const log of data.logs.slice(0,10)) {
-                            tbody.innerHTML += `<tr>
-                                <td>${log.date_action ? log.date_action.slice(0, 16) : '-'}</td>
-                                <td><span class="badge badge-pme">${log.action || '-'}</span></td>
-                                <td>${log.utilisateur_nom || 'Système'}</td>
-                            </tr>`;
+                            tbody.innerHTML += `<tr><td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td><td><span class="badge bg-secondary">${log.action || '-'}</span></td><td>${log.utilisateur_nom || '-'}</td></tr>`;
                         }
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="3">Aucune activité récente</div></div>';
+                        tbody.innerHTML = '<tr><td colspan="3">Aucune activité récente</td></tr>';
                     }
                 }
             } catch(e) { console.error(e); }
         }
 
         // ==========================================
-        // GESTION DES ENTREPRISES
+        // ENTREPRISES
         // ==========================================
         async function loadEntreprises() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-building"></i> Entreprises</h3>
-                        <div><input type="text" id="searchEntreprise" placeholder="Rechercher..." class="search-box" onkeyup="filterEntreprises()"> <button class="btn" onclick="showAddEntrepriseModal()"><i class="fas fa-plus"></i> Ajouter</button></div>
-                    </div>
-                    <div style="overflow-x: auto;">
-                        <table id="entreprisesTable">
-                            <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Employés</th><th>Documents</th><th>Actions</th></tr></thead>
-                            <tbody><tr><td colspan="6" class="loading">Chargement...</div></div>
-                        </div>
-                    </div>
-                </div>
-            `;
             if (!navigator.onLine) return;
             try {
                 const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 entreprisesData = data.entreprises || [];
-                displayEntreprises(entreprisesData);
+                filteredEntreprises = [...entreprisesData];
+                currentPageEntreprises = 1;
+                renderEntreprisesPage();
             } catch(e) { console.error(e); }
         }
 
-       function displayEntreprises(data) {
-    const tbody = document.querySelector('#entreprisesTable tbody');
-    tbody.innerHTML = '';
-    
-    if (data.length === 0) { 
-        tbody.innerHTML = '<tr><td colspan="6">Aucune entreprise</div></div>'; 
-        return; 
-    }
-    
-    for (const ent of data) {
-        // Récupérer les valeurs avec des fallbacks
-        const id = ent.id || '-';
-        const nom = ent.nom || '-';
-        const adresse = ent.adresse || '';
-        const email = ent.email || '-';
-        // Essayer différentes clés possibles pour les nombres
-        const nbEmployes = ent.nb_employes || ent.employes || ent.nb_users || 0;
-        const nbDocuments = ent.nb_documents || ent.documents || ent.total_documents || 0;
-        
-        tbody.innerHTML += `
-            <tr>
-                <td>${id}</td>
-                <td><strong>${nom}</strong><br><small>${adresse}</small></td>
-                <td>${email}</td>
-                <td>${nbEmployes}</td>
-                <td>${nbDocuments}</td>
-                <td class="action-icons">
-                    <i class="fas fa-edit" onclick='openEditModal(${id}, "${nom.replace(/'/g, "\\'")}", "${adresse.replace(/'/g, "\\'")}", "${ent.telephone || ''}", "${email.replace(/'/g, "\\'")}")'></i>
-                    <i class="fas fa-toggle-on" onclick="toggleStatus(${id})"></i>
-                </div>
-            </tr>
-        `;
-    }
-}
-        function filterEntreprises() {
-            const search = document.getElementById('searchEntreprise').value.toLowerCase();
-            displayEntreprises(entreprisesData.filter(e => (e.nom || '').toLowerCase().includes(search)));
+        function renderEntreprisesPage() {
+            const tbody = document.querySelector('#entreprisesTable tbody');
+            tbody.innerHTML = '';
+            if (filteredEntreprises.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Aucune entreprise</td></tr>';
+                document.getElementById('paginationEntreprises').innerHTML = '';
+                return;
+            }
+            const start = (currentPageEntreprises - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredEntreprises.slice(start, end);
+            for (const ent of pageData) {
+                tbody.innerHTML += `<tr>
+                    <td>${ent.id || '-'}</td>
+                    <td><strong>${ent.nom || '-'}</strong><br><small>${ent.adresse || ''}</small></td>
+                    <td>${ent.email || '-'}</td>
+                    <td>${ent.nb_employes || ent.employes || 0}</td>
+                    <td>${ent.nb_documents || ent.documents || 0}</td>
+                    <td>
+                        <i class="bi bi-pencil-square text-warning me-2" style="cursor:pointer" onclick='openEditModal(${ent.id}, "${ent.nom.replace(/'/g, "\\'")}", "${(ent.adresse || "").replace(/'/g, "\\'")}", "${ent.telephone || ""}", "${ent.email.replace(/'/g, "\\'")}")'></i>
+                        <i class="bi bi-toggle-on text-success me-2" style="cursor:pointer" onclick="toggleStatus(${ent.id})"></i>
+                        <i class="bi bi-trash text-danger" style="cursor:pointer" onclick="deleteEntreprise(${ent.id})"></i>
+                    </td>
+                </tr>`;
+            }
+            const totalPages = Math.ceil(filteredEntreprises.length / itemsPerPage);
+            let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+            paginationHtml += `<li class="page-item ${currentPageEntreprises === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${currentPageEntreprises - 1}); return false;">Précédent</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `<li class="page-item ${currentPageEntreprises === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${i}); return false;">${i}</a></li>`;
+            }
+            paginationHtml += `<li class="page-item ${currentPageEntreprises === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${currentPageEntreprises + 1}); return false;">Suivant</a></li>`;
+            paginationHtml += '</ul></nav>';
+            document.getElementById('paginationEntreprises').innerHTML = paginationHtml;
         }
 
-        function openEditModal(id, nom, adresse, tel, email) {
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Modifier l\'entreprise';
-            document.getElementById('editId').value = id;
-            document.getElementById('editNom').value = nom;
-            document.getElementById('editAdresse').value = adresse;
-            document.getElementById('editTel').value = tel;
-            document.getElementById('editEmail').value = email;
-            document.getElementById('editModal').style.display = 'flex';
-            document.getElementById('modalSaveBtn').innerHTML = 'Enregistrer';
-            document.getElementById('modalSaveBtn').setAttribute('onclick', 'updateEntreprise()');
+        function changePageEntreprises(page) { currentPageEntreprises = page; renderEntreprisesPage(); }
+
+        function filterEntreprises() {
+            const search = document.getElementById('searchEntreprise').value.toLowerCase();
+            filteredEntreprises = entreprisesData.filter(e => (e.nom || '').toLowerCase().includes(search));
+            currentPageEntreprises = 1;
+            renderEntreprisesPage();
         }
 
         function showAddEntrepriseModal() {
-            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Nouvelle entreprise';
+            document.getElementById('modalTitle').innerHTML = 'Nouvelle entreprise';
             document.getElementById('editId').value = '';
             document.getElementById('editNom').value = '';
             document.getElementById('editAdresse').value = '';
             document.getElementById('editTel').value = '';
             document.getElementById('editEmail').value = '';
-            document.getElementById('editModal').style.display = 'flex';
             document.getElementById('modalSaveBtn').innerHTML = 'Créer';
-            document.getElementById('modalSaveBtn').setAttribute('onclick', 'createEntreprise()');
+            document.getElementById('modalSaveBtn').onclick = () => createEntreprise();
+            new bootstrap.Modal(document.getElementById('editModal')).show();
         }
 
+        function openEditModal(id, nom, adresse, tel, email) {
+            document.getElementById('modalTitle').innerHTML = 'Modifier l\'entreprise';
+            document.getElementById('editId').value = id;
+            document.getElementById('editNom').value = nom;
+            document.getElementById('editAdresse').value = adresse;
+            document.getElementById('editTel').value = tel;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('modalSaveBtn').innerHTML = 'Enregistrer';
+            document.getElementById('modalSaveBtn').onclick = () => updateEntreprise();
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
 
-        // Version modifiée de createEntreprise avec support hors-ligne (file d'attente)
         async function createEntreprise() {
-            const data = {
-                nom: document.getElementById('editNom').value,
-                adresse: document.getElementById('editAdresse').value,
-                telephone: document.getElementById('editTel').value,
-                email: document.getElementById('editEmail').value
-            };
+            const data = { nom: document.getElementById('editNom').value, adresse: document.getElementById('editAdresse').value, telephone: document.getElementById('editTel').value, email: document.getElementById('editEmail').value };
             if (!data.nom) { alert('Le nom est requis'); return; }
-            
-            // ========== MODE HORS-LIGNE : Ajouter à la file d'attente ==========
-            if (!navigator.onLine) {
-                addToOfflineQueue('CREATE_ENTREPRISE', data);
-                alert('📦 Hors-ligne : L\'entreprise sera créée automatiquement à la reconnexion');
-                closeModal();
-                return;
-            }
-            
-            // ========== MODE EN LIGNE : Envoyer normalement ==========
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
             try {
-                const res = await fetch('/api/admin-global/entreprises', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) { 
-                    alert('Entreprise créée'); 
-                    closeModal(); 
-                    loadEntreprises(); 
-                } else { 
-                    alert('Erreur création'); 
-                }
-            } catch(e) { alert('Erreur connexion'); }
+                const res = await fetch('/api/admin-global/entreprises', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
+                const result = await res.json();
+                if (res.ok) { alert('Entreprise créée avec succès'); const modal = bootstrap.Modal.getInstance(document.getElementById('editModal')); if (modal) modal.hide(); loadEntreprises(); loadDashboard(); chargerNotifications(); }
+                else alert('Erreur: ' + result.message);
+            } catch(e) { alert('Erreur de connexion: ' + e.message); }
         }
 
         async function updateEntreprise() {
             const id = document.getElementById('editId').value;
             const data = { nom: document.getElementById('editNom').value, adresse: document.getElementById('editAdresse').value, telephone: document.getElementById('editTel').value, email: document.getElementById('editEmail').value };
             if (!data.nom) { alert('Le nom est requis'); return; }
-            if (!navigator.onLine) { alert('Hors-ligne: impossible de modifier'); return; }
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
             try {
                 const res = await fetch(`/api/admin-global/entreprises/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-                if (res.ok) { alert('Entreprise modifiée'); closeModal(); loadEntreprises(); } else { alert('Erreur modification'); }
-            } catch(e) { alert('Erreur connexion'); }
+                const result = await res.json();
+                if (res.ok) { alert('Entreprise modifiée avec succès'); const modal = bootstrap.Modal.getInstance(document.getElementById('editModal')); if (modal) modal.hide(); loadEntreprises(); loadDashboard(); chargerNotifications(); }
+                else alert('Erreur: ' + result.message);
+            } catch(e) { alert('Erreur de connexion: ' + e.message); }
         }
 
         async function toggleStatus(id) {
-            if (!navigator.onLine) { alert('Hors-ligne: impossible'); return; }
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
+            try { await fetch(`/api/admin-global/entreprises/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } }); loadEntreprises(); chargerNotifications(); } catch(e) { alert('Erreur'); }
+        }
+
+        async function deleteEntreprise(id) {
+            if (!confirm('Supprimer cette entreprise ? (Soft delete)')) return;
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
             try {
-                await fetch(`/api/admin-global/entreprises/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-                loadEntreprises();
+                const res = await fetch(`/api/admin-global/entreprises/${id}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (res.ok) { alert('Entreprise supprimée'); loadEntreprises(); loadDashboard(); chargerNotifications(); }
+                else alert('Erreur: ' + data.message);
             } catch(e) { alert('Erreur'); }
         }
 
-        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-
         // ==========================================
-        // GESTION DES UTILISATEURS
+        // UTILISATEURS
         // ==========================================
         async function loadUsers() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card"><div class="card-header"><h3><i class="fas fa-users"></i> Utilisateurs</h3><input type="text" id="searchUser" placeholder="Rechercher..." class="search-box" onkeyup="filterUsers()"></div>
-                <div style="overflow-x: auto;"><table id="usersTable"><thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Entreprise</th><th>Statut</th></td></thead><tbody><tr><td colspan="6" class="loading">Chargement...</div></div></table></div></div>
-            `;
             if (!navigator.onLine) return;
             try {
                 const res = await fetch('/api/admin-global/all-users', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 usersData = data.users || [];
-                displayUsers(usersData);
+                filteredUsers = [...usersData];
+                currentPageUsers = 1;
+                renderUsersPage();
             } catch(e) { console.error(e); }
         }
 
-        function displayUsers(data) {
+        function renderUsersPage() {
             const tbody = document.querySelector('#usersTable tbody');
             tbody.innerHTML = '';
-            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="6">Aucun utilisateur</div></div>'; return; }
-            for (const u of data) {
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Aucun utilisateur</td></tr>';
+                document.getElementById('paginationUsers').innerHTML = '';
+                return;
+            }
+            const start = (currentPageUsers - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredUsers.slice(start, end);
+            for (const u of pageData) {
                 let roleClass = u.role === 'admin_global' ? 'badge-admin' : (u.role === 'admin_pme' ? 'badge-pme' : 'badge-employe');
                 tbody.innerHTML += `<tr>
                     <td>${u.id}</td>
                     <td><strong>${u.nom || '-'}</strong></td>
                     <td>${u.email || '-'}</td>
-                    <td><span class="badge ${roleClass}">${u.role || '-'}</span></td>
+                    <td><span class="${roleClass}">${u.role || '-'}</span></td>
                     <td>${u.entreprise_nom || '-'}</td>
-                    <td><span class="badge ${u.actif ? 'badge-actif' : 'badge-inactif'}">${u.actif ? 'Actif' : 'Inactif'}</span></div>
-                </table>`;
+                    <td><span class="${u.actif ? 'badge-active' : 'badge-inactive'}">${u.actif ? 'Actif' : 'Inactif'}</span></td>
+                    <td class="text-nowrap">
+                        <button class="btn btn-sm btn-warning me-1" onclick="toggleUserStatus(${u.id})" title="Activer/Désactiver"><i class="bi bi-toggle-on"></i></button>
+                        <button class="btn btn-sm btn-info" onclick="resetUserPassword(${u.id})" title="Réinitialiser mot de passe"><i class="bi bi-key"></i></button>
+                    </td>
+                </tr>`;
             }
+            const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+            let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+            paginationHtml += `<li class="page-item ${currentPageUsers === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${currentPageUsers - 1}); return false;">Précédent</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `<li class="page-item ${currentPageUsers === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${i}); return false;">${i}</a></li>`;
+            }
+            paginationHtml += `<li class="page-item ${currentPageUsers === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${currentPageUsers + 1}); return false;">Suivant</a></li>`;
+            paginationHtml += '</ul></nav>';
+            document.getElementById('paginationUsers').innerHTML = paginationHtml;
         }
+
+        function changePageUsers(page) { currentPageUsers = page; renderUsersPage(); }
 
         function filterUsers() {
             const search = document.getElementById('searchUser').value.toLowerCase();
-            displayUsers(usersData.filter(u => (u.nom || '').toLowerCase().includes(search)));
+            filteredUsers = usersData.filter(u => (u.nom || '').toLowerCase().includes(search));
+            currentPageUsers = 1;
+            renderUsersPage();
         }
 
+        async function toggleUserStatus(userId) {
+            if (!confirm('Changer le statut de cet utilisateur ?')) return;
+            try {
+                const res = await fetch(`/api/admin-global/users/${userId}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (res.ok) { alert(data.message); loadUsers(); chargerNotifications(); }
+                else alert('Erreur: ' + data.message);
+            } catch(e) { alert('Erreur'); }
+        }
+
+        async function resetUserPassword(userId) {
+    const newPassword = prompt("Entrez le nouveau mot de passe (laisser vide pour 'employe123') :");
+    const password = newPassword && newPassword.trim() !== "" ? newPassword : "employe123";
+    if (!confirm(`Réinitialiser le mot de passe de cet utilisateur ? Nouveau mot de passe: ${password}`)) return;
+    try {
+        const res = await fetch(`/api/admin-global/users/${userId}/reset-password`, { 
+            method: 'PUT', 
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ password: password })
+        });
+        const data = await res.json();
+        if (res.ok) alert(`Mot de passe réinitialisé avec succès !\nNouveau mot de passe: ${password}`);
+        else alert('Erreur: ' + data.message);
+    } catch(e) { alert('Erreur'); }
+}
         // ==========================================
-        // GESTION DES DOCUMENTS
+        // DOCUMENTS
         // ==========================================
         async function loadDocuments() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card"><div class="card-header"><h3><i class="fas fa-file-alt"></i> Documents</h3><input type="text" id="searchDoc" placeholder="Rechercher..." class="search-box" onkeyup="filterDocs()"></div>
-                <div style="overflow-x: auto;"><table id="documentsTable"><thead><tr><th>Titre</th><th>Auteur</th><th>Entreprise</th><th>Date</th></tr></thead><tbody><tr><td colspan="4" class="loading">Chargement...</div></div></table></div></div>
-            `;
             if (!navigator.onLine) return;
             try {
                 const res = await fetch('/api/admin-global/all-documents', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 documentsData = data.documents || [];
-                displayDocuments(documentsData);
+                filteredDocuments = [...documentsData];
+                currentPageDocuments = 1;
+                renderDocumentsPage();
             } catch(e) { console.error(e); }
         }
 
-        function displayDocuments(data) {
+        function renderDocumentsPage() {
             const tbody = document.querySelector('#documentsTable tbody');
             tbody.innerHTML = '';
-            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun document</div></div>'; return; }
-            for (const doc of data) {
+            if (filteredDocuments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun document</td></tr>';
+                document.getElementById('paginationDocuments').innerHTML = '';
+                return;
+            }
+            const start = (currentPageDocuments - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredDocuments.slice(start, end);
+            for (const doc of pageData) {
                 tbody.innerHTML += `<tr>
-                    <td><strong>${doc.titre || '-'}</strong></div>
-                    <td>${doc.auteur_nom || '-'}</div>
-                    <td>${doc.entreprise_nom || '-'}</div>
-                    <td>${doc.date_creation || '-'}</div>
+                    <td><strong>${doc.titre || '-'}</strong></td>
+                    <td>${doc.auteur_nom || '-'}</td>
+                    <td class="text-muted">${doc.entreprise_nom || '-'}</td>
+                    <td>${doc.date_creation || '-'}</td>
                 </tr>`;
             }
+            const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
+            let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+            paginationHtml += `<li class="page-item ${currentPageDocuments === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${currentPageDocuments - 1}); return false;">Précédent</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `<li class="page-item ${currentPageDocuments === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${i}); return false;">${i}</a></li>`;
+            }
+            paginationHtml += `<li class="page-item ${currentPageDocuments === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${currentPageDocuments + 1}); return false;">Suivant</a></li>`;
+            paginationHtml += '</ul></nav>';
+            document.getElementById('paginationDocuments').innerHTML = paginationHtml;
         }
+
+        function changePageDocuments(page) { currentPageDocuments = page; renderDocumentsPage(); }
 
         function filterDocs() {
             const search = document.getElementById('searchDoc').value.toLowerCase();
-            displayDocuments(documentsData.filter(d => (d.titre || '').toLowerCase().includes(search)));
+            filteredDocuments = documentsData.filter(d => (d.titre || '').toLowerCase().includes(search));
+            currentPageDocuments = 1;
+            renderDocumentsPage();
         }
 
         // ==========================================
-        // LOGS SYSTÈME
+        // LOGS
         // ==========================================
         async function loadLogs() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card"><div class="card-header"><h3><i class="fas fa-history"></i> Logs système</h3><button class="btn btn-sm" onclick="exportLogs()"><i class="fas fa-download"></i> Exporter CSV</button></div>
-                <div style="overflow-x: auto;"><table id="logsTable"><thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead><tbody><tr><td colspan="4" class="loading">Chargement...</div></div></table></div></div>
-            `;
             if (!navigator.onLine) return;
             try {
                 const res = await fetch('/api/admin-global/all-logs', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -880,25 +707,22 @@
                 if (data.logs && data.logs.length > 0) {
                     for (const log of data.logs) {
                         tbody.innerHTML += `<tr>
-                            <td>${log.date_action ? log.date_action.slice(0, 16) : '-'}</div>
-                            <td><span class="badge badge-pme">${log.action || '-'}</span></div>
-                            <td>${log.utilisateur_nom || '-'}</div>
-                            <td>${log.description || '-'}</div>
+                            <td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td>
+                            <td><span class="badge bg-secondary">${log.action || '-'}</span></td>
+                            <td>${log.utilisateur_nom || '-'}</td>
+                            <td>${log.description || '-'}</td>
                         </tr>`;
                     }
                 } else {
-                    tbody.innerHTML = '<td><td colspan="4">Aucun log trouvé</div></div>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun log trouvé</td></tr>';
                 }
             } catch(e) { console.error(e); }
         }
 
         async function exportLogs() {
-            if (!navigator.onLine) { alert('Hors-ligne: impossible'); return; }
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
             try {
-                const response = await fetch('/api/admin-global/logs/export', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) throw new Error('Erreur export');
+                const response = await fetch('/api/admin-global/logs/export', { headers: { 'Authorization': `Bearer ${token}` } });
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -909,51 +733,88 @@
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
                 alert('Export CSV réussi');
-            } catch(e) {
-                console.error(e);
-                alert('Erreur export: ' + e.message);
-            }
+            } catch(e) { alert('Erreur export'); }
+        }
+
+        async function filterLogs() {
+            const dateDebut = document.getElementById('logDateDebut').value;
+            const dateFin = document.getElementById('logDateFin').value;
+            const action = document.getElementById('logAction').value;
+            let url = '/api/admin-global/logs/filter?';
+            if (dateDebut) url += `date_debut=${dateDebut}&`;
+            if (dateFin) url += `date_fin=${dateFin}&`;
+            if (action) url += `action=${action}&`;
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const tbody = document.querySelector('#logsTable tbody');
+                tbody.innerHTML = '';
+                if (data.logs && data.logs.length > 0) {
+                    for (const log of data.logs) {
+                        tbody.innerHTML += `<tr>
+                            <td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td>
+                            <td><span class="badge bg-secondary">${log.action || '-'}</span></td>
+                            <td>${log.utilisateur_nom || '-'}</td>
+                            <td>${log.description || '-'}</td>
+                        </tr>`;
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun log trouvé</td></tr>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function resetLogsFilter() {
+            document.getElementById('logDateDebut').value = '';
+            document.getElementById('logDateFin').value = '';
+            document.getElementById('logAction').value = '';
+            loadLogs();
         }
 
         // ==========================================
-        // STOCKAGE (Espace disque)
+        // EXPORTS CSV
+        // ==========================================
+        async function exportEntreprisesCSV() {
+            window.open('/api/admin-global/entreprises/export?token=' + token, '_blank');
+        }
+
+        async function exportUsersCSV() {
+            window.open('/api/admin-global/users/export?token=' + token, '_blank');
+        }
+
+        // ==========================================
+        // STOCKAGE
         // ==========================================
         async function loadStorage() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card"><div class="card-header"><h3><i class="fas fa-database"></i> Stockage</h3><button class="btn btn-sm" onclick="manualBackup()"><i class="fas fa-database"></i> Sauvegarde</button></div>
-                <div id="storageInfo" class="loading">Chargement...</div></div>
-            `;
-            if (!navigator.onLine) { document.getElementById('storageInfo').innerHTML = '<div class="error-message">⚠️ Hors-ligne - Données non disponibles</div>'; return; }
+            if (!navigator.onLine) { document.getElementById('storageInfo').innerHTML = '<div class="loading">Hors-ligne - Données non disponibles</div>'; return; }
             try {
                 const res = await fetch('/api/admin-global/storage', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if (data.success) {
                     const s = data.storage;
                     document.getElementById('storageInfo').innerHTML = `
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
-                            <div class="stat-card"><div class="stat-number">${s.total_gb} GB</div><div>Total</div></div>
-                            <div class="stat-card"><div class="stat-number">${s.used_gb} GB</div><div>Utilisé</div></div>
-                            <div class="stat-card"><div class="stat-number">${s.free_gb} GB</div><div>Libre</div></div>
-                            <div class="stat-card"><div class="stat-number">${s.uploads_mb} MB</div><div>Documents</div></div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.total_gb || 0} GB</div><div>Total</div></div></div>
+                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.used_gb || 0} GB</div><div>Utilisé</div></div></div>
+                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.free_gb || 0} GB</div><div>Libre</div></div></div>
+                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.uploads_mb || 0} MB</div><div>Documents</div></div></div>
                         </div>
                         <div style="max-width: 300px; margin: 0 auto;"><canvas id="storageChart" style="max-height: 200px;"></canvas></div>
                     `;
-                    new Chart(document.getElementById('storageChart'), {
-                        type: 'doughnut',
-                        data: { labels: ['Utilisé', 'Libre'], datasets: [{ data: [s.used_gb, s.free_gb], backgroundColor: ['#667eea', '#e2e8f0'], borderWidth: 0 }] },
-                        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
-                    });
+                    const ctx = document.getElementById('storageChart').getContext('2d');
+                    new Chart(ctx, { type: 'doughnut', data: { labels: ['Utilisé', 'Libre'], datasets: [{ data: [s.used_gb || 0, s.free_gb || 0], backgroundColor: ['#0ea5e9', '#e2e8f0'], borderWidth: 0 }] } });
                 }
             } catch(e) { console.error(e); }
         }
 
         async function manualBackup() {
-            if (!navigator.onLine) { alert('Hors-ligne: impossible'); return; }
+            if (!navigator.onLine) { alert('Hors-ligne'); return; }
             if (confirm('Lancer une sauvegarde manuelle ?')) {
                 try {
                     const res = await fetch('/api/admin-global/backup', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
                     const data = await res.json();
                     alert(data.success ? 'Sauvegarde réussie' : 'Erreur');
+                    chargerNotifications();
                 } catch(e) { alert('Erreur'); }
             }
         }
@@ -961,14 +822,13 @@
         // ==========================================
         // DÉCONNEXION
         // ==========================================
-        function logout() { localStorage.clear(); window.location.href = '/'; }
+        function logout() { localStorage.clear(); window.location.href = '/login'; }
 
         // ==========================================
         // INITIALISATION
         // ==========================================
-        chargerNotifications(true);
-        if (notificationInterval) clearInterval(notificationInterval);
-        notificationInterval = setInterval(() => chargerNotifications(true), 30000);
+        chargerNotifications();
+        notificationInterval = setInterval(() => chargerNotifications(), 30000);
         loadDashboard();
     </script>
 </body>

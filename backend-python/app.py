@@ -1,9 +1,11 @@
-# app.py
-from utils.db import get_db
-from middleware.auth import token_required, role_required
-from flask import Flask, send_from_directory, render_template
+from flask import Flask, send_from_directory, render_template, request, jsonify, send_file
 from config import Config
-from utils.db import test_connection
+from utils.db import get_db, test_connection
+from middleware.auth import token_required, role_required
+from werkzeug.security import generate_password_hash, check_password_hash
+from utils.jwt_manager import generer_token
+
+# Routes imports
 from routes.authentification_routes import register_authentification_routes
 from routes.document_routes import register_document_routes
 from routes.admin_routes import register_admin_routes
@@ -23,7 +25,7 @@ print(f" {message}" if success else f" {message}")
 # Enregistrement des routes
 register_authentification_routes(app)
 register_document_routes(app)
-register_admin_routes(app)
+register_admin_routes(app)          # ← Les routes admin global sont ICI
 register_user_routes(app)
 register_category_routes(app)
 register_notification_routes(app)
@@ -57,6 +59,46 @@ def index():
 def login_page():
     return render_template('login.html')
 
+@app.route('/login', methods=['POST'])
+def login_post():
+    try:
+        data = request.json
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            return jsonify({"success": False, "message": "Email et mot de passe requis"}), 400
+
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT id, nom, password, role, entreprise_id FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not user:
+            return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 401
+
+        if not check_password_hash(user['password'], password):
+            return jsonify({"success": False, "message": "Mot de passe incorrect"}), 401
+
+        token = generer_token(user['id'], user['role'], user.get('entreprise_id'))
+
+        return jsonify({
+            "success": True,
+            "token": token,
+            "user": {
+                "id": user['id'],
+                "nom": user['nom'],
+                "role": user['role'],
+                "entreprise_id": user.get('entreprise_id')
+            }
+        }), 200
+
+    except Exception as e:
+        print(f"[ERREUR] login_post: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @app.route('/register-company')
 def register_company_page():
     return render_template('register_company.html')
@@ -74,7 +116,7 @@ def dashboard_employee():
     return render_template('dashboard-employee.html')
 
 # ============================================
-# ROUTES ADMIN PME (CORRIGÉES)
+# ROUTES ADMIN PME (uniquement)
 # ============================================
 
 @app.route("/api/pme/stats", methods=["GET"])
@@ -114,7 +156,6 @@ def pme_stats():
         print(f"[ERREUR] pme_stats: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/pme/documents", methods=["GET"])
 @token_required
 @role_required(['admin_pme'])
@@ -146,7 +187,6 @@ def pme_documents():
         print(f"[ERREUR] pme_documents: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/pme/employes", methods=["GET"])
 @token_required
 @role_required(['admin_pme'])
@@ -175,7 +215,6 @@ def pme_employes():
     except Exception as e:
         print(f"[ERREUR] pme_employes: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 @app.route("/api/pme/validation", methods=["GET"])
 @token_required
@@ -207,7 +246,6 @@ def pme_validation():
         print(f"[ERREUR] pme_validation: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/pme/corbeille", methods=["GET"])
 @token_required
 @role_required(['admin_pme'])
@@ -236,7 +274,6 @@ def pme_corbeille():
     except Exception as e:
         print(f"[ERREUR] pme_corbeille: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 @app.route("/api/pme/documents/export", methods=["GET"])
 @token_required
@@ -275,7 +312,6 @@ def pme_export_documents():
         print(f"[ERREUR] pme_export_documents: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/pme/document/<int:doc_id>/historique", methods=["GET"])
 @token_required
 @role_required(['admin_pme'])
@@ -305,7 +341,6 @@ def pme_document_historique(doc_id):
         print(f"[ERREUR] pme_document_historique: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/workflow/config", methods=["GET"])
 @token_required
 @role_required(['admin_pme'])
@@ -326,7 +361,6 @@ def get_workflow_config():
     except Exception as e:
         print(f"[ERREUR] get_workflow_config: {e}")
         return jsonify({"success": False, "config": []}), 200
-
 
 @app.route("/api/workflow/config", methods=["POST"])
 @token_required
@@ -351,7 +385,6 @@ def save_workflow_config():
         print(f"[ERREUR] save_workflow_config: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/user/profile", methods=["GET"])
 @token_required
 def get_user_profile():
@@ -367,7 +400,6 @@ def get_user_profile():
         print(f"[ERREUR] get_user_profile: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/api/user/profile", methods=["PUT"])
 @token_required
 def update_user_profile():
@@ -380,7 +412,6 @@ def update_user_profile():
         if nom:
             cur.execute("UPDATE users SET nom = %s WHERE id = %s", (nom, request.user_id))
         if password:
-            from werkzeug.security import generate_password_hash
             cur.execute("UPDATE users SET password = %s WHERE id = %s", (generate_password_hash(password), request.user_id))
         conn.commit()
         cur.close()
@@ -389,7 +420,6 @@ def update_user_profile():
     except Exception as e:
         print(f"[ERREUR] update_user_profile: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 @app.route("/users/<int:user_id>/reactiver", methods=["PUT"])
 @token_required
@@ -407,7 +437,6 @@ def reactiver_user(user_id):
         print(f"[ERREUR] reactiver_user: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route("/users/<int:user_id>/reset-password", methods=["PUT"])
 @token_required
 @role_required(['admin_global', 'admin_pme'])
@@ -415,7 +444,6 @@ def reset_user_password(user_id):
     try:
         data = request.json
         password = data.get('password', 'employe123')
-        from werkzeug.security import generate_password_hash
         conn = get_db()
         cur = conn.cursor()
         cur.execute("UPDATE users SET password = %s WHERE id = %s", (generate_password_hash(password), user_id))
@@ -426,7 +454,6 @@ def reset_user_password(user_id):
     except Exception as e:
         print(f"[ERREUR] reset_user_password: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 @app.route("/users/<int:user_id>", methods=["PUT"])
 @token_required
@@ -449,7 +476,6 @@ def update_user(user_id):
     except Exception as e:
         print(f"[ERREUR] update_user: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 # ==============================
 # LANCEMENT DU SERVEUR
