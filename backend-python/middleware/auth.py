@@ -1,11 +1,4 @@
-# ============================================
 # middleware/auth.py 
-# ============================================
-# Corrections apportées :
-#   ✅ Ajout de request.user_entreprise_id
-#   ✅ Gestion du token Bearer propre
-#   ✅ Messages d'erreur clairs
-# ============================================
 
 from functools import wraps
 from flask import request, jsonify
