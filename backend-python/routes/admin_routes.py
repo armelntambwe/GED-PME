@@ -1,8 +1,9 @@
+# routes/admin_routes.py - Version corrigee sans doublons
+
 from flask import request, jsonify, send_file
 from middleware.auth import token_required, role_required
 from utils.db import get_db
 import csv
-from io import StringIO
 from datetime import datetime
 import os
 import subprocess
@@ -34,7 +35,6 @@ def register_admin_routes(app):
         except Exception as e:
             return jsonify({"success": False, "message": str(e)}), 500
 
-
     # ============================================
     # DÉSACTIVER / RÉACTIVER UN UTILISATEUR
     # ============================================
@@ -53,8 +53,6 @@ def register_admin_routes(app):
             new_status = 0 if user['actif'] == 1 else 1
             cur.execute("UPDATE users SET actif = %s WHERE id = %s", (new_status, user_id))
             
-            # Notification
-            from datetime import datetime
             status_text = "activé" if new_status == 1 else "désactivé"
             cur.execute("""
                 INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
@@ -91,8 +89,6 @@ def register_admin_routes(app):
             
             cur.execute("UPDATE users SET password = %s WHERE id = %s", (password_hash, user_id))
             
-            # Notification
-            from datetime import datetime
             cur.execute("""
                 INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
                 VALUES (%s, %s, %s, %s, 0, %s)
@@ -105,6 +101,7 @@ def register_admin_routes(app):
         except Exception as e:
             print(f"[ERREUR] admin_global_reset_password: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
+
     # ============================================
     # SUPPRIMER UNE ENTREPRISE (soft delete)
     # ============================================
@@ -120,12 +117,8 @@ def register_admin_routes(app):
             if not ent:
                 return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
             
-            # Soft delete : changer le statut à 'supprime' ou ajouter une colonne deleted_at
-            # Ici on utilise le champ statut (actif/suspendu) -> on met 'suspendu'
             cur.execute("UPDATE entreprises SET statut = 'suspendu' WHERE id = %s", (entreprise_id,))
             
-            # Notification
-            from datetime import datetime
             cur.execute("""
                 INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
                 VALUES (%s, %s, %s, %s, 0, %s)
@@ -147,9 +140,7 @@ def register_admin_routes(app):
     @role_required(['admin_global'])
     def admin_global_export_entreprises():
         try:
-            import csv
-            from io import StringIO
-            from datetime import datetime
+            from io import BytesIO
             
             conn = get_db()
             cur = conn.cursor()
@@ -164,16 +155,31 @@ def register_admin_routes(app):
             cur.close()
             conn.close()
             
-            output = StringIO()
-            writer = csv.writer(output)
-            writer.writerow(['ID', 'Nom', 'Email', 'Téléphone', 'Adresse', 'Statut', 'Date création', 'Employés', 'Documents'])
+            output = BytesIO()
+            writer = csv.writer(output, quoting=csv.QUOTE_ALL)
+            writer.writerow(['ID', 'Nom', 'Email', 'Telephone', 'Adresse', 'Statut', 'Date creation', 'Employes', 'Documents'])
             for e in entreprises:
-                writer.writerow([e['id'], e['nom'], e['email'] or '', e['telephone'] or '', e['adresse'] or '', e['statut'], e['date_creation'], e['nb_employes'], e['nb_documents']])
+                writer.writerow([
+                    str(e['id']), 
+                    e['nom'], 
+                    e['email'] or '', 
+                    e['telephone'] or '', 
+                    e['adresse'] or '', 
+                    e['statut'], 
+                    str(e['date_creation']) if e['date_creation'] else '', 
+                    str(e['nb_employes'] or 0), 
+                    str(e['nb_documents'] or 0)
+                ])
             
             output.seek(0)
-            return send_file(output, as_attachment=True, download_name=f"entreprises_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mimetype='text/csv')
+            return send_file(
+                output, 
+                as_attachment=True, 
+                download_name=f"entreprises_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
+                mimetype='text/csv'
+            )
         except Exception as e:
-            print(f"[ERREUR] admin_global_export_entreprises: {e}")
+            print(f"[ERREUR] export_entreprises: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
     # ============================================
@@ -184,9 +190,7 @@ def register_admin_routes(app):
     @role_required(['admin_global'])
     def admin_global_export_users():
         try:
-            import csv
-            from io import StringIO
-            from datetime import datetime
+            from io import BytesIO
             
             conn = get_db()
             cur = conn.cursor()
@@ -200,16 +204,30 @@ def register_admin_routes(app):
             cur.close()
             conn.close()
             
-            output = StringIO()
-            writer = csv.writer(output)
-            writer.writerow(['ID', 'Nom', 'Email', 'Téléphone', 'Rôle', 'Actif', 'Date inscription', 'Entreprise'])
+            output = BytesIO()
+            writer = csv.writer(output, quoting=csv.QUOTE_ALL)
+            writer.writerow(['ID', 'Nom', 'Email', 'Telephone', 'Role', 'Actif', 'Date inscription', 'Entreprise'])
             for u in users:
-                writer.writerow([u['id'], u['nom'], u['email'] or '', u['telephone'] or '', u['role'], 'Actif' if u['actif'] else 'Inactif', u['date_inscription'], u['entreprise_nom'] or ''])
+                writer.writerow([
+                    str(u['id']), 
+                    u['nom'], 
+                    u['email'] or '', 
+                    u['telephone'] or '', 
+                    u['role'], 
+                    'Actif' if u['actif'] else 'Inactif', 
+                    str(u['date_inscription']) if u['date_inscription'] else '', 
+                    u['entreprise_nom'] or ''
+                ])
             
             output.seek(0)
-            return send_file(output, as_attachment=True, download_name=f"utilisateurs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mimetype='text/csv')
+            return send_file(
+                output, 
+                as_attachment=True, 
+                download_name=f"utilisateurs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
+                mimetype='text/csv'
+            )
         except Exception as e:
-            print(f"[ERREUR] admin_global_export_users: {e}")
+            print(f"[ERREUR] export_users: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
         
     # ============================================
@@ -260,6 +278,7 @@ def register_admin_routes(app):
         except Exception as e:
             print(f"[ERREUR] admin_global_filter_logs: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
+
     # ============================================
     # ENTREPRISES (CRUD)
     # ============================================
@@ -301,7 +320,6 @@ def register_admin_routes(app):
             """, (data.get('nom'), data.get('email'), data.get('telephone'), data.get('adresse')))
             entreprise_id = cur.lastrowid
             
-            # CREER UNE NOTIFICATION
             cur.execute("""
                 INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
                 VALUES (%s, %s, %s, %s, 0, %s)
@@ -334,7 +352,6 @@ def register_admin_routes(app):
                 WHERE id = %s
             """, (data.get('nom'), data.get('email'), data.get('telephone'), data.get('adresse'), entreprise_id))
             
-            # CREER UNE NOTIFICATION
             cur.execute("""
                 INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
                 VALUES (%s, %s, %s, %s, 0, %s)
@@ -364,7 +381,6 @@ def register_admin_routes(app):
             new_status = 'suspendu' if ent['statut'] == 'actif' else 'actif'
             cur.execute("UPDATE entreprises SET statut = %s WHERE id = %s", (new_status, entreprise_id))
             
-            # CREER UNE NOTIFICATION
             cur.execute("""
                 INSERT INTO notifications (user_id, type, message, lien, lue, date_creation)
                 VALUES (%s, %s, %s, %s, 0, %s)
@@ -460,6 +476,8 @@ def register_admin_routes(app):
     @role_required(['admin_global'])
     def admin_global_logs_export():
         try:
+            from io import BytesIO
+            
             conn = get_db()
             cur = conn.cursor()
             cur.execute("""
@@ -471,11 +489,18 @@ def register_admin_routes(app):
             logs = cur.fetchall()
             cur.close()
             conn.close()
-            output = StringIO()
+            
+            output = BytesIO()
             writer = csv.writer(output)
             writer.writerow(['Date', 'Action', 'Description', 'Utilisateur'])
             for log in logs:
-                writer.writerow([log['date_action'], log['action'], log['description'], log['utilisateur_nom']])
+                writer.writerow([
+                    str(log['date_action']) if log['date_action'] else '',
+                    log['action'],
+                    log['description'] or '',
+                    log['utilisateur_nom'] or ''
+                ])
+            
             output.seek(0)
             return send_file(output, as_attachment=True, download_name=f"logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mimetype='text/csv')
         except Exception as e:
@@ -508,6 +533,10 @@ def register_admin_routes(app):
         except Exception as e:
             return jsonify({"success": True, "storage": {"used_mb": 0, "total_mb": 1024, "used_gb": 0, "total_gb": 1, "free_gb": 1, "uploads_mb": 0, "percent": 0}}), 200
 
+    # ============================================
+    # BACKUP
+    # ============================================
+    
     @app.route("/api/admin-global/backup", methods=["POST"])
     @token_required
     @role_required(['admin_global'])
@@ -517,12 +546,35 @@ def register_admin_routes(app):
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_dir = f"backups/backup_{timestamp}"
             os.makedirs(backup_dir, exist_ok=True)
-            subprocess.run(['mysqldump', '-u', Config.MYSQL_USER, f'-p{Config.MYSQL_PASSWORD}', Config.MYSQL_DB, '--result-file', f"{backup_dir}/database.sql"], check=True)
+            
+            sql_file = os.path.join(backup_dir, "database.sql")
+            cmd = [
+                'mysqldump',
+                f'--host={Config.MYSQL_HOST}',
+                f'--user={Config.MYSQL_USER}',
+                f'--password={Config.MYSQL_PASSWORD}',
+                Config.MYSQL_DB,
+                '--result-file=' + sql_file
+            ]
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+            
             upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
             if os.path.exists(upload_folder):
                 shutil.copytree(upload_folder, f"{backup_dir}/uploads", dirs_exist_ok=True)
-            return jsonify({"success": True, "message": "Sauvegarde effectuée"}), 200
+            
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO logs (user_id, action, description, date_action)
+                VALUES (%s, 'BACKUP_MANUAL', %s, NOW())
+            """, (request.user_id, f"Sauvegarde créée: {backup_dir}"))
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            return jsonify({"success": True, "message": f"Sauvegarde effectuée dans {backup_dir}"}), 200
         except Exception as e:
+            print(f"[ERREUR] backup: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
     # ============================================

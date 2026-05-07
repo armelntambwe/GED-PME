@@ -1,3 +1,6 @@
+# config.py
+import os
+
 class Config:
     MYSQL_HOST = 'localhost'
     MYSQL_USER = 'root'
@@ -8,6 +11,10 @@ class Config:
 
     JWT_SECRET_KEY = 'votre-cle-secrete-tres-longue-2025'
     JWT_EXPIRATION_HOURS = 24
+
+    # Configuration SQLAlchemy
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 # Variables en dehors de la classe pour l'import direct

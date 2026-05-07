@@ -1,9 +1,13 @@
+# app.py
 from flask import Flask, send_from_directory, render_template, request, jsonify, send_file
 from config import Config
 from utils.db import get_db, test_connection
 from middleware.auth import token_required, role_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.jwt_manager import generer_token
+
+# AJOUT : Import des extensions SQLAlchemy
+from extensions import db, migrate
 
 # Routes imports
 from routes.authentification_routes import register_authentification_routes
@@ -14,18 +18,24 @@ from routes.category_routes import register_category_routes
 from routes.notification_routes import register_notification_routes
 from routes.company_routes import register_company_routes
 
+import os
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# AJOUT : Initialisation de SQLAlchemy et Alembic
+db.init_app(app)
+migrate.init_app(app, db)
+
 # Test de connexion MySQL
-print(" Vérification MySQL...")
+print("Verification MySQL...")
 success, message = test_connection()
-print(f" {message}" if success else f" {message}")
+print(f"{message}" if success else f"{message}")
 
 # Enregistrement des routes
 register_authentification_routes(app)
 register_document_routes(app)
-register_admin_routes(app)          # ← Les routes admin global sont ICI
+register_admin_routes(app)
 register_user_routes(app)
 register_category_routes(app)
 register_notification_routes(app)
@@ -116,7 +126,7 @@ def dashboard_employee():
     return render_template('dashboard-employee.html')
 
 # ============================================
-# ROUTES ADMIN PME (uniquement)
+# ROUTES API ADMIN PME (dans app.py)
 # ============================================
 
 @app.route("/api/pme/stats", methods=["GET"])
@@ -385,42 +395,6 @@ def save_workflow_config():
         print(f"[ERREUR] save_workflow_config: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/api/user/profile", methods=["GET"])
-@token_required
-def get_user_profile():
-    try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nom, email, telephone FROM users WHERE id = %s", (request.user_id,))
-        user = cur.fetchone()
-        cur.close()
-        conn.close()
-        return jsonify({"success": True, "nom": user['nom'], "email": user['email'], "telephone": user.get('telephone', '')}), 200
-    except Exception as e:
-        print(f"[ERREUR] get_user_profile: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-@app.route("/api/user/profile", methods=["PUT"])
-@token_required
-def update_user_profile():
-    try:
-        data = request.json
-        nom = data.get('nom')
-        password = data.get('password')
-        conn = get_db()
-        cur = conn.cursor()
-        if nom:
-            cur.execute("UPDATE users SET nom = %s WHERE id = %s", (nom, request.user_id))
-        if password:
-            cur.execute("UPDATE users SET password = %s WHERE id = %s", (generate_password_hash(password), request.user_id))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({"success": True, "message": "Profil mis à jour"}), 200
-    except Exception as e:
-        print(f"[ERREUR] update_user_profile: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
 @app.route("/users/<int:user_id>/reactiver", methods=["PUT"])
 @token_required
 @role_required(['admin_global', 'admin_pme'])
@@ -477,13 +451,69 @@ def update_user(user_id):
         print(f"[ERREUR] update_user: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+# ============================================
+# ROUTES PHOTO ET LOGO (simplifiées)
+# ============================================
+
+@app.route("/api/user/photo", methods=["GET", "POST"])
+@token_required
+def user_photo():
+    if request.method == "POST":
+        file = request.files.get('photo')
+        if file:
+            filename = f"user_{request.user_id}.jpg"
+            upload_dir = os.path.join('static', 'uploads', 'profiles')
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, filename)
+            file.save(filepath)
+            return jsonify({"success": True, "message": "Photo mise à jour"})
+        return jsonify({"success": False, "message": "Aucun fichier"}), 400
+    else:
+        filepath = os.path.join('static', 'uploads', 'profiles', f"user_{request.user_id}.jpg")
+        if os.path.exists(filepath):
+            return send_file(filepath, mimetype='image/jpeg')
+        return '', 204
+
+@app.route("/api/entreprise/logo", methods=["GET", "POST"])
+@token_required
+def entreprise_logo():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT entreprise_id FROM users WHERE id = %s", (request.user_id,))
+    result = cur.fetchone()
+    if not result:
+        return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
+    entreprise_id = result['entreprise_id']
+    cur.close()
+    conn.close()
+    
+    if request.method == "POST":
+        file = request.files.get('logo')
+        if file:
+            filename = f"entreprise_{entreprise_id}.jpg"
+            upload_dir = os.path.join('static', 'uploads', 'logos')
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, filename)
+            file.save(filepath)
+            return jsonify({"success": True, "message": "Logo mis à jour"})
+        return jsonify({"success": False, "message": "Aucun fichier"}), 400
+    else:
+        filepath = os.path.join('static', 'uploads', 'logos', f"entreprise_{entreprise_id}.jpg")
+        if os.path.exists(filepath):
+            return send_file(filepath, mimetype='image/jpeg')
+        return '', 204
+
+
+@app.route('/test-pme')
+def test_pme():
+    return render_template('test-pme.html')
 # ==============================
 # LANCEMENT DU SERVEUR
 # ==============================
 
 if __name__ == "__main__":
     print("=" * 50)
-    print(" GED-PME - Serveur démarré")
-    print(" URL: http://localhost:5000")
+    print("GED-PME - Serveur demarre")
+    print("URL: http://localhost:5000")
     print("=" * 50)
     app.run(debug=True)

@@ -107,8 +107,8 @@
                         <div class="card-body">
                             <table class="table" id="lastLogsTable">
                                 <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th></tr></thead>
-                                <tbody><tr><td colspan="3" class="loading">Chargement...NonNull</tbody>
-                             </table>
+                                <tbody><tr><td colspan="3" class="loading">Chargement...</td></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -126,7 +126,7 @@
                         <div class="card-body">
                             <table class="table table-striped" id="entreprisesTable">
                                 <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Employés</th><th>Documents</th><th>Actions</th></tr></thead>
-                                <tbody><tr><td colspan="6" class="loading">Chargement...</td></tr></tbody>
+                                <tbody><tr><td colspan="6" class="loading">Chargement...</td></tbody>
                             </table>
                             <div id="paginationEntreprises" class="mt-3"></div>
                         </div>
@@ -145,7 +145,7 @@
                         <div class="card-body">
                             <table class="table table-striped" id="usersTable">
                                 <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Entreprise</th><th>Statut</th><th>Actions</th></tr></thead>
-                                <tbody><tr><td colspan="7" class="loading">Chargement...</td></tr></tbody>
+                                <tbody><tr><td colspan="7" class="loading">Chargement...</td></tbody>
                             </table>
                             <div id="paginationUsers" class="mt-3"></div>
                         </div>
@@ -161,7 +161,7 @@
                         <div class="card-body">
                             <table class="table table-striped" id="documentsTable">
                                 <thead><tr><th>Titre</th><th>Auteur</th><th>Entreprise</th><th>Date</th></tr></thead>
-                                <tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+                                <tbody><td><td colspan="4" class="loading">Chargement...</td></tbody>
                             </table>
                             <div id="paginationDocuments" class="mt-3"></div>
                         </div>
@@ -203,8 +203,9 @@
                             </div>
                             <table class="table table-striped" id="logsTable">
                                 <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead>
-                                <tbody><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+                                <tbody><tr><td colspan="4" class="loading">Chargement...</td></tbody>
                             </table>
+                            <div id="paginationLogs" class="mt-3"></div>
                         </div>
                     </div>
                 </div>
@@ -265,10 +266,13 @@
         let currentPageEntreprises = 1;
         let currentPageUsers = 1;
         let currentPageDocuments = 1;
+        let currentPageLogs = 1;
         const itemsPerPage = 10;
+        const itemsPerPageLogs = 20;
         let filteredEntreprises = [];
         let filteredUsers = [];
         let filteredDocuments = [];
+        let logsData = [];
 
         // ==========================================
         // INDICATEUR DE CONNEXION
@@ -387,15 +391,54 @@
                 }
             } catch(e) { console.error(e); }
 
-            try {
-                const res = await fetch('/api/admin-global/stats/evolution', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (evolutionChart) evolutionChart.destroy();
-                evolutionChart = new Chart(document.getElementById('evolutionChart'), {
-                    type: 'line', data: { labels: data.labels || [], datasets: [{ label: 'Documents', data: data.data || [], borderColor: '#0ea5e9', tension: 0.4 }] }
-                });
-            } catch(e) { console.error(e); }
-
+           try {
+    const res = await fetch('/api/admin-global/stats/evolution', { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    if (evolutionChart) evolutionChart.destroy();
+    
+    // Formatage des labels en français (jj/mm)
+    const labels = data.labels.map(date => {
+        const d = new Date(date);
+        return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    });
+    
+    evolutionChart = new Chart(document.getElementById('evolutionChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Documents',
+                data: data.data,
+                borderColor: '#0ea5e9',
+                backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#0ea5e9',
+                pointBorderColor: 'white',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `📄 Documents : ${context.raw}`;
+                        }
+                    }
+                },
+                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+            },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Nombre de documents', color: '#64748b' }, grid: { color: '#e2e8f0' } },
+                x: { title: { display: true, text: 'Semaine', color: '#64748b' }, grid: { display: false } }
+            }
+        }
+    });
+} catch(e) { console.error(e); }
             try {
                 const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
@@ -423,7 +466,7 @@
                             tbody.innerHTML += `<tr><td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td><td><span class="badge bg-secondary">${log.action || '-'}</span></td><td>${log.utilisateur_nom || '-'}</td></tr>`;
                         }
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="3">Aucune activité récente</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">Aucune activité récente</td></tr>';
                     }
                 }
             } catch(e) { console.error(e); }
@@ -470,7 +513,7 @@
                 </tr>`;
             }
             const totalPages = Math.ceil(filteredEntreprises.length / itemsPerPage);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
             paginationHtml += `<li class="page-item ${currentPageEntreprises === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${currentPageEntreprises - 1}); return false;">Précédent</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
                 paginationHtml += `<li class="page-item ${currentPageEntreprises === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${i}); return false;">${i}</a></li>`;
@@ -573,7 +616,7 @@
             const tbody = document.querySelector('#usersTable tbody');
             tbody.innerHTML = '';
             if (filteredUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Aucun utilisateur</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Aucun utilisateur</td><tr>';
                 document.getElementById('paginationUsers').innerHTML = '';
                 return;
             }
@@ -596,7 +639,7 @@
                 </tr>`;
             }
             const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
             paginationHtml += `<li class="page-item ${currentPageUsers === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${currentPageUsers - 1}); return false;">Précédent</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
                 paginationHtml += `<li class="page-item ${currentPageUsers === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${i}); return false;">${i}</a></li>`;
@@ -626,20 +669,21 @@
         }
 
         async function resetUserPassword(userId) {
-    const newPassword = prompt("Entrez le nouveau mot de passe (laisser vide pour 'employe123') :");
-    const password = newPassword && newPassword.trim() !== "" ? newPassword : "employe123";
-    if (!confirm(`Réinitialiser le mot de passe de cet utilisateur ? Nouveau mot de passe: ${password}`)) return;
-    try {
-        const res = await fetch(`/api/admin-global/users/${userId}/reset-password`, { 
-            method: 'PUT', 
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ password: password })
-        });
-        const data = await res.json();
-        if (res.ok) alert(`Mot de passe réinitialisé avec succès !\nNouveau mot de passe: ${password}`);
-        else alert('Erreur: ' + data.message);
-    } catch(e) { alert('Erreur'); }
-}
+            const newPassword = prompt("Entrez le nouveau mot de passe (laisser vide pour 'employe123') :");
+            const password = newPassword && newPassword.trim() !== "" ? newPassword : "employe123";
+            if (!confirm(`Réinitialiser le mot de passe de cet utilisateur ? Nouveau mot de passe: ${password}`)) return;
+            try {
+                const res = await fetch(`/api/admin-global/users/${userId}/reset-password`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await res.json();
+                if (res.ok) alert(`Mot de passe réinitialisé avec succès !\nNouveau mot de passe: ${password}`);
+                else alert('Erreur: ' + data.message);
+            } catch(e) { alert('Erreur'); }
+        }
+
         // ==========================================
         // DOCUMENTS
         // ==========================================
@@ -675,7 +719,7 @@
                 </tr>`;
             }
             const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center">';
+            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
             paginationHtml += `<li class="page-item ${currentPageDocuments === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${currentPageDocuments - 1}); return false;">Précédent</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
                 paginationHtml += `<li class="page-item ${currentPageDocuments === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${i}); return false;">${i}</a></li>`;
@@ -702,21 +746,49 @@
             try {
                 const res = await fetch('/api/admin-global/all-logs', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                const tbody = document.querySelector('#logsTable tbody');
-                tbody.innerHTML = '';
-                if (data.logs && data.logs.length > 0) {
-                    for (const log of data.logs) {
-                        tbody.innerHTML += `<tr>
-                            <td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td>
-                            <td><span class="badge bg-secondary">${log.action || '-'}</span></td>
-                            <td>${log.utilisateur_nom || '-'}</td>
-                            <td>${log.description || '-'}</td>
-                        </tr>`;
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun log trouvé</td></tr>';
-                }
+                logsData = data.logs || [];
+                currentPageLogs = 1;
+                renderLogsPage();
             } catch(e) { console.error(e); }
+        }
+
+        function renderLogsPage() {
+            const tbody = document.querySelector('#logsTable tbody');
+            tbody.innerHTML = '';
+            
+            if (logsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun log trouvé</td></tr>';
+                document.getElementById('paginationLogs').innerHTML = '';
+                return;
+            }
+            
+            const start = (currentPageLogs - 1) * itemsPerPageLogs;
+            const end = start + itemsPerPageLogs;
+            const pageData = logsData.slice(start, end);
+            
+            for (const log of pageData) {
+                tbody.innerHTML += `<tr>
+                    <td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td>
+                    <td><span class="badge bg-secondary">${log.action || '-'}</span></td>
+                    <td>${log.utilisateur_nom || '-'}</td>
+                    <td>${log.description || '-'}</td>
+                </tr>`;
+            }
+            
+            const totalPages = Math.ceil(logsData.length / itemsPerPageLogs);
+            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
+            paginationHtml += `<li class="page-item ${currentPageLogs === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageLogs(${currentPageLogs - 1}); return false;">Précédent</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `<li class="page-item ${currentPageLogs === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageLogs(${i}); return false;">${i}</a></li>`;
+            }
+            paginationHtml += `<li class="page-item ${currentPageLogs === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageLogs(${currentPageLogs + 1}); return false;">Suivant</a></li>`;
+            paginationHtml += '</ul></nav>';
+            document.getElementById('paginationLogs').innerHTML = paginationHtml;
+        }
+
+        function changePageLogs(page) {
+            currentPageLogs = page;
+            renderLogsPage();
         }
 
         async function exportLogs() {
@@ -747,20 +819,9 @@
             try {
                 const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                const tbody = document.querySelector('#logsTable tbody');
-                tbody.innerHTML = '';
-                if (data.logs && data.logs.length > 0) {
-                    for (const log of data.logs) {
-                        tbody.innerHTML += `<tr>
-                            <td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td>
-                            <td><span class="badge bg-secondary">${log.action || '-'}</span></td>
-                            <td>${log.utilisateur_nom || '-'}</td>
-                            <td>${log.description || '-'}</td>
-                        </tr>`;
-                    }
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun log trouvé</td></tr>';
-                }
+                logsData = data.logs || [];
+                currentPageLogs = 1;
+                renderLogsPage();
             } catch(e) { console.error(e); }
         }
 
@@ -775,11 +836,61 @@
         // EXPORTS CSV
         // ==========================================
         async function exportEntreprisesCSV() {
-            window.open('/api/admin-global/entreprises/export?token=' + token, '_blank');
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Vous devez être connecté');
+                return;
+            }
+            try {
+                const response = await fetch('/api/admin-global/entreprises/export', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `entreprises_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('Erreur lors de l\'export');
+                }
+            } catch(e) {
+                alert('Erreur de connexion');
+            }
         }
 
         async function exportUsersCSV() {
-            window.open('/api/admin-global/users/export?token=' + token, '_blank');
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Vous devez être connecté');
+                return;
+            }
+            try {
+                const response = await fetch('/api/admin-global/users/export', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `utilisateurs_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('Erreur lors de l\'export');
+                }
+            } catch(e) {
+                alert('Erreur de connexion');
+            }
         }
 
         // ==========================================
