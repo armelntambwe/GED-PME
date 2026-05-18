@@ -1,72 +1,58 @@
-# models/categorie.py
-# Modèle catégorie - Accès à la table categories
-
-from utils.db import get_db
+﻿from extensions import db
+from sqlalchemy import or_
+from models_sqlalchemy import Categorie as CategorieModel
 
 class Categorie:
     """Classe modèle pour les catégories"""
 
     @staticmethod
-    def create(nom, description=None):
-        """Crée une nouvelle catégorie"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO categories (nom, description)
-            VALUES (%s, %s)
-        """, (nom, description))
-        category_id = cur.lastrowid
-        conn.commit()
-        cur.close()
-        conn.close()
-        return category_id
+    def create(nom, description=None, entreprise_id=None):
+        categorie = CategorieModel(
+            nom=nom,
+            description=description,
+            entreprise_id=entreprise_id
+        )
+        db.session.add(categorie)
+        db.session.commit()
+        return categorie.id
 
     @staticmethod
     def get_all():
-        """Récupère toutes les catégories"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT id, nom, description, date_creation
-            FROM categories ORDER BY nom ASC
-        """)
-        categories = cur.fetchall()
-        cur.close()
-        conn.close()
-        return categories
+        categories = CategorieModel.query.order_by(CategorieModel.nom.asc()).all()
+        return [categorie.to_dict() for categorie in categories]
+
+    @staticmethod
+    def get_accessible_by_entreprise(entreprise_id):
+        categories = (
+            CategorieModel.query
+            .filter(or_(CategorieModel.entreprise_id == entreprise_id, CategorieModel.entreprise_id.is_(None)))
+            .order_by(CategorieModel.nom.asc())
+            .all()
+        )
+        return [categorie.to_dict() for categorie in categories]
 
     @staticmethod
     def get_by_id(categorie_id):
-        """Récupère une catégorie par son ID"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nom, description FROM categories WHERE id = %s", (categorie_id,))
-        cat = cur.fetchone()
-        cur.close()
-        conn.close()
-        return cat
+        categorie = CategorieModel.query.get(categorie_id)
+        return categorie.to_dict() if categorie else None
 
     @staticmethod
     def update(categorie_id, nom=None, description=None):
-        """Met à jour une catégorie"""
-        conn = get_db()
-        cur = conn.cursor()
-        if nom:
-            cur.execute("UPDATE categories SET nom = %s WHERE id = %s", (nom, categorie_id))
-        if description:
-            cur.execute("UPDATE categories SET description = %s WHERE id = %s", (description, categorie_id))
-        conn.commit()
-        cur.close()
-        conn.close()
+        categorie = CategorieModel.query.get(categorie_id)
+        if not categorie:
+            return False
+        if nom is not None:
+            categorie.nom = nom
+        if description is not None:
+            categorie.description = description
+        db.session.commit()
         return True
 
     @staticmethod
     def delete(categorie_id):
-        """Supprime une catégorie"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM categories WHERE id = %s", (categorie_id,))
-        conn.commit()
-        cur.close()
-        conn.close()
+        categorie = CategorieModel.query.get(categorie_id)
+        if not categorie:
+            return False
+        db.session.delete(categorie)
+        db.session.commit()
         return True

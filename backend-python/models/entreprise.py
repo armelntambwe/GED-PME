@@ -1,119 +1,83 @@
-# models/entreprise.py
-# Modèle entreprise - Accès à la table entreprises
-
-from utils.db import get_db
+﻿from extensions import db
+from models_sqlalchemy import Entreprise as EntrepriseModel, User as UserModel, Document as DocumentModel
 
 class Entreprise:
     """Classe modèle pour les entreprises"""
 
     @staticmethod
     def create(nom, adresse=None, telephone=None, email=None):
-        """Crée une nouvelle entreprise"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO entreprises (nom, adresse, telephone, email, statut)
-            VALUES (%s, %s, %s, %s, 'actif')
-        """, (nom, adresse, telephone, email))
-        entreprise_id = cur.lastrowid
-        conn.commit()
-        cur.close()
-        conn.close()
-        return entreprise_id
+        entreprise = EntrepriseModel(
+            nom=nom,
+            adresse=adresse,
+            telephone=telephone,
+            email=email
+        )
+        db.session.add(entreprise)
+        db.session.commit()
+        return entreprise.id
 
     @staticmethod
     def get_all():
-        """Récupère toutes les entreprises avec leurs statistiques"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT e.id, e.nom, e.adresse, e.telephone, e.email, e.statut,
-                   COUNT(DISTINCT u.id) AS nb_employes,
-                   COUNT(DISTINCT d.id) AS nb_documents
-            FROM entreprises e
-            LEFT JOIN users u ON u.entreprise_id = e.id
-            LEFT JOIN documents d ON d.entreprise_id = e.id
-            GROUP BY e.id
-            ORDER BY e.nom ASC
-        """)
-        entreprises = cur.fetchall()
-        cur.close()
-        conn.close()
-        return entreprises
+        entreprises = EntrepriseModel.query.order_by(EntrepriseModel.nom.asc()).all()
+        result = []
+        for entreprise in entreprises:
+            nb_employes = UserModel.query.filter_by(entreprise_id=entreprise.id).count()
+            nb_documents = DocumentModel.query.filter_by(entreprise_id=entreprise.id).count()
+            data = entreprise.to_dict()
+            data['nb_employes'] = nb_employes
+            data['nb_documents'] = nb_documents
+            result.append(data)
+        return result
 
     @staticmethod
     def get_by_id(entreprise_id):
-        """Récupère une entreprise par son ID"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM entreprises WHERE id = %s", (entreprise_id,))
-        ent = cur.fetchone()
-        cur.close()
-        conn.close()
-        return ent
+        entreprise = EntrepriseModel.query.get(entreprise_id)
+        return entreprise.to_dict() if entreprise else None
 
     @staticmethod
     def update(entreprise_id, nom=None, adresse=None, telephone=None, email=None):
-        """Met à jour une entreprise"""
-        conn = get_db()
-        cur = conn.cursor()
-        updates = []
-        params = []
-        if nom:
-            updates.append("nom = %s")
-            params.append(nom)
-        if adresse:
-            updates.append("adresse = %s")
-            params.append(adresse)
-        if telephone:
-            updates.append("telephone = %s")
-            params.append(telephone)
-        if email:
-            updates.append("email = %s")
-            params.append(email)
-        if not updates:
-            return True
-        params.append(entreprise_id)
-        cur.execute(f"UPDATE entreprises SET {', '.join(updates)} WHERE id = %s", params)
-        conn.commit()
-        cur.close()
-        conn.close()
+        entreprise = EntrepriseModel.query.get(entreprise_id)
+        if not entreprise:
+            return False
+        if nom is not None:
+            entreprise.nom = nom
+        if adresse is not None:
+            entreprise.adresse = adresse
+        if telephone is not None:
+            entreprise.telephone = telephone
+        if email is not None:
+            entreprise.email = email
+        db.session.commit()
         return True
 
     @staticmethod
     def toggle_status(entreprise_id):
-        """Active ou suspend une entreprise"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT statut FROM entreprises WHERE id = %s", (entreprise_id,))
-        ent = cur.fetchone()
-        if not ent:
+        entreprise = EntrepriseModel.query.get(entreprise_id)
+        if not entreprise:
             return None
-        nouvel_etat = 'suspendu' if ent['statut'] == 'actif' else 'actif'
-        cur.execute("UPDATE entreprises SET statut = %s WHERE id = %s", (nouvel_etat, entreprise_id))
-        conn.commit()
-        cur.close()
-        conn.close()
+        nouvel_etat = 'suspendu' if entreprise.statut == 'actif' else 'actif'
+        entreprise.statut = nouvel_etat
+        db.session.commit()
         return nouvel_etat
 
     @staticmethod
+    def set_status(entreprise_id, statut):
+        entreprise = EntrepriseModel.query.get(entreprise_id)
+        if not entreprise:
+            return False
+        entreprise.statut = statut
+        db.session.commit()
+        return True
+
+    @staticmethod
     def get_stats(entreprise_id):
-        """Récupère les statistiques d'une entreprise"""
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) as total FROM documents WHERE entreprise_id = %s", (entreprise_id,))
-        total_documents = cur.fetchone()['total']
-        cur.execute("SELECT COUNT(*) as total FROM users WHERE entreprise_id = %s AND role = 'employe'", (entreprise_id,))
-        total_employes = cur.fetchone()['total']
-        cur.execute("SELECT COUNT(*) as total FROM documents WHERE entreprise_id = %s AND statut = 'soumis'", (entreprise_id,))
-        en_attente = cur.fetchone()['total']
-        cur.execute("SELECT COUNT(*) as total FROM documents WHERE entreprise_id = %s AND statut = 'valide'", (entreprise_id,))
-        valides = cur.fetchone()['total']
-        cur.close()
-        conn.close()
+        total_documents = DocumentModel.query.filter_by(entreprise_id=entreprise_id).count()
+        total_employes = UserModel.query.filter_by(entreprise_id=entreprise_id, role='employe').count()
+        en_attente = DocumentModel.query.filter_by(entreprise_id=entreprise_id, statut='soumis').count()
+        valides = DocumentModel.query.filter_by(entreprise_id=entreprise_id, statut='valide').count()
         return {
-            "total_documents": total_documents,
-            "total_employes": total_employes,
-            "en_attente": en_attente,
-            "valides": valides
+            'total_documents': total_documents,
+            'total_employes': total_employes,
+            'en_attente': en_attente,
+            'valides': valides
         }

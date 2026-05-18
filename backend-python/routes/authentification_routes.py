@@ -1,8 +1,9 @@
 # routes/authentification_routes.py
 from flask import request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from utils.db import get_db
 from utils.jwt_manager import generer_token
+from services.user_service import UserService
+
 
 def register_authentification_routes(app):
 
@@ -17,23 +18,12 @@ def register_authentification_routes(app):
         password = data["password"]
         role = data.get("role", "employe")
 
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        if cur.fetchone():
-            cur.close()
-            conn.close()
+        existing_user = UserService.get_user_by_email(email)
+        if existing_user:
             return jsonify({"success": False, "message": "Email déjà utilisé"}), 409
 
         password_hash = generate_password_hash(password)
-        cur.execute("""
-            INSERT INTO users (nom, email, password, role, actif)
-            VALUES (%s, %s, %s, %s, 1)
-        """, (nom, email, password_hash, role))
-        user_id = cur.lastrowid
-        conn.commit()
-        cur.close()
-        conn.close()
+        user_id = UserService.create_user(nom, email, password_hash, role)
 
         return jsonify({"success": True, "message": "Utilisateur créé", "user_id": user_id}), 201
 
@@ -46,29 +36,23 @@ def register_authentification_routes(app):
         email = data["email"]
         password = data["password"]
 
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nom, email, password, role, entreprise_id FROM users WHERE email = %s", (email,))
-        user = cur.fetchone()
-        cur.close()
-        conn.close()
-
+        user = UserService.get_user_by_email_raw(email)
         if not user:
             return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 404
 
-        if not check_password_hash(user['password'], password):
+        if not check_password_hash(user.password, password):
             return jsonify({"success": False, "message": "Mot de passe incorrect"}), 401
 
-        token = generer_token(user['id'], user['role'], user.get('entreprise_id'))
+        token = generer_token(user.id, user.role, user.entreprise_id)
 
         return jsonify({
             "success": True,
             "token": token,
             "user": {
-                "id": user['id'],
-                "nom": user['nom'],
-                "email": user['email'],
-                "role": user['role'],
-                "entreprise_id": user.get('entreprise_id')
+                "id": user.id,
+                "nom": user.nom,
+                "email": user.email,
+                "role": user.role,
+                "entreprise_id": user.entreprise_id
             }
         }), 200

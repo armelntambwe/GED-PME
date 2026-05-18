@@ -6,22 +6,22 @@ from config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS
 import os
 
 print("=" * 60)
-print("🔍 TEST CONFIGURATION UPLOAD - GED-PME")
+print(" TEST CONFIGURATION UPLOAD - GED-PME")
 print("=" * 60)
 
 # Test 1: Dossier uploads
-print(f"\n1️⃣ DOSSIER UPLOADS")
+print(f"\n1️ DOSSIER UPLOADS")
 print(f"   Chemin : {UPLOAD_FOLDER}")
 if os.path.exists(UPLOAD_FOLDER):
-    print(f"   ✅ EXISTE - Prêt à recevoir des fichiers")
+    print(f"    EXISTE - Prêt à recevoir des fichiers")
 else:
-    print(f"   ❌ N'EXISTE PAS - Crée-le avec: mkdir {UPLOAD_FOLDER}")
+    print(f"    N'EXISTE PAS - Crée-le avec: mkdir {UPLOAD_FOLDER}")
 
 # Test 2: Taille maximale
-print(f"\n2️⃣ TAILLE MAXIMALE")
+print(f"\n 2️ TAILLE MAXIMALE")
 print(f"   {MAX_CONTENT_LENGTH} octets")
 print(f"   Soit {MAX_CONTENT_LENGTH/1024/1024:.0f} Mo")
-print(f"   ✅ OK")
+print(f"    OK")
 
 # Test 3: Formats autorisés
 print(f"\n3️⃣ FORMATS AUTORISÉS (PHASE 1)")
@@ -40,12 +40,12 @@ try:
     print(f"\n   Test de validation :")
     for f in test_files:
         result = allowed_file(f)
-        status = "✅ AUTORISÉ" if result else "❌ REFUSÉ"
+        status = " AUTORISÉ" if result else "❌ REFUSÉ"
         print(f"   • {f:15} → {status}")
         
 except Exception as e:
-    print(f"   ❌ Erreur: {e}")
+    print(f"    Erreur: {e}")
 
 print("\n" + "=" * 60)
-print("✅ CONFIGURATION TERMINÉE - Prêt pour la route d'upload !")
+print(" CONFIGURATION TERMINÉE - Prêt pour la route d'upload !")
 print("=" * 60)

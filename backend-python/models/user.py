@@ -1,54 +1,90 @@
-from utils.db import get_db
+from extensions import db
+from models_sqlalchemy import User as UserModel
 
 class User:
 
     @staticmethod
     def find_by_email(email):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nom, email, password, role, actif, entreprise_id, telephone FROM users WHERE email = %s", (email,))
-        row = cur.fetchone()
-        cur.close()
-        conn.close()
-        return row
+        return UserModel.query.filter_by(email=email).first()
 
     @staticmethod
     def find_by_id(user_id):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nom, email, telephone, role, actif, entreprise_id FROM users WHERE id = %s", (user_id,))
-        row = cur.fetchone()
-        cur.close()
-        conn.close()
-        return row
+        return UserModel.query.get(user_id)
 
     @staticmethod
-    def create(nom, email, password_hash, role, telephone, entreprise_id):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO users (nom, email, password, telephone, role, actif, entreprise_id) VALUES (%s, %s, %s, %s, %s, 1, %s)", (nom, email, password_hash, telephone, role, entreprise_id))
-        user_id = cur.lastrowid
-        conn.commit()
-        cur.close()
-        conn.close()
-        return user_id
+    def create(nom, email, password_hash, role, telephone=None, entreprise_id=None):
+        user = UserModel(
+            nom=nom,
+            email=email,
+            password=password_hash,
+            telephone=telephone,
+            role=role,
+            entreprise_id=entreprise_id,
+            actif=True
+        )
+        db.session.add(user)
+        db.session.commit()
+        return user.id
 
     @staticmethod
-    def get_employees(entreprise_id):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nom, email, telephone, role, actif FROM users WHERE entreprise_id = %s AND role = 'employe' ORDER BY id DESC", (entreprise_id,))
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-        return rows
+    def get_all():
+        users = UserModel.query.order_by(UserModel.id.desc()).all()
+        return [user.to_dict() for user in users]
+
+    @staticmethod
+    def get_employees(entreprise_id=None):
+        query = UserModel.query.filter_by(role='employe')
+        if entreprise_id is not None:
+            query = query.filter_by(entreprise_id=entreprise_id)
+        users = query.order_by(UserModel.id.desc()).all()
+        return [user.to_dict() for user in users]
 
     @staticmethod
     def deactivate(user_id):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("UPDATE users SET actif = 0 WHERE id = %s", (user_id,))
-        conn.commit()
-        cur.close()
-        conn.close()
+        user = UserModel.query.get(user_id)
+        if not user:
+            return False
+        user.actif = False
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def set_active(user_id, active=True):
+        user = UserModel.query.get(user_id)
+        if not user:
+            return False
+        user.actif = bool(active)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def toggle_active(user_id):
+        user = UserModel.query.get(user_id)
+        if not user:
+            return None
+        user.actif = not user.actif
+        db.session.commit()
+        return user.actif
+
+    @staticmethod
+    def update_profile(user_id, nom=None, telephone=None, password_hash=None):
+        user = UserModel.query.get(user_id)
+        if not user:
+            return False
+        if nom is not None:
+            user.nom = nom
+        if telephone is not None:
+            user.telephone = telephone
+        if password_hash is not None:
+            user.password = password_hash
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def reset_password(user_id, password_hash):
+        user = UserModel.query.get(user_id)
+        if not user:
+            return False
+        user.password = password_hash
+        db.session.commit()
         return True

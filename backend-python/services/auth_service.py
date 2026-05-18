@@ -44,18 +44,18 @@ class AuthService:
             return False, "Email non trouvé", None, None
 
         # Vérifier le mot de passe
-        if not check_password_hash(user['password'], password):
+        if not check_password_hash(user.password, password):
             return False, "Mot de passe incorrect", None, None
 
         # Vérifier si le compte est actif
-        if user.get('actif', 1) == 0:
+        if user.actif == False:
             return False, "Compte désactivé", None, None
 
         # Générer le token JWT
-        token = generer_token(user['id'], user['role'], user.get('entreprise_id'))
+        token = generer_token(user.id, user.role, user.entreprise_id)
 
         # Journaliser l'action
-        Log.create('CONNEXION', f"Connexion de {email}", user['id'])
+        Log.create('CONNEXION', f"Connexion de {email}", user.id)
 
         return True, "Connexion réussie", token, user
 

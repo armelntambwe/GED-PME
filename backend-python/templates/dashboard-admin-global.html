@@ -374,11 +374,11 @@
         async function loadDashboard() {
             document.getElementById('statsGrid').innerHTML = '<div class="col-12"><div class="loading">Chargement...</div></div>';
             if (!navigator.onLine) {
-                document.getElementById('statsGrid').innerHTML = `
-                    <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">0</div><div>Entreprises</div></div></div>
-                    <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">0</div><div>Documents</div></div></div>
-                    <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">0</div><div>Utilisateurs</div></div></div>`;
-                return;
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.total_entreprises || 0}</div><div>Entreprises</div></div></div>
+                <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.total_documents || 0}</div><div>Documents</div></div></div>
+                <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.total_users || 0}</div><div>Utilisateurs</div></div></div>`;
+                            return;
             }
             try {
                 const res = await fetch('/api/admin-global/stats', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -586,17 +586,28 @@
             try { await fetch(`/api/admin-global/entreprises/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } }); loadEntreprises(); chargerNotifications(); } catch(e) { alert('Erreur'); }
         }
 
-        async function deleteEntreprise(id) {
-            if (!confirm('Supprimer cette entreprise ? (Soft delete)')) return;
+       async function deleteEntreprise(id) {
+            if (!confirm('Supprimer cette entreprise ?')) return;
             if (!navigator.onLine) { alert('Hors-ligne'); return; }
             try {
-                const res = await fetch(`/api/admin-global/entreprises/${id}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`/api/admin-global/entreprises/${id}/delete`, { 
+                    method: 'DELETE', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
                 const data = await res.json();
-                if (res.ok) { alert('Entreprise supprimée'); loadEntreprises(); loadDashboard(); chargerNotifications(); }
-                else alert('Erreur: ' + data.message);
-            } catch(e) { alert('Erreur'); }
+                if (res.ok) { 
+                    alert('Entreprise supprimée');
+                    // Recharger les données
+                    await loadEntreprises();
+                    await loadDashboard();
+                    chargerNotifications();
+                } else {
+                    alert('Erreur: ' + data.message);
+                }
+            } catch(e) { 
+                alert('Erreur de connexion'); 
+            }
         }
-
         // ==========================================
         // UTILISATEURS
         // ==========================================

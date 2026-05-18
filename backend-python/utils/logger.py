@@ -1,20 +1,29 @@
 # ============================================
-# utils/logger.py - Gestionnaire de logs
+# utils/logger.py - Gestionnaire de logs (ORM)
 # ============================================
-from flask import request
+from datetime import datetime
+from extensions import db
+from models_sqlalchemy import Log
+import logging
 
-def ajouter_log(action, description, user_id, document_id=None):
-    """
-    Ajoute une entrée dans la table logs.
-    À appeler dans chaque route importante.
-    """
-    from app import mysql
-    
-    cur = mysql.connection.cursor()
-    cur.execute("""
-        INSERT INTO logs (action, description, user_id, document_id)
-        VALUES (%s, %s, %s, %s)
-    """, (action, description, user_id, document_id))
-    
-    mysql.connection.commit()
-    cur.close()
+logger = logging.getLogger(__name__)
+
+
+def ajouter_log(action, description, user_id, document_id=None, adresse_ip=None):
+    """Ajoute une entrée dans la table `logs` via SQLAlchemy ORM."""
+    try:
+        log = Log(
+            action=action,
+            description=description,
+            user_id=user_id,
+            document_id=document_id,
+            adresse_ip=adresse_ip,
+            date_action=datetime.utcnow()
+        )
+        db.session.add(log)
+        db.session.commit()
+        return log.id
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Erreur ajouter_log: {e}")
+        raise
