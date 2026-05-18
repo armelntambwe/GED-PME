@@ -14,7 +14,7 @@
 
 | Module | Taches | Statut | % |
 |--------|--------|--------|---|
-| Modules 1-13 | 72/85 taches | Termine | 85% |
+| Modules 1-13 | 100/110 taches | Termine | 85% |
 | Module 14 (OCR) | 0% | En cours | 0% |
 | Module 15 (Tests terrain) | 0% | A venir | 0% |
 | Module 16 (Documentation) | 0% | A venir | 0% |
