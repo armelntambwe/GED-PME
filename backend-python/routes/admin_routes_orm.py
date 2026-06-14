@@ -308,22 +308,40 @@ def register_admin_routes_orm(app):
     @role_required(['admin_global'])
     def admin_global_backup():
         try:
-            import subprocess, shutil, os
-            from config import Config
+            import subprocess
+            import os
+            from datetime import datetime
             
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            backup_dir = f"backups/backup_{timestamp}"
-            os.makedirs(backup_dir, exist_ok=True)
+            backup_dir = "backups"
             
-            subprocess.run(['mysqldump', '-u', Config.MYSQL_USER, f'-p{Config.MYSQL_PASSWORD}', Config.MYSQL_DB, '--result-file', f"{backup_dir}/database.sql"], check=True)
-            upload_folder = 'uploads'
-            if os.path.exists(upload_folder):
-                shutil.copytree(upload_folder, f"{backup_dir}/uploads", dirs_exist_ok=True)
-            return jsonify({"success": True, "message": "Sauvegarde effectuée"}), 200
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+            
+            backup_file = os.path.join(backup_dir, f"backup_{timestamp}.sql")
+            backup_file_abs = os.path.abspath(backup_file)
+            
+            # Chemin exact de mysqldump
+            mysqldump_path = r"C:\xampp\mysql\bin\mysqldump.exe"
+            
+            # Commande avec result-file
+            cmd = [
+                mysqldump_path,
+                "-u", "root",
+                "ged_pme",
+                f"--result-file={backup_file_abs}"
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0 and os.path.exists(backup_file_abs) and os.path.getsize(backup_file_abs) > 0:
+                return jsonify({"success": True, "message": f"Sauvegarde effectuee: {backup_file}"}), 200
+            else:
+                return jsonify({"success": False, "message": f"Erreur: {result.stderr}"}), 500
+                
         except Exception as e:
+            print(f"[ERREUR] backup: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
-
-    # ============================================
     # EXPORTS CSV
     # ============================================
     

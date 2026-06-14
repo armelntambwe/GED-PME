@@ -123,6 +123,11 @@
         .divider::after {
             margin-left: 1rem;
         }
+
+        .alert {
+            border-radius: 1rem;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -154,7 +159,7 @@
                             </div>
                             <a href="#" class="link-register small">Mot de passe oublié ?</a>
                         </div>
-                        <button type="submit" class="btn btn-login w-100">Se connecter</button>
+                        <button type="submit" class="btn btn-login w-100" id="loginBtn">Se connecter</button>
                     </form>
 
                     <div class="divider">Nouveau sur GED-PME ?</div>
@@ -176,10 +181,22 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            
             errorDiv.classList.add('d-none');
+            
+            if (!email || !password) {
+                errorDiv.classList.remove('d-none');
+                errorDiv.textContent = 'Veuillez saisir votre email et votre mot de passe.';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = 'Connexion en cours...';
 
             try {
                 const response = await fetch('/login', {
@@ -187,21 +204,31 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
+                
                 const data = await response.json();
 
                 if (data.success) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    if (data.user.role === 'admin_global') window.location.href = '/dashboard-admin-global';
-                    else if (data.user.role === 'admin_pme') window.location.href = '/dashboard-pme';
-                    else window.location.href = '/dashboard-employee';
+                    
+                    if (data.user.role === 'admin_global') {
+                        window.location.href = '/dashboard-admin-global';
+                    } else if (data.user.role === 'admin_pme') {
+                        window.location.href = '/dashboard-pme';
+                    } else {
+                        window.location.href = '/dashboard-employee';
+                    }
                 } else {
                     errorDiv.classList.remove('d-none');
                     errorDiv.textContent = data.message || 'Échec de la connexion. Vérifiez vos identifiants.';
                 }
             } catch (err) {
+                console.error('Erreur:', err);
                 errorDiv.classList.remove('d-none');
                 errorDiv.textContent = 'Erreur de connexion au serveur. Veuillez réessayer.';
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Se connecter';
             }
         });
     </script>

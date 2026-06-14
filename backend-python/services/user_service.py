@@ -1,7 +1,4 @@
-"""
-Service utilisateur - ORM SQLAlchemy pur (sans SQL brut)
-Remplace les méthodes utilisateur de DatabaseService
-"""
+# services/user_service.py - Version corrigée
 
 from extensions import db
 from models_sqlalchemy import User, Entreprise, Log
@@ -191,3 +188,28 @@ class UserService:
             db.session.rollback()
             logger.error(f"Erreur update_user: {e}")
             raise
+
+    # ==================== SUPPRIMEES TEMPORAIREMENT ====================
+    # Les méthodes create_employe_complet, update_employe_complet, 
+    # update_last_login et get_employe_details sont commentées car elles
+    # utilisent des colonnes qui n'existent pas encore dans la base.
+    
+    # @staticmethod
+    # def generate_matricule():
+    #     ...
+    
+    # @staticmethod 
+    # def create_employe_complet(data: dict, entreprise_id: int) -> int:
+    #     ...
+    
+    # @staticmethod
+    # def update_employe_complet(user_id: int, data: dict) -> bool:
+    #     ...
+    
+    # @staticmethod
+    # def update_last_login(user_id: int) -> bool:
+    #     ...
+    
+    # @staticmethod
+    # def get_employe_details(user_id: int) -> dict:
+    #     ...

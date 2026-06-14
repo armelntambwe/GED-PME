@@ -372,23 +372,35 @@
         // DASHBOARD
         // ==========================================
         async function loadDashboard() {
-            document.getElementById('statsGrid').innerHTML = '<div class="col-12"><div class="loading">Chargement...</div></div>';
-            if (!navigator.onLine) {
+    // Affichage du chargement
+    document.getElementById('statsGrid').innerHTML = '<div class="col-12 text-center py-4">Chargement...</div>';
+    
+    if (!navigator.onLine) {
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Entreprises</div></div></div>
+            <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Documents</div></div></div>
+            <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Utilisateurs</div></div></div>`;
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/admin-global/stats', { 
+            headers: { 'Authorization': 'Bearer ' + token } 
+        });
+        const data = await res.json();
+        
+        if (data.success && data.stats) {
+            const s = data.stats;
             document.getElementById('statsGrid').innerHTML = `
-                <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.total_entreprises || 0}</div><div>Entreprises</div></div></div>
-                <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.total_documents || 0}</div><div>Documents</div></div></div>
-                <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.total_users || 0}</div><div>Utilisateurs</div></div></div>`;
-                            return;
-            }
-            try {
-                const res = await fetch('/api/admin-global/stats', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('statsGrid').innerHTML = `
-                        <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.entreprises || 0}</div><div>Entreprises</div></div></div>
-                        <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.documents || 0}</div><div>Documents</div></div></div>
-                        <div class="col-md-4"><div class="card-stats p-3 text-center"><div class="stat-number">${data.stats.users || 0}</div><div>Utilisateurs</div></div></div>`;
-                }
+                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">${s.total_entreprises || s.entreprises || 0}</div><div class="stat-label">Entreprises</div></div></div>
+                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">${s.total_documents || s.documents || 0}</div><div class="stat-label">Documents</div></div></div>
+                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">${s.total_users || s.users || 0}</div><div class="stat-label">Utilisateurs</div></div></div>`;
+        } else {
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Entreprises</div></div></div>
+                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Documents</div></div></div>
+                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Utilisateurs</div></div></div>`;
+        }
             } catch(e) { console.error(e); }
 
            try {

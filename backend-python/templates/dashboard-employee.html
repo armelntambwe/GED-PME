@@ -2,238 +2,1403 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME - Mon Espace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>GED-PME | Mon espace employé</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
-        .navbar { background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 22px; font-weight: bold; color: #667eea; }
-        .user-info { display: flex; align-items: center; gap: 20px; }
-        .logout { background: #f44336; color: white; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
-        .stat-card h3 { color: #888; font-size: 14px; margin-bottom: 10px; }
-        .stat-number { font-size: 32px; font-weight: bold; color: #333; }
-        .upload-card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .upload-card h3 { margin-bottom: 20px; color: #333; }
-        .upload-card input, .upload-card select { padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-size: 14px; }
-        .upload-card button { background: #667eea; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: 500; }
-        .documents-list { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; }
-        .status { padding: 4px 10px; border-radius: 20px; font-size: 12px; display: inline-block; }
-        .status-brouillon { background: #fff3e0; color: #ff9800; }
-        .status-soumis { background: #e3f2fd; color: #2196f3; }
-        .status-valide { background: #e8f5e9; color: #4caf50; }
-        .status-rejete { background: #ffebee; color: #f44336; }
-        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin: 0 3px; }
-        .btn-submit { background: #4caf50; color: white; }
-        .btn-download { background: #2196f3; color: white; }
-        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-        .search-bar input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        .filter { margin-bottom: 20px; }
-        .filter select { padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #e0f2fe;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --gray-light: #f1f5f9;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 280px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: var(--white);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 100;
+            transition: all 0.3s;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .sidebar-header h3 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.2s;
+            margin: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .sidebar-nav .nav-link i {
+            width: 22px;
+            font-size: 18px;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: var(--gray-light);
+            color: var(--primary);
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            margin-left: 280px;
+            padding: 24px 32px;
+        }
+
+        /* ========== TOP BAR ========== */
+        .top-bar {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 12px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .search-global {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-global input {
+            width: 100%;
+            padding: 10px 18px 10px 42px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+            background: var(--gray-light);
+            font-size: 14px;
+        }
+
+        .search-global i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notif-icon {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            display: none;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ========== STAT CARDS ========== */
+        .stat-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* ========== CARDS ========== */
+        .card-custom {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .card-header-custom {
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        /* ========== FORMULAIRE UPLOAD ========== */
+        .upload-area {
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* ========== TABLEAU ========== */
+        .table-custom {
+            width: 100%;
+        }
+
+        .table-custom thead th {
+            background: var(--gray-light);
+            padding: 14px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .table-custom tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        /* ========== BADGES ========== */
+        .badge-custom {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-brouillon { background: var(--gray-light); color: var(--gray); }
+        .badge-soumis { background: var(--warning-light); color: #d97706; }
+        .badge-valide { background: var(--success-light); color: #059669; }
+        .badge-rejete { background: var(--danger-light); color: #dc2626; }
+
+        /* ========== BOUTONS ========== */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(14,165,233,0.4);
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-action {
+            background: transparent;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background: var(--gray-light);
+        }
+
+        /* ========== MODAL ========== */
+        .modal-modern .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+
+        .modal-modern .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-modern .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        /* ========== PAGINATION ========== */
+        .pagination-custom .page-link {
+            border-radius: 10px;
+            margin: 0 3px;
+            color: var(--primary);
+            border: none;
+            padding: 8px 14px;
+        }
+
+        .pagination-custom .page-item.active .page-link {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ========== TOAST ========== */
+        .toast-custom {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--success);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            display: none;
+            z-index: 1100;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .toast-custom.error {
+            background: var(--danger);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block !important;
+            }
+        }
+
+        .cursor-pointer { cursor: pointer; }
+        .loading { text-align: center; padding: 50px; color: var(--gray); }
+        .text-muted-custom { color: var(--gray); }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="logo">📁 GED-PME</div>
-        <div class="user-info">
-            <span id="userName"></span>
-            <button class="logout" onclick="logout()">Déconnexion</button>
+
+<!-- ========== SIDEBAR ========== -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-folder-open me-2"></i>GED-PME</h3>
+        <p>Espace employé</p>
+    </div>
+    <div class="sidebar-nav">
+        <a href="#" class="nav-link active" data-tab="dashboard">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="#" class="nav-link" data-tab="mes-documents">
+            <i class="fas fa-folder"></i> Mes documents
+        </a>
+        <a href="#" class="nav-link" data-tab="ajouter">
+            <i class="fas fa-plus-circle"></i> Ajouter un document
+        </a>
+        <a href="#" class="nav-link" data-tab="recherche">
+            <i class="fas fa-search"></i> Recherche
+        </a>
+        <a href="#" class="nav-link" data-tab="partages">
+            <i class="fas fa-share-alt"></i> Documents partagés
+        </a>
+        <a href="#" class="nav-link" data-tab="notifications">
+            <i class="fas fa-bell"></i> Notifications
+            <span class="badge bg-danger rounded-pill ms-auto" id="notifSidebarBadge">0</span>
+        </a>
+        <a href="#" class="nav-link" data-tab="profil">
+            <i class="fas fa-user"></i> Mon profil
+        </a>
+        <hr class="mx-3 my-2">
+        <a href="#" class="nav-link" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </a>
+    </div>
+</div>
+
+<!-- ========== MAIN CONTENT ========== -->
+<div class="main-content">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-bars fs-4 menu-toggle" id="menuToggle" style="cursor: pointer; display: none;"></i>
+            <div class="search-global">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearch" placeholder="Rechercher un document..." onkeyup="if(event.key === 'Enter') loadDocuments()">
+            </div>
+        </div>
+        <div class="user-area">
+            <div class="notif-icon" id="notifIcon">
+                <i class="fas fa-bell fs-5" style="color: var(--gray);"></i>
+                <span class="notif-badge" id="notifBadge">0</span>
+            </div>
+            <div class="user-avatar" id="userAvatar" data-bs-toggle="modal" data-bs-target="#profileModal">
+                <span id="userInitial">U</span>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="stats">
-            <div class="stat-card"><h3>📄 MES DOCUMENTS</h3><div class="stat-number" id="myDocs">-</div></div>
-            <div class="stat-card"><h3>⏳ EN ATTENTE</h3><div class="stat-number" id="pendingDocs">-</div></div>
-            <div class="stat-card"><h3>✅ VALIDÉS</h3><div class="stat-number" id="validatedDocs">-</div></div>
-            <div class="stat-card"><h3>❌ REJETÉS</h3><div class="stat-number" id="rejectedDocs">-</div></div>
+    <!-- ========== TAB DASHBOARD ========== -->
+    <div id="tabDashboard" class="tab-pane">
+        <div class="mb-4">
+            <h4 class="fw-bold">Bonjour, <span id="welcomeName">Utilisateur</span></h4>
+            <p class="text-muted">Bienvenue sur votre espace documentaire</p>
         </div>
 
-        <div class="upload-card">
-            <h3>📤 Déposer un document</h3>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.png,.txt">
-            <input type="text" id="docTitle" placeholder="Titre du document">
-            <input type="text" id="docDesc" placeholder="Description (optionnel)">
-            <select id="categorieId"><option value="">Sans catégorie</option></select>
-            <button onclick="uploadDocument()">📤 Uploader</button>
+        <!-- Statistiques -->
+        <div class="row g-4 mb-4" id="statsGrid">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary-light text-primary"><i class="fas fa-file-alt fs-3"></i></div>
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Mes documents</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock fs-3"></i></div>
+                    <div class="stat-value" id="statEnAttente">0</div>
+                    <div class="stat-label">En attente</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle fs-3"></i></div>
+                    <div class="stat-value" id="statValides">0</div>
+                    <div class="stat-label">Validés</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-share-alt fs-3"></i></div>
+                    <div class="stat-value" id="statPartages">0</div>
+                    <div class="stat-label">Documents partagés</div>
+                </div>
+            </div>
         </div>
 
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="loadDocuments()">
-            <button onclick="loadDocuments()">🔍 Rechercher</button>
+        <!-- Graphiques -->
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chart-line me-2 text-primary"></i> Évolution des documents
+                    </div>
+                    <canvas id="evolutionChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i> Répartition par statut
+                    </div>
+                    <canvas id="statusChart" height="180"></canvas>
+                </div>
+            </div>
         </div>
 
-        <div class="filter">
-            <select id="statusFilter" onchange="loadDocuments()">
-                <option value="">Tous les statuts</option>
-                <option value="brouillon">Brouillon</option>
-                <option value="soumis">Soumis</option>
-                <option value="valide">Validé</option>
-                <option value="rejete">Rejeté</option>
-            </select>
-        </div>
-
-        <div class="documents-list">
-            <h3>📋 Mes documents</h3>
-            <table id="documentsTable">
-                <thead> <tr> <th>Titre</th> <th>Date</th> <th>Statut</th> <th>Actions</th> </tr> </thead>
-                <tbody id="documentsBody"> <tr><td colspan="4">Chargement...</td></tr> </tbody>
-            </table>
+        <!-- Derniers documents -->
+        <div class="card-custom mt-4">
+            <div class="card-header-custom">
+                <i class="fas fa-history me-2 text-primary"></i> Derniers documents
+            </div>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="recentDocumentsBody">
+                        <tr><td colspan="5" class="loading">Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <script>
-        async function loadCategories() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            try {
-                const response = await fetch('/categories', { 
-                    headers: { 'Authorization': `Bearer ${token}` } 
-                });
-                const data = await response.json();
-                const select = document.getElementById('categorieId');
-                select.innerHTML = '<option value="">Sans catégorie</option>';
-                for (const cat of data.categories || []) {
-                    const option = document.createElement('option');
-                    option.value = cat.id;
-                    option.textContent = cat.nom;
-                    select.appendChild(option);
-                }
-            } catch(e) { console.error('Erreur chargement catégories:', e); }
-        }
+    <!-- ========== TAB MES DOCUMENTS ========== -->
+    <div id="tabMesDocuments" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 class="fw-bold"><i class="fas fa-folder me-2 text-primary"></i> Mes documents</h5>
+                <div class="d-flex gap-2">
+                    <select id="statusFilter" class="form-select form-select-sm" style="width: 150px;">
+                        <option value="">Tous les statuts</option>
+                        <option value="brouillon">Brouillon</option>
+                        <option value="soumis">En attente</option>
+                        <option value="valide">Validé</option>
+                        <option value="rejete">Rejeté</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            </div>
 
-        async function uploadDocument() {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file) { alert('Veuillez sélectionner un fichier'); return; }
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-file-alt"></i> Titre</th>
+                            <th><i class="fas fa-tag"></i> Catégorie</th>
+                            <th><i class="fas fa-calendar"></i> Date</th>
+                            <th><i class="fas fa-chart-simple"></i> Statut</th>
+                            <th><i class="fas fa-cog"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documentsBody">
+                        <tr><td colspan="5" class="loading"><div class="spinner-border text-primary"></div> Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+        </div>
+    </div>
+
+    <!-- ========== TAB AJOUTER DOCUMENT ========== -->
+    <div id="tabAjouter" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-4"><i class="fas fa-cloud-upload-alt me-2 text-primary"></i> Ajouter un document</h5>
             
-            const token = localStorage.getItem('token');
-            if (!token) { alert('Vous devez être connecté'); return; }
+            <form id="uploadForm">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Titre du document <span class="text-danger">*</span></label>
+                        <input type="text" id="docTitle" class="form-control" placeholder="Ex: Contrat de travail, Facture 2024...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Catégorie</label>
+                        <select id="categorieId" class="form-select">
+                            <option value="">Sélectionner une catégorie</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea id="docDesc" class="form-control" rows="3" placeholder="Description optionnelle du document..."></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Fichier <span class="text-danger">*</span></label>
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt fs-1 text-primary mb-2"></i>
+                            <p class="mb-0">Cliquez ou glissez-déposez votre fichier ici</p>
+                            <small class="text-muted">PDF, DOCX, JPG, PNG, TXT (Max 16 Mo)</small>
+                            <input type="file" id="fileInput" class="d-none" accept=".pdf,.docx,.jpg,.png,.txt">
+                        </div>
+                        <div id="fileNameDisplay" class="mt-2 small text-muted"></div>
+                    </div>
+                    <div class="col-12">
+                        <button type="button" class="btn-primary-custom" onclick="uploadDocument()">
+                            <i class="fas fa-upload me-2"></i> Importer le document
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== TAB RECHERCHE ========== -->
+    <div id="tabRecherche" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i> Recherche avancée</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" id="searchTitle" class="form-control" placeholder="Nom du document">
+                </div>
+                <div class="col-md-4">
+                    <select id="searchCategorie" class="form-select">
+                        <option value="">Toutes les catégories</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select id="searchStatus" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="brouillon">Brouillon</option>
+                        <option value="soumis">En attente</option>
+                        <option value="valide">Validé</option>
+                        <option value="rejete">Rejeté</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button class="btn-primary-custom" onclick="advancedSearch()">
+                        <i class="fas fa-search me-2"></i> Rechercher
+                    </button>
+                    <button class="btn-outline-custom ms-2" onclick="resetAdvancedSearch()">
+                        <i class="fas fa-undo me-2"></i> Réinitialiser
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-custom mt-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-list me-2 text-primary"></i> Résultats</h5>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="searchResultsBody">
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Utilisez les filtres ci-dessus pour rechercher<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TAB DOCUMENTS PARTAGÉS ========== -->
+    <div id="tabPartages" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-3"><i class="fas fa-share-alt me-2 text-primary"></i> Documents partagés avec moi</h5>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>Titre</th><th>Partagé par</th><th>Date</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="sharedDocumentsBody">
+                        <tr><td colspan="4" class="text-center py-4 text-muted">Aucun document partagé<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TAB NOTIFICATIONS ========== -->
+    <div id="tabNotifications" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold"><i class="fas fa-bell me-2 text-primary"></i> Notifications</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="marquerToutLu()">
+                    <i class="fas fa-check-double"></i> Tout marquer comme lu
+                </button>
+            </div>
+            <div id="notificationsList">
+                <div class="text-center py-4 text-muted">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TAB PROFIL ========== -->
+    <div id="tabProfil" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-4"><i class="fas fa-user-circle me-2 text-primary"></i> Mon profil</h5>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Nom complet</label>
+                    <input type="text" id="profileNom" class="form-control" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" id="profileEmail" class="form-control" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Téléphone</label>
+                    <input type="tel" id="profileTelephone" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Service</label>
+                    <input type="text" id="profileService" class="form-control" placeholder="Votre service">
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Nouveau mot de passe</label>
+                    <input type="password" id="profilePassword" class="form-control" placeholder="Laisser vide pour ne pas changer">
+                </div>
+                <div class="col-12">
+                    <button class="btn-primary-custom" onclick="updateProfile()">
+                        <i class="fas fa-save me-2"></i> Enregistrer les modifications
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL PROFIL ========== -->
+<div class="modal fade modal-modern" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-circle me-2"></i> Mon profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <div class="user-avatar mx-auto" style="width: 80px; height: 80px; font-size: 32px;">
+                        <span id="modalUserInitial">U</span>
+                    </div>
+                </div>
+                <p><strong>Nom:</strong> <span id="modalUserName">-</span></p>
+                <p><strong>Email:</strong> <span id="modalUserEmail">-</span></p>
+                <p><strong>Rôle:</strong> Employé</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL MOTIF REJET ========== -->
+<div class="modal fade modal-modern" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i> Motif du rejet</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="rejectMotifText" class="text-muted">Chargement...</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div id="customToast" class="toast-custom">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage"></span>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/login';
+
+let currentPage = 1;
+let totalPages = 1;
+let currentTab = 'dashboard';
+let evolutionChart = null;
+let statusChart = null;
+const itemsPerPage = 10;
+
+// ============================================
+// UTILITAIRES
+// ============================================
+function showToast(msg, isError = false) {
+    const toast = $('#customToast');
+    $('#toastMessage').text(msg);
+    if (isError) {
+        toast.css('background', '#ef4444');
+    } else {
+        toast.css('background', '#10b981');
+    }
+    toast.css('display', 'flex');
+    setTimeout(() => toast.fadeOut(300), 3000);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = '/login';
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+$('.sidebar-nav .nav-link').click(function(e) {
+    e.preventDefault();
+    $('.sidebar-nav .nav-link').removeClass('active');
+    $(this).addClass('active');
+    
+    const tab = $(this).data('tab');
+    currentTab = tab;
+    
+    $('.tab-pane').hide();
+    if (tab === 'dashboard') {
+        $('#tabDashboard').show();
+        loadStats();
+        loadRecentDocuments();
+    } else if (tab === 'mes-documents') {
+        $('#tabMesDocuments').show();
+        loadDocuments();
+    } else if (tab === 'ajouter') {
+        $('#tabAjouter').show();
+    } else if (tab === 'recherche') {
+        $('#tabRecherche').show();
+        loadCategoriesForSearch();
+    } else if (tab === 'partages') {
+        $('#tabPartages').show();
+        loadSharedDocuments();
+    } else if (tab === 'notifications') {
+        $('#tabNotifications').show();
+        loadNotifications();
+    } else if (tab === 'profil') {
+        $('#tabProfil').show();
+        loadProfile();
+    }
+    
+    if (window.innerWidth <= 992) $('#sidebar').removeClass('open');
+});
+
+$('#menuToggle').click(() => $('#sidebar').toggleClass('open'));
+
+// ============================================
+// USER INFO
+// ============================================
+async function loadUserInfo() {
+    try {
+        const res = await fetch('/api/user/profile', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.success) {
+            $('#userInitial').text(data.nom.charAt(0).toUpperCase());
+            $('#welcomeName').text(data.nom);
+            $('#profileNom').val(data.nom);
+            $('#profileEmail').val(data.email);
+            $('#profileTelephone').val(data.telephone || '');
+            $('#modalUserName').text(data.nom);
+            $('#modalUserEmail').text(data.email);
+            $('#modalUserInitial').text(data.nom.charAt(0).toUpperCase());
+        }
+    } catch(e) { console.error('Erreur chargement profil:', e); }
+}
+loadUserInfo();
+
+// ============================================
+// STATISTIQUES
+// ============================================
+async function loadStats() {
+    try {
+        const res = await fetch('/documents/stats', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const stats = data.stats || { total: 0, en_attente: 0, valides: 0, rejetes: 0 };
+        
+        $('#statTotal').text(stats.total || 0);
+        $('#statEnAttente').text(stats.en_attente || 0);
+        $('#statValides').text(stats.valides || 0);
+        
+        // Graphique évolution
+        if (evolutionChart) evolutionChart.destroy();
+        const ctx = document.getElementById('evolutionChart').getContext('2d');
+        evolutionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                datasets: [{ label: 'Documents', data: [0, 0, 0, 0, 0, stats.total || 0], borderColor: '#0ea5e9', tension: 0.3 }]
+            },
+            options: { responsive: true }
+        });
+        
+        // Graphique statuts
+        if (statusChart) statusChart.destroy();
+        const ctx2 = document.getElementById('statusChart').getContext('2d');
+        statusChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['En attente', 'Validés', 'Rejetés'],
+                datasets: [{ data: [stats.en_attente || 0, stats.valides || 0, stats.rejetes || 0], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'] }]
+            },
+            options: { responsive: true }
+        });
+        
+        // Badge notifications
+        $('#notifSidebarBadge').text(stats.en_attente || 0);
+        if (stats.en_attente > 0) {
+            $('#notifBadge').css('display', 'inline-block').text(stats.en_attente);
+        } else {
+            $('#notifBadge').css('display', 'none');
+        }
+    } catch(e) { console.error('Stats error:', e); }
+}
+
+// ============================================
+// DERNIERS DOCUMENTS
+// ============================================
+async function loadRecentDocuments() {
+    try {
+        const res = await fetch('/documents?page=1&limit=5', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const docs = data.documents || [];
+        
+        if (docs.length === 0) {
+            $('#recentDocumentsBody').html('<td><td colspan="5" class="text-center py-4 text-muted">Aucun document<\/td><\/tr>');
+            return;
+        }
+        
+        let html = '';
+        for (let doc of docs.slice(0, 5)) {
+            let badge = '';
+            if (doc.statut === 'brouillon') badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
+            else if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
+            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
+            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
             
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('titre', document.getElementById('docTitle').value || file.name);
-            formData.append('description', document.getElementById('docDesc').value);
-            formData.append('categorie_id', document.getElementById('categorieId').value);
+            html += `<tr>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_creation)}<\/td>
+                <td>${badge}<\/td>
+                <td>
+                    <button class="btn-action" onclick="visualiserDocument(${doc.id})" title="Consulter"><i class="fas fa-eye text-primary"></i><\/button>
+                    <button class="btn-action" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download text-success"></i><\/button>
+                <\/td>
+            <\/tr>`;
+        }
+        $('#recentDocumentsBody').html(html);
+    } catch(e) { console.error(e); }
+}
+
+// ============================================
+// MES DOCUMENTS
+// ============================================
+async function loadDocuments() {
+    const status = $('#statusFilter').val();
+    let url = `/documents?page=${currentPage}&limit=${itemsPerPage}`;
+    if (status) url += `&statut=${status}`;
+    
+    $('#documentsBody').html('<tr><td colspan="5" class="loading"><div class="spinner-border text-primary"></div> Chargement...<\/td><\/tr>');
+    
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const documents = data.documents || [];
+        totalPages = data.total_pages || 1;
+        
+        if (documents.length === 0) {
+            $('#documentsBody').html('<td><td colspan="5" class="text-center py-4 text-muted">Aucun document trouvé<\/td><\/tr>');
+            return;
+        }
+        
+        let html = '';
+        for (let doc of documents) {
+            let badge = '';
+            if (doc.statut === 'brouillon') badge = '<span class="badge-custom badge-brouillon"><i class="fas fa-pencil-alt"></i> Brouillon</span>';
+            else if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis"><i class="fas fa-clock"></i> En attente</span>';
+            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide"><i class="fas fa-check-circle"></i> Validé</span>';
+            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete"><i class="fas fa-times-circle"></i> Rejeté</span>';
             
-            try {
-                const response = await fetch('/documents/upload', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('Document uploadé avec succès');
-                    document.getElementById('fileInput').value = '';
-                    document.getElementById('docTitle').value = '';
-                    document.getElementById('docDesc').value = '';
-                    loadDocuments();
-                    loadStats();
-                } else {
-                    alert('Erreur: ' + data.message);
-                }
-            } catch(e) { alert('Erreur de connexion'); }
+            html += `<tr>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_creation)}<\/td>
+                <td>${badge}<\/td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn-action" onclick="visualiserDocument(${doc.id})" title="Consulter"><i class="fas fa-eye text-primary"></i><\/button>
+                        <button class="btn-action" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download text-success"></i><\/button>
+                        ${doc.statut === 'brouillon' ? `<button class="btn-action" onclick="modifierDocument(${doc.id})" title="Modifier"><i class="fas fa-edit text-warning"></i><\/button>
+                        <button class="btn-action" onclick="soumettreDocument(${doc.id})" title="Soumettre"><i class="fas fa-paper-plane text-info"></i><\/button>` : ''}
+                        ${doc.statut === 'rejete' ? `<button class="btn-action" onclick="voirMotifRejet(${doc.id})" title="Motif"><i class="fas fa-comment-dots text-danger"></i><\/button>` : ''}
+                        <button class="btn-action" onclick="supprimerDocument(${doc.id})" title="Supprimer"><i class="fas fa-trash text-secondary"></i><\/button>
+                        <button class="btn-action" onclick="partagerDocument(${doc.id}, '${escapeHtml(doc.titre)}')" title="Partager"><i class="fas fa-share-alt text-success"></i><\/button>
+                    </div>
+                <\/td>
+            <\/tr>`;
         }
+        $('#documentsBody').html(html);
+        renderPagination();
+    } catch(e) { console.error('Load error:', e); }
+}
 
-        async function loadStats() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            try {
-                const response = await fetch(`/documents?user_id=${user.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                
-                let total = 0, pending = 0, validated = 0, rejected = 0;
-                for (const doc of data.documents || []) {
-                    total++;
-                    if (doc.statut === 'soumis') pending++;
-                    else if (doc.statut === 'valide') validated++;
-                    else if (doc.statut === 'rejete') rejected++;
-                }
-                document.getElementById('myDocs').textContent = total;
-                document.getElementById('pendingDocs').textContent = pending;
-                document.getElementById('validatedDocs').textContent = validated;
-                document.getElementById('rejectedDocs').textContent = rejected;
-            } catch(e) { console.error('Erreur chargement stats:', e); }
+function renderPagination() {
+    if (totalPages <= 1) { $('#pagination').empty(); return; }
+    let html = '<nav><ul class="pagination pagination-custom">';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
+    }
+    html += '</ul></nav>';
+    $('#pagination').html(html);
+}
+
+function changePage(page) { currentPage = page; loadDocuments(); }
+function resetFilters() { $('#statusFilter').val(''); currentPage = 1; loadDocuments(); }
+
+// ============================================
+// ACTIONS DOCUMENTS
+// ============================================
+function visualiserDocument(id) {
+    window.open(`/documents/${id}/download?token=${token}`, '_blank');
+}
+
+function telechargerDocument(id) {
+    window.open(`/documents/${id}/download?token=${token}`, '_blank');
+}
+
+async function soumettreDocument(id) {
+    try {
+        const res = await fetch(`/documents/${id}/soumettre`, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            showToast('Document soumis avec succès');
+            loadDocuments();
+            loadStats();
+        } else {
+            showToast('Erreur lors de la soumission', true);
         }
+    } catch(e) { showToast('Erreur', true); }
+}
 
-        async function loadDocuments() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const search = document.getElementById('searchInput').value;
-            const status = document.getElementById('statusFilter').value;
+async function modifierDocument(id) {
+    const nouveauTitre = prompt("Nouveau titre du document :");
+    if (!nouveauTitre) return;
+    
+    try {
+        const res = await fetch(`/documents/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ titre: nouveauTitre })
+        });
+        if (res.ok) {
+            showToast('Document modifié');
+            loadDocuments();
+        } else {
+            showToast('Erreur', true);
+        }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function supprimerDocument(id) {
+    if (!confirm('Voulez-vous vraiment supprimer ce document ?')) return;
+    try {
+        const res = await fetch(`/documents/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            showToast('Document supprimé');
+            loadDocuments();
+            loadStats();
+        } else {
+            showToast('Erreur', true);
+        }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function voirMotifRejet(id) {
+    try {
+        const res = await fetch(`/documents/${id}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const doc = data.document;
+        $('#rejectMotifText').text(doc.commentaire_rejet || 'Aucun motif fourni');
+        $('#rejectModal').modal('show');
+    } catch(e) { showToast('Erreur', true); }
+}
+
+function partagerDocument(id, titre) {
+    const shareUrl = `${window.location.origin}/documents/${id}/download?token=${token}`;
+    const modalHtml = `
+        <div class="modal fade modal-modern" id="shareModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="fas fa-share-alt me-2"></i> Partager: ${escapeHtml(titre)}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="shareLink" value="${shareUrl}" readonly>
+                            <button class="btn btn-primary" onclick="copierLien()"><i class="fas fa-copy"></i> Copier</button>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Ce lien permet de télécharger le document.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    $('body').append(modalHtml);
+    new bootstrap.Modal(document.getElementById('shareModal')).show();
+    $('#shareModal').on('hidden.bs.modal', function() { $('#shareModal').remove(); });
+}
+
+function copierLien() {
+    const link = document.getElementById('shareLink');
+    link.select();
+    document.execCommand('copy');
+    showToast('Lien copié dans le presse-papier');
+}
+
+// ============================================
+// UPLOAD DOCUMENT
+// ============================================
+$('#uploadArea').click(function() {
+    $('#fileInput').click();
+});
+
+$('#fileInput').change(function(e) {
+    if (e.target.files.length > 0) {
+        $('#fileNameDisplay').text(`Fichier sélectionné: ${e.target.files[0].name}`);
+    }
+});
+
+async function uploadDocument() {
+    const file = $('#fileInput')[0].files[0];
+    const titre = $('#docTitle').val();
+    
+    if (!file) { showToast('Veuillez sélectionner un fichier', true); return; }
+    if (!titre) { showToast('Veuillez saisir un titre', true); return; }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('titre', titre);
+    formData.append('description', $('#docDesc').val());
+    formData.append('categorie_id', $('#categorieId').val());
+    
+    try {
+        const res = await fetch('/documents/upload', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Document importé avec succès');
+            $('#fileInput').val('');
+            $('#docTitle').val('');
+            $('#docDesc').val('');
+            $('#fileNameDisplay').text('');
+            loadDocuments();
+            loadStats();
+            loadRecentDocuments();
+        } else {
+            showToast(data.message || 'Erreur import', true);
+        }
+    } catch(e) { showToast('Erreur de connexion', true); }
+}
+
+// ============================================
+// CATÉGORIES
+// ============================================
+async function loadCategories() {
+    try {
+        const res = await fetch('/categories', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.categories && data.categories.length > 0) {
+            let options = '<option value="">Sélectionner une catégorie</option>';
+            data.categories.forEach(c => {
+                options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`;
+            });
+            $('#categorieId').html(options);
+        }
+    } catch(e) { console.error(e); }
+}
+loadCategories();
+
+async function loadCategoriesForSearch() {
+    try {
+        const res = await fetch('/categories', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.categories && data.categories.length > 0) {
+            let options = '<option value="">Toutes les catégories</option>';
+            data.categories.forEach(c => {
+                options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`;
+            });
+            $('#searchCategorie').html(options);
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ============================================
+// RECHERCHE AVANCÉE
+// ============================================
+async function advancedSearch() {
+    const titre = $('#searchTitle').val();
+    const categorie = $('#searchCategorie').val();
+    const statut = $('#searchStatus').val();
+    
+    let url = `/documents?limit=50`;
+    if (titre) url += `&search=${encodeURIComponent(titre)}`;
+    if (statut) url += `&statut=${statut}`;
+    
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const docs = data.documents || [];
+        
+        if (docs.length === 0) {
+            $('#searchResultsBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Aucun résultat<\/td><\/tr>');
+            return;
+        }
+        
+        let html = '';
+        for (let doc of docs) {
+            let badge = '';
+            if (doc.statut === 'brouillon') badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
+            else if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
+            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
+            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
             
-            let url = `/documents?user_id=${user.id}`;
-            if (search) url += `&search=${encodeURIComponent(search)}`;
-            if (status) url += `&statut=${status}`;
-            
-            try {
-                const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await response.json();
-                
-                const tbody = document.getElementById('documentsBody');
-                tbody.innerHTML = '';
-                
-                for (const doc of data.documents || []) {
-                    const row = tbody.insertRow();
-                    row.insertCell(0).textContent = doc.titre;
-                    row.insertCell(1).textContent = doc.date_creation;
-                    row.insertCell(2).innerHTML = `<span class="status status-${doc.statut}">${doc.statut}</span>`;
-                    
-                    const actions = row.insertCell(3);
-                    if (doc.statut === 'brouillon') {
-                        actions.innerHTML = `<button class="btn btn-submit" onclick="soumettreDocument(${doc.id})">📤 Soumettre</button>`;
-                    }
-                    if (doc.fichier_chemin) {
-                        actions.innerHTML += `<button class="btn btn-download" onclick="telechargerDocument(${doc.id})">📥 Télécharger</button>`;
-                    }
-                }
-            } catch(e) { console.error('Erreur chargement documents:', e); }
+            html += `<tr>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_creation)}<\/td>
+                <td>${badge}<\/td>
+                <td>
+                    <button class="btn-action" onclick="visualiserDocument(${doc.id})"><i class="fas fa-eye text-primary"></i><\/button>
+                    <button class="btn-action" onclick="telechargerDocument(${doc.id})"><i class="fas fa-download text-success"></i><\/button>
+                <\/td>
+            <\/tr>`;
         }
+        $('#searchResultsBody').html(html);
+    } catch(e) { console.error(e); }
+}
 
-        async function soumettreDocument(id) {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            try {
-                await fetch(`/documents/${id}/soumettre`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                loadDocuments();
-                loadStats();
-            } catch(e) { alert('Erreur lors de la soumission'); }
+function resetAdvancedSearch() {
+    $('#searchTitle').val('');
+    $('#searchCategorie').val('');
+    $('#searchStatus').val('');
+    $('#searchResultsBody').html('<tr><td colspan="5" class="text-center text-muted py-4">Utilisez les filtres ci-dessus pour rechercher<\/td><\/tr>');
+}
+
+// ============================================
+// DOCUMENTS PARTAGÉS
+// ============================================
+async function loadSharedDocuments() {
+    // À implémenter avec votre API de partage
+    $('#sharedDocumentsBody').html('<tr><td colspan="4" class="text-center py-4 text-muted">Fonctionnalité à venir<\/td><\/tr>');
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+async function loadNotifications() {
+    try {
+        const res = await fetch('/notifications/all', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const notifs = data.notifications || [];
+        
+        if (notifs.length === 0) {
+            $('#notificationsList').html('<div class="text-center py-4 text-muted">Aucune notification</div>');
+            return;
         }
-
-        async function telechargerDocument(id) {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            window.open(`/documents/${id}/download?token=${token}`, '_blank');
+        
+        let html = '';
+        for (let n of notifs) {
+            html += `<div class="list-group-item ${!n.lue ? 'bg-light' : ''}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <i class="fas ${n.type === 'validation' ? 'fa-check-circle text-success' : n.type === 'rejet' ? 'fa-times-circle text-danger' : 'fa-info-circle text-primary'} me-2"></i>
+                                ${escapeHtml(n.message)}
+                            </div>
+                            <small class="text-muted">${formatDate(n.created_at)}</small>
+                        </div>
+                    </div>`;
         }
+        $('#notificationsList').html(html);
+    } catch(e) { console.error(e); }
+}
 
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/';
+async function marquerToutLu() {
+    try {
+        await fetch('/notifications/lire-tout', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        loadNotifications();
+        showToast('Toutes les notifications ont été marquées comme lues');
+    } catch(e) { console.error(e); }
+}
+
+// ============================================
+// PROFIL
+// ============================================
+async function loadProfile() {
+    try {
+        const res = await fetch('/api/user/profile', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.success) {
+            $('#profileNom').val(data.nom);
+            $('#profileEmail').val(data.email);
+            $('#profileTelephone').val(data.telephone || '');
         }
+    } catch(e) { console.error(e); }
+}
 
-        async function init() {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            document.getElementById('userName').textContent = user.nom || 'Employé';
-            await loadCategories();
-            await loadStats();
-            await loadDocuments();
+async function updateProfile() {
+    const telephone = $('#profileTelephone').val();
+    const password = $('#profilePassword').val();
+    
+    const data = { telephone: telephone };
+    if (password) data.password = password;
+    
+    try {
+        const res = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            showToast('Profil mis à jour');
+            $('#profilePassword').val('');
+        } else {
+            showToast('Erreur', true);
         }
+    } catch(e) { showToast('Erreur', true); }
+}
 
-        init();
-    </script>
+// ============================================
+// INITIALISATION
+// ============================================
+$('#tabDashboard').show();
+loadStats();
+loadRecentDocuments();
+loadNotifications();
+
+// Rafraîchissement périodique
+setInterval(() => {
+    if (currentTab === 'dashboard') {
+        loadStats();
+        loadRecentDocuments();
+    } else if (currentTab === 'mes-documents') {
+        loadDocuments();
+    }
+    loadNotifications();
+}, 30000);
+</script>
 </body>
 </html>

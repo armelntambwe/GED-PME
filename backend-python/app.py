@@ -345,6 +345,157 @@ def debug_user(email):
         })
     return jsonify({'error': 'User not found'}), 404
 
+
+
+
+
+
+@app.route('/documents/<int:doc_id>', methods=['GET'])
+@token_required
+def get_document_by_id(current_user, doc_id):
+    """Récupérer un document spécifique (pour visualisation)"""
+    from models_sqlalchemy.document import Document
+    
+    try:
+        doc = Document.query.filter(
+            Document.id == doc_id,
+            Document.auteur_id == current_user['id'],
+            Document.supprime_le.is_(None)
+        ).first()
+        
+        if not doc:
+            return jsonify({'error': 'Document non trouvé'}), 404
+        
+        return jsonify({
+            'success': True, 
+            'document': doc.to_dict()
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/documents/<int:doc_id>', methods=['PUT'])
+@token_required
+def update_document_by_id(current_user, doc_id):
+    """Mettre à jour un document (titre, description, categorie)"""
+    from models_sqlalchemy.document import Document
+    from extensions import db
+    
+    try:
+        data = request.get_json()
+        
+        doc = Document.query.filter(
+            Document.id == doc_id,
+            Document.auteur_id == current_user['id'],
+            Document.statut == 'brouillon',
+            Document.supprime_le.is_(None)
+        ).first()
+        
+        if not doc:
+            return jsonify({'error': 'Document non trouvé ou non modifiable (seuls les brouillons sont modifiables)'}), 404
+        
+        if 'titre' in data:
+            doc.titre = data['titre']
+        if 'description' in data:
+            doc.description = data['description']
+        if 'categorie_id' in data:
+            doc.categorie_id = data['categorie_id']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Document mis à jour',
+            'document': doc.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/documents/<int:doc_id>', methods=['DELETE'])
+@token_required
+def delete_document_by_id(current_user, doc_id):
+    """Supprimer un document (soft delete) - version directe"""
+    from models_sqlalchemy.document import Document
+    from extensions import db
+    from datetime import datetime
+    
+    try:
+        doc = Document.query.filter(
+            Document.id == doc_id,
+            Document.auteur_id == current_user['id'],
+            Document.supprime_le.is_(None)
+        ).first()
+        
+        if not doc:
+            return jsonify({'error': 'Document non trouvé'}), 404
+        
+        doc.supprime_le = datetime.utcnow()
+        doc.supprime_par = current_user['id']
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Document supprimé'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/documents/stats', methods=['GET'])
+@token_required
+def get_documents_stats(current_user):
+    """Statistiques des documents (alias vers /api/pme/stats)"""
+    from models_sqlalchemy.document import Document
+    
+    try:
+        base_query = Document.query.filter(
+            Document.auteur_id == current_user['id'],
+            Document.supprime_le.is_(None)
+        )
+        
+        stats = {
+            'total': base_query.count(),
+            'en_attente': base_query.filter(Document.statut == 'soumis').count(),
+            'valides': base_query.filter(Document.statut == 'valide').count(),
+            'rejetes': base_query.filter(Document.statut == 'rejete').count(),
+            'brouillons': base_query.filter(Document.statut == 'brouillon').count()
+        }
+        
+        return jsonify({'success': True, 'stats': stats}), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/documents/pending', methods=['GET'])
+@token_required
+def get_pending_documents(current_user):
+    """Documents en attente de validation (pour onglet Tâches)"""
+    from models_sqlalchemy.document import Document
+    
+    try:
+        docs = Document.query.filter(
+            Document.auteur_id == current_user['id'],
+            Document.statut == 'soumis',
+            Document.supprime_le.is_(None)
+        ).order_by(Document.date_creation.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'documents': [doc.to_dict() for doc in docs]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+
+
+
+
 # ==============================
 # LANCEMENT DU SERVEUR
 # ==============================

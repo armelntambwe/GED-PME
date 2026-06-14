@@ -2,401 +2,1707 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME | Dashboard Admin PME</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>GED-PME | Administration PME</title>
+    
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f4f6fb; color: #24324a; }
-        .sidebar { background: #12263f; min-height: 100vh; width: 260px; position: fixed; top: 0; left: 0; padding: 24px 0; }
-        .sidebar .brand { color: #ffffff; font-size: 1.25rem; font-weight: 700; padding: 0 24px 24px; display: block; }
-        .sidebar nav a { display: flex; align-items: center; gap: 12px; color: #cbd5e1; padding: 12px 24px; text-decoration: none; transition: background .25s, color .25s; }
-        .sidebar nav a:hover, .sidebar nav a.active { background: rgba(255,255,255,.06); color: #ffffff; }
-        .sidebar nav a i { font-size: 1.1rem; }
-        .main { margin-left: 260px; padding: 24px 32px; }
-        .card-custom { border: 1px solid #e6ecf5; border-radius: 18px; box-shadow: 0 12px 30px rgba(17, 24, 39, 0.06); }
-        .stat-card { border-radius: 18px; border: 1px solid #e8edf7; background: #ffffff; padding: 22px; }
-        .stat-card .label { color: #6b7280; font-size: .9rem; }
-        .stat-card .value { font-size: 2rem; font-weight: 700; margin-top: 8px; }
-        .stat-icon { width: 48px; height: 48px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: rgba(45, 206, 137, 0.14); color: #10b981; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; margin-bottom: 20px; background: #ffffff; border-radius: 18px; border: 1px solid #e6ecf5; }
-        .topbar .user-box { display: flex; align-items: center; gap: 16px; }
-        .topbar .user-badge { color: #334155; font-weight: 600; }
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; }
-        .table-custom { border-radius: 18px; overflow: hidden; background: #ffffff; border: 1px solid #e6ecf5; }
-        .table-custom thead { background: #f8fafc; }
-        .table-custom tbody tr:hover { background: #f8fafc; }
-        .badge-status { border-radius: 12px; font-size: .78rem; padding: 6px 12px; }
-        .badge-success { background: #d1fae5; color: #047857; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-danger { background: #fee2e2; color: #b91c1c; }
-        .badge-secondary { background: #e2e8f0; color: #475569; }
-        .spinner-row { text-align: center; padding: 40px 0; color: #64748b; }
-        @media (max-width: 991px) { .sidebar { position: relative; width: 100%; min-height: auto; } .main { margin-left: 0; padding: 16px; } }
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #e0f2fe;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --gray-light: #f1f5f9;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: var(--white);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 100;
+            transition: all 0.3s;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .sidebar-header h3 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+        }
+        
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+        
+        .sidebar-nav .nav-item {
+            list-style: none;
+        }
+        
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.2s;
+            margin: 4px 12px;
+            border-radius: 12px;
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 22px;
+            font-size: 18px;
+        }
+        
+        .sidebar-nav .nav-link:hover {
+            background: var(--gray-light);
+            color: var(--primary);
+        }
+        
+        .sidebar-nav .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 24px 32px;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Stat Cards */
+        .stat-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+        
+        /* Cards */
+        .card-custom {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .card-header-custom {
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        /* Tables */
+        .table-custom {
+            width: 100%;
+        }
+        
+        .table-custom thead th {
+            background: var(--gray-light);
+            padding: 14px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        .table-custom tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        
+        /* Badges */
+        .badge-custom {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-soumis { background: var(--warning-light); color: #d97706; }
+        .badge-valide { background: var(--success-light); color: #059669; }
+        .badge-rejete { background: var(--danger-light); color: #dc2626; }
+        .badge-actif { background: var(--success-light); color: #059669; }
+        .badge-inactif { background: var(--danger-light); color: #dc2626; }
+        
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .btn-outline-custom {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 12px;
+        }
+        
+        .btn-sm-custom {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+        /* Modal */
+        .modal-modern .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        
+        .modal-modern .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        /* Toast */
+        .toast-custom {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--success);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            display: none;
+            z-index: 1100;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toast-custom.error { background: var(--danger); }
+        
+        /* Pagination */
+        .pagination-custom .page-link {
+            border-radius: 10px;
+            margin: 0 3px;
+            color: var(--primary);
+            border: none;
+            padding: 8px 14px;
+        }
+        
+        .pagination-custom .page-item.active .page-link {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block !important;
+            }
+        }
+        
+        .cursor-pointer { cursor: pointer; }
+        .loading { text-align: center; padding: 50px; color: var(--gray); }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <a href="/dashboard-pme" class="brand"><i class="bi bi-folder2-open"></i> GED-PME</a>
-        <nav class="nav flex-column">
-            <a href="#" data-tab="dashboard" class="active"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
-            <a href="#" data-tab="documents"><i class="bi bi-file-earmark-text"></i> Documents</a>
-            <a href="#" data-tab="employes"><i class="bi bi-people"></i> Employés</a>
-            <a href="#" data-tab="categories"><i class="bi bi-tags"></i> Catégories</a>
-            <a href="#" data-tab="corbeille"><i class="bi bi-trash"></i> Corbeille</a>
-        </nav>
-    </aside>
 
-    <main class="main">
-        <section class="topbar">
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-building me-2"></i>GED-PME</h3>
+        <small class="text-muted" id="entrepriseNom">Administration</small>
+    </div>
+    <ul class="sidebar-nav">
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="documents">
+                <i class="fas fa-folder"></i> Documents
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="categories">
+                <i class="fas fa-tags"></i> Catégories
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="utilisateurs">
+                <i class="fas fa-users"></i> Utilisateurs
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="workflow">
+                <i class="fas fa-check-double"></i> Workflow
+                <span class="badge bg-warning rounded-pill ms-auto" id="pendingBadge">0</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="archives">
+                <i class="fas fa-archive"></i> Archives
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="recherche">
+                <i class="fas fa-search"></i> Recherche
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="audit">
+                <i class="fas fa-history"></i> Audit
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="notifications">
+                <i class="fas fa-bell"></i> Notifications
+                <span class="badge bg-danger rounded-pill ms-auto" id="notifBadge">0</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="sauvegardes">
+                <i class="fas fa-database"></i> Sauvegardes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link" data-tab="parametres">
+                <i class="fas fa-cog"></i> Paramètres
+            </a>
+        </li>
+        <hr class="mx-3 my-2">
+        <li class="nav-item">
+            <a href="#" class="nav-link" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-bars fs-4 menu-toggle" id="menuToggle" style="cursor: pointer; display: none;"></i>
+        </div>
+        <div class="user-info">
+            <div class="position-relative me-3" id="notifIcon" style="cursor: pointer;">
+                <i class="fas fa-bell fs-5" style="color: var(--gray);"></i>
+                <span id="notifTopBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; display: none;">0</span>
+            </div>
+            <div class="user-avatar" id="userAvatar">
+                <span id="userInitial">A</span>
+            </div>
             <div>
-                <h2 class="mb-1">Administration PME</h2>
-                <p class="text-muted mb-0">Tableau de bord de suivi et gestion des ressources PME.</p>
+                <div class="fw-semibold" id="userName">Administrateur</div>
+                <small class="text-muted">Admin PME</small>
             </div>
-            <div class="user-box">
-                <div class="text-end">
-                    <div class="user-badge" id="userNameDisplay">Admin PME</div>
-                    <div class="text-muted small" id="userRoleDisplay">admin_pme</div>
-                </div>
-                <button class="btn btn-outline-danger btn-sm" type="button" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Déconnexion</button>
-            </div>
-        </section>
+        </div>
+    </div>
 
-        <section id="tab-dashboard" class="tab-pane active">
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="stat-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="label">Documents</div>
-                                <div class="value" id="statTotalDocs">0</div>
-                            </div>
-                            <div class="stat-icon"><i class="bi bi-file-earmark-text"></i></div>
-                        </div>
+    <!-- ============================================ -->
+    <!-- TAB DASHBOARD -->
+    <!-- ============================================ -->
+    <div id="tabDashboard" class="tab-pane">
+        <div class="mb-4">
+            <h4 class="fw-bold">Tableau de bord</h4>
+            <p class="text-muted">Vue globale de l'activité documentaire</p>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="row g-4 mb-4" id="statsGrid">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary-light text-primary"><i class="fas fa-file-alt fs-3"></i></div>
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Documents</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock fs-3"></i></div>
+                    <div class="stat-value" id="statEnAttente">0</div>
+                    <div class="stat-label">En attente</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle fs-3"></i></div>
+                    <div class="stat-value" id="statValides">0</div>
+                    <div class="stat-label">Validés</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-times-circle fs-3"></i></div>
+                    <div class="stat-value" id="statRejetes">0</div>
+                    <div class="stat-label">Rejetés</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="fas fa-users me-2 text-primary"></i> Employés
+                        <span class="float-end" id="statEmployes">0</span>
+                    </div>
+                    <div class="card-header-custom">
+                        <i class="fas fa-tags me-2 text-primary"></i> Catégories
+                        <span class="float-end" id="statCategories">0</span>
+                    </div>
+                    <div class="card-header-custom">
+                        <i class="fas fa-archive me-2 text-primary"></i> Archives
+                        <span class="float-end" id="statArchives">0</span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="label">En attente</div>
-                                <div class="value" id="statPending">0</div>
-                            </div>
-                            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
-                        </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chart-line me-2 text-primary"></i> Évolution des documents
                     </div>
+                    <canvas id="evolutionChart" height="100"></canvas>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="label">Validés</div>
-                                <div class="value" id="statValidated">0</div>
-                            </div>
-                            <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
-                        </div>
+            </div>
+        </div>
+        
+        <div class="row g-4 mt-2">
+            <div class="col-md-6">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i> Répartition par statut
                     </div>
+                    <canvas id="statusChart" height="200"></canvas>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="label">Employés</div>
-                                <div class="value" id="statEmployees">0</div>
-                            </div>
-                            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-                        </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i> Top 5 documents récents
+                    </div>
+                    <div id="recentDocuments">
+                        <div class="text-center py-4 text-muted">Chargement...</div>
                     </div>
                 </div>
             </div>
-            <div class="card-custom p-4 mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Évolution des documents</h5>
-                    <button class="btn btn-sm btn-outline-primary" id="refreshDashboard"><i class="bi bi-arrow-clockwise"></i> Rafraîchir</button>
-                </div>
-                <canvas id="dashboardChart" height="120"></canvas>
-            </div>
-        </section>
+        </div>
+    </div>
 
-        <section id="tab-documents" class="tab-pane">
-            <div class="card-custom p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Documents</h5>
-                    <span class="text-muted small">Récupération dynamique via /api/pme/documents</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>Titre</th>
-                                <th>Auteur</th>
-                                <th>Date</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody id="documentsBody"><tr><td colspan="4" class="spinner-row"><div class="spinner-border text-primary"></div> Chargement...</td></tr></tbody>
-                    </table>
-                </div>
+    <!-- ============================================ -->
+    <!-- TAB DOCUMENTS -->
+    <!-- ============================================ -->
+    <div id="tabDocuments" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 class="fw-bold"><i class="fas fa-folder me-2 text-primary"></i>Gestion des documents</h5>
+                <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
+                    <i class="fas fa-plus me-1"></i> Ajouter document
+                </button>
             </div>
-        </section>
-
-        <section id="tab-employes" class="tab-pane">
-            <div class="card-custom p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Employés</h5>
-                    <span class="text-muted small">Récupération via /api/pme/employes</span>
+            
+            <!-- Filtres -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <input type="text" id="docSearch" class="form-control" placeholder="Rechercher...">
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>Nom</th>
-                                <th>Email</th>
-                                <th>Téléphone</th>
-                                <th>Inscription</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody id="employesBody"><tr><td colspan="5" class="spinner-row"><div class="spinner-border text-primary"></div> Chargement...</td></tr></tbody>
-                    </table>
+                <div class="col-md-3">
+                    <select id="docStatut" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="brouillon">Brouillon</option>
+                        <option value="soumis">En attente</option>
+                        <option value="valide">Validé</option>
+                        <option value="rejete">Rejeté</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="docCategorie" class="form-select">
+                        <option value="">Toutes catégories</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" onclick="rechercherDocuments()">
+                        <i class="fas fa-search me-1"></i> Filtrer
+                    </button>
                 </div>
             </div>
-        </section>
+            
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-file-alt"></i> Titre</th>
+                            <th><i class="fas fa-tag"></i> Catégorie</th>
+                            <th><i class="fas fa-user"></i> Auteur</th>
+                            <th><i class="fas fa-calendar"></i> Date</th>
+                            <th><i class="fas fa-chart-simple"></i> Statut</th>
+                            <th><i class="fas fa-cog"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documentsList">
+                        <tr><td colspan="7" class="loading"><div class="spinner-border text-primary"></div> Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="documentsPagination" class="d-flex justify-content-center mt-4"></div>
+        </div>
+    </div>
 
-        <section id="tab-categories" class="tab-pane">
-            <div class="card-custom p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Catégories</h5>
-                    <span class="text-muted small">Récupération via /categories</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>Nom</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody id="categoriesBody"><tr><td colspan="2" class="spinner-row"><div class="spinner-border text-primary"></div> Chargement...</td></tr></tbody>
-                    </table>
+    <!-- ============================================ -->
+    <!-- TAB CATÉGORIES -->
+    <!-- ============================================ -->
+    <div id="tabCategories" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold"><i class="fas fa-tags me-2 text-primary"></i>Gestion des catégories</h5>
+                <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addCategorieModal">
+                    <i class="fas fa-plus me-1"></i> Nouvelle catégorie
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>ID</th><th>Nom</th><th>Description</th><th>Documents</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="categoriesList">
+                        <tr><td colspan="5" class="loading">Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TAB UTILISATEURS -->
+    <!-- ============================================ -->
+    <div id="tabUtilisateurs" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold"><i class="fas fa-users me-2 text-primary"></i>Gestion des employés</h5>
+                <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addEmployeModal">
+                    <i class="fas fa-user-plus me-1"></i> Nouvel employé
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Date</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employesList">
+                        <tr><td colspan="8" class="loading">Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TAB WORKFLOW (VALIDATION) -->
+    <!-- ============================================ -->
+    <div id="tabWorkflow" class="tab-pane" style="display: none;">
+        <div class="row g-4">
+            <div class="col-md-12">
+                <div class="card-custom">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-check-double me-2 text-primary"></i>Documents en attente de validation</h5>
+                    <div class="table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                                <tr><th>ID</th><th>Titre</th><th>Auteur</th><th>Date soumission</th><th>Catégorie</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="validationList">
+                                <tr><td colspan="6" class="loading">Chargement...<\/td><\/tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <section id="tab-corbeille" class="tab-pane">
-            <div class="card-custom p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Corbeille</h5>
-                    <span class="text-muted small">Récupération via /api/pme/corbeille</span>
+    <!-- ============================================ -->
+    <!-- TAB ARCHIVES -->
+    <!-- ============================================ -->
+    <div id="tabArchives" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-3"><i class="fas fa-archive me-2 text-primary"></i>Documents archivés</h5>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>ID</th><th>Titre</th><th>Auteur</th><th>Date archivage</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="archivesList">
+                        <tr><td colspan="5" class="loading">Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TAB RECHERCHE AVANCÉE -->
+    <!-- ============================================ -->
+    <div id="tabRecherche" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i>Recherche avancée</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" id="searchTitre" class="form-control" placeholder="Titre">
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>Titre</th>
-                                <th>Supprimé le</th>
-                                <th>Etat</th>
-                            </tr>
-                        </thead>
-                        <tbody id="corbeilleBody"><tr><td colspan="3" class="spinner-row"><div class="spinner-border text-primary"></div> Chargement...</td></tr></tbody>
-                    </table>
+                <div class="col-md-4">
+                    <select id="searchCategorieFilter" class="form-select">
+                        <option value="">Toutes catégories</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select id="searchStatutFilter" class="form-select">
+                        <option value="">Tous statuts</option>
+                        <option value="brouillon">Brouillon</option>
+                        <option value="soumis">En attente</option>
+                        <option value="valide">Validé</option>
+                        <option value="rejete">Rejeté</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" id="searchDateDebut" class="form-control" placeholder="Date début">
+                </div>
+                <div class="col-md-4">
+                    <input type="date" id="searchDateFin" class="form-control" placeholder="Date fin">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="searchAuteur" class="form-control" placeholder="Auteur">
+                </div>
+                <div class="col-12">
+                    <button class="btn-primary-custom" onclick="rechercheAvancee()">
+                        <i class="fas fa-search me-2"></i> Rechercher
+                    </button>
+                    <button class="btn-outline-custom ms-2" onclick="resetRecherche()">
+                        <i class="fas fa-undo me-2"></i> Réinitialiser
+                    </button>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
+        
+        <div class="card-custom mt-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-list me-2 text-primary"></i>Résultats</h5>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="searchResultsList">
+                        <tr><td colspan="6" class="text-center text-muted py-4">Utilisez les filtres ci-dessus</td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const token = localStorage.getItem('token');
-        const userStore = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!token) {
-            window.location.href = '/login';
-        }
+    <!-- ============================================ -->
+    <!-- TAB AUDIT -->
+    <!-- ============================================ -->
+    <div id="tabAudit" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-3"><i class="fas fa-history me-2 text-primary"></i>Journal d'activité</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <select id="auditAction" class="form-select">
+                        <option value="">Toutes actions</option>
+                        <option value="upload">Upload document</option>
+                        <option value="validation">Validation</option>
+                        <option value="rejet">Rejet</option>
+                        <option value="suppression">Suppression</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" id="auditDate" class="form-control" placeholder="Date">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100" onclick="chargerAudit()">
+                        <i class="fas fa-filter me-1"></i> Filtrer
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>Utilisateur</th><th>Action</th><th>Détails</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="auditList">
+                        <tr><td colspan="4" class="loading">Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="auditPagination" class="d-flex justify-content-center mt-4"></div>
+        </div>
+    </div>
 
-        const tabs = Array.from(document.querySelectorAll('.sidebar nav a'));
-        const panes = Array.from(document.querySelectorAll('.tab-pane'));
-        const ctx = document.getElementById('dashboardChart').getContext('2d');
-        let dashboardChart = null;
+    <!-- ============================================ -->
+    <!-- TAB NOTIFICATIONS -->
+    <!-- ============================================ -->
+    <div id="tabNotifications" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold"><i class="fas fa-bell me-2 text-primary"></i>Notifications</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="marquerToutLu()">
+                    <i class="fas fa-check-double"></i> Tout marquer lu
+                </button>
+            </div>
+            <div id="notificationsList">
+                <div class="text-center py-4 text-muted">Chargement...</div>
+            </div>
+        </div>
+    </div>
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.clear();
-            window.location.href = '/login';
+    <!-- ============================================ -->
+    <!-- TAB SAUVEGARDES -->
+    <!-- ============================================ -->
+    <div id="tabSauvegardes" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold"><i class="fas fa-database me-2 text-primary"></i>Sauvegardes</h5>
+                <button class="btn-primary-custom btn-sm" onclick="creerSauvegarde()">
+                    <i class="fas fa-plus me-1"></i> Créer sauvegarde
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr><th>Nom fichier</th><th>Date</th><th>Taille</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="backupsList">
+                        <tr><td colspan="4" class="loading">Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TAB PARAMÈTRES -->
+    <!-- ============================================ -->
+    <div id="tabParametres" class="tab-pane" style="display: none;">
+        <div class="card-custom">
+            <h5 class="fw-bold mb-4"><i class="fas fa-cog me-2 text-primary"></i>Paramètres de l'entreprise</h5>
+            <form id="entrepriseForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nom entreprise</label>
+                        <input type="text" id="entrepriseNomInput" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" id="entrepriseEmail" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Téléphone</label>
+                        <input type="tel" id="entrepriseTelephone" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Adresse</label>
+                        <input type="text" id="entrepriseAdresse" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Secteur d'activité</label>
+                        <input type="text" id="entrepriseSecteur" class="form-control" placeholder="ex: Comptabilité, Communication, Informatique...">
+                    </div>
+                    <div class="col-12">
+                        <button type="button" class="btn-primary-custom" onclick="saveEntrepriseSettings()">
+                            <i class="fas fa-save me-2"></i> Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODALS -->
+<!-- ============================================ -->
+
+<!-- Modal Ajouter Document -->
+<div class="modal fade modal-modern" id="addDocumentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Ajouter un document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Fichier</label>
+                    <input type="file" id="modalFileInput" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Titre</label>
+                    <input type="text" id="modalTitre" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Catégorie</label>
+                    <select id="modalCategorie" class="form-select"></select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description</label>
+                    <textarea id="modalDescription" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-primary" onclick="ajouterDocumentModal()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Catégorie -->
+<div class="modal fade modal-modern" id="addCategorieModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Nouvelle catégorie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nom</label>
+                    <input type="text" id="newCategorieNom" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description</label>
+                    <textarea id="newCategorieDesc" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-primary" onclick="ajouterCategorie()">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Employé -->
+<div class="modal fade modal-modern" id="addEmployeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nouvel employé</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nom complet</label>
+                    <input type="text" id="newEmployeNom" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" id="newEmployeEmail" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mot de passe</label>
+                    <input type="password" id="newEmployePassword" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Téléphone</label>
+                    <input type="tel" id="newEmployeTelephone" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-primary" onclick="ajouterEmploye()">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rejet -->
+<div class="modal fade modal-modern" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Rejeter le document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Motif du rejet</label>
+                    <textarea id="rejectMotif" class="form-control" rows="3" placeholder="Expliquez la raison du rejet..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-danger" onclick="confirmerRejet()">Rejeter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="customToast" class="toast-custom">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage"></span>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/login';
+
+let currentPage = 1;
+let totalPages = 1;
+let auditPage = 1;
+let auditTotalPages = 1;
+let evolutionChart = null;
+let statusChart = null;
+let currentRejectDocId = null;
+
+// ============================================
+// UTILITAIRES
+// ============================================
+function showToast(msg, isError = false) {
+    const toast = $('#customToast');
+    $('#toastMessage').text(msg);
+    if (isError) {
+        toast.css('background', '#ef4444');
+    } else {
+        toast.css('background', '#10b981');
+    }
+    toast.css('display', 'flex');
+    setTimeout(() => toast.fadeOut(300), 3000);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR');
+}
+
+function formatDateTime(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleString('fr-FR');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = '/login';
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+$('.sidebar-nav .nav-link').click(function(e) {
+    e.preventDefault();
+    $('.sidebar-nav .nav-link').removeClass('active');
+    $(this).addClass('active');
+    
+    const tab = $(this).data('tab');
+    $('.tab-pane').hide();
+    
+    if (tab === 'dashboard') {
+        $('#tabDashboard').show();
+        loadStats();
+    } else if (tab === 'documents') {
+        $('#tabDocuments').show();
+        chargerDocuments();
+    } else if (tab === 'categories') {
+        $('#tabCategories').show();
+        chargerCategories();
+    } else if (tab === 'utilisateurs') {
+        $('#tabUtilisateurs').show();
+        chargerEmployes();
+    } else if (tab === 'workflow') {
+        $('#tabWorkflow').show();
+        chargerValidation();
+    } else if (tab === 'archives') {
+        $('#tabArchives').show();
+        chargerArchives();
+    } else if (tab === 'recherche') {
+        $('#tabRecherche').show();
+        chargerCategoriesFiltres();
+    } else if (tab === 'audit') {
+        $('#tabAudit').show();
+        chargerAudit();
+    } else if (tab === 'notifications') {
+        $('#tabNotifications').show();
+        chargerNotifications();
+    } else if (tab === 'sauvegardes') {
+        $('#tabSauvegardes').show();
+        chargerSauvegardes();
+    } else if (tab === 'parametres') {
+        $('#tabParametres').show();
+        chargerEntrepriseInfos();
+    }
+    
+    if (window.innerWidth <= 992) $('#sidebar').removeClass('open');
+});
+
+$('#menuToggle').click(() => $('#sidebar').toggleClass('open'));
+
+// ============================================
+// USER INFO
+// ============================================
+async function loadUserInfo() {
+    try {
+        const res = await fetch('/api/user/profile', {
+            headers: { 'Authorization': 'Bearer ' + token }
         });
+        const data = await res.json();
+        if (data.success) {
+            $('#userName').text(data.nom);
+            $('#userInitial').text(data.nom.charAt(0).toUpperCase());
+        }
+    } catch(e) { console.error(e); }
+}
+loadUserInfo();
 
-        document.getElementById('userNameDisplay').textContent = userStore.nom || userStore.name || 'Admin PME';
-        document.getElementById('userRoleDisplay').textContent = userStore.role || 'admin_pme';
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', event => {
-                event.preventDefault();
-                tabs.forEach(item => item.classList.remove('active'));
-                tab.classList.add('active');
-                const target = tab.dataset.tab;
-                panes.forEach(pane => pane.classList.remove('active'));
-                const activePane = document.getElementById(`tab-${target}`);
-                if (activePane) activePane.classList.add('active');
-                switch (target) {
-                    case 'dashboard': loadDashboard(); break;
-                    case 'documents': loadDocuments(); break;
-                    case 'employes': loadEmployes(); break;
-                    case 'categories': loadCategories(); break;
-                    case 'corbeille': loadCorbeille(); break;
-                }
-            });
+// ============================================
+// DASHBOARD STATS
+// ============================================
+async function loadStats() {
+    try {
+        const res = await fetch('/api/pme/stats', {
+            headers: { 'Authorization': 'Bearer ' + token }
         });
+        const data = await res.json();
+        const stats = data.stats || {};
+        
+        $('#statTotal').text(stats.total_documents || 0);
+        $('#statEnAttente').text(stats.en_attente || 0);
+        $('#statValides').text(stats.valides || 0);
+        $('#statRejetes').text((stats.total_documents || 0) - (stats.valides || 0) - (stats.en_attente || 0));
+        $('#statEmployes').text(stats.total_employes || 0);
+        
+        $('#pendingBadge').text(stats.en_attente || 0);
+        
+        // Graphique évolution
+        if (evolutionChart) evolutionChart.destroy();
+        const ctx = document.getElementById('evolutionChart').getContext('2d');
+        evolutionChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'], datasets: [{ label: 'Documents', data: [0,0,0,0,0,stats.total_documents || 0], borderColor: '#0ea5e9', tension: 0.3 }] },
+            options: { responsive: true }
+        });
+        
+        // Graphique statuts
+        if (statusChart) statusChart.destroy();
+        const ctx2 = document.getElementById('statusChart').getContext('2d');
+        statusChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: { labels: ['En attente', 'Validés', 'Rejetés'], datasets: [{ data: [stats.en_attente || 0, stats.valides || 0, (stats.total_documents || 0) - (stats.valides || 0) - (stats.en_attente || 0)], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'] }] },
+            options: { responsive: true }
+        });
+        
+    } catch(e) { console.error(e); }
+}
 
-        document.getElementById('refreshDashboard').addEventListener('click', loadDashboard);
-
-        function getHeaders(contentType = 'application/json') {
-            const headers = { 'Authorization': 'Bearer ' + token };
-            if (contentType) headers['Content-Type'] = contentType;
-            return headers;
+// ============================================
+// GESTION DOCUMENTS
+// ============================================
+async function chargerDocuments() {
+    const search = $('#docSearch').val();
+    const statut = $('#docStatut').val();
+    let url = `/api/pme/documents?page=${currentPage}&limit=10`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (statut) url += `&statut=${statut}`;
+    
+    try {
+        const res = await fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const docs = data.documents || [];
+        totalPages = data.total_pages || 1;
+        
+        if (docs.length === 0) {
+            $('#documentsList').html('<tr><td colspan="7" class="text-center py-4 text-muted">Aucun document<\/td><\/tr>');
+            return;
         }
-
-        async function fetchJson(url, options = {}) {
-            const response = await fetch(url, { ...options, headers: { ...(options.headers || {}), ...getHeaders(options.headers && options.headers['Content-Type'] ? null : 'application/json') }});
-            if (response.status === 401) { localStorage.clear(); window.location.href = '/login'; return null; }
-            const data = await response.json().catch(() => null);
-            return data;
+        
+        let html = '';
+        for (let doc of docs) {
+            let badge = '';
+            if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
+            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
+            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
+            else badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
+            
+            html += `<tr>
+                <td>${doc.id}<\/td>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
+                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_creation)}<\/td>
+                <td>${badge}<\/td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="visualiserDocument(${doc.id})" title="Voir"><i class="fas fa-eye"></i><\/button>
+                        <button class="btn btn-outline-success" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download"></i><\/button>
+                        ${doc.statut === 'soumis' ? `<button class="btn btn-outline-success" onclick="validerDocument(${doc.id})" title="Valider"><i class="fas fa-check"></i><\/button>
+                        <button class="btn btn-outline-danger" onclick="ouvrirRejet(${doc.id})" title="Rejeter"><i class="fas fa-times"></i><\/button>` : ''}
+                    </div>
+                <\/td>
+            <\/tr>`;
         }
+        $('#documentsList').html(html);
+        renderPagination();
+    } catch(e) { console.error(e); }
+}
 
-        function formatDate(value) {
-            if (!value) return '-';
-            const date = new Date(value);
-            if (isNaN(date.getTime())) return value;
-            return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+function rechercherDocuments() { currentPage = 1; chargerDocuments(); }
+function renderPagination() {
+    if (totalPages <= 1) { $('#documentsPagination').empty(); return; }
+    let html = '<ul class="pagination pagination-custom">';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
+    }
+    html += '</ul>';
+    $('#documentsPagination').html(html);
+}
+function changePage(page) { currentPage = page; chargerDocuments(); }
+
+function visualiserDocument(id) { window.open(`/documents/${id}/download?token=${token}`, '_blank'); }
+function telechargerDocument(id) { window.open(`/documents/${id}/download?token=${token}`, '_blank'); }
+
+async function validerDocument(id) {
+    try {
+        const res = await fetch(`/documents/${id}/valider`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            showToast('Document validé avec succès');
+            chargerDocuments();
+            chargerValidation();
+            loadStats();
+        } else {
+            showToast('Erreur lors de la validation', true);
         }
+    } catch(e) { showToast('Erreur', true); }
+}
 
-        function createStatusBadge(status) {
-            const normalized = String(status || '').toLowerCase();
-            if (normalized.includes('valid') || normalized.includes('ok') || normalized.includes('actif')) return `<span class="badge-status badge-success">${status}</span>`;
-            if (normalized.includes('attente') || normalized.includes('pending')) return `<span class="badge-status badge-warning">${status}</span>`;
-            if (normalized.includes('trash') || normalized.includes('supprim') || normalized.includes('rej')) return `<span class="badge-status badge-danger">${status}</span>`;
-            return `<span class="badge-status badge-secondary">${status || 'Inconnu'}</span>`;
+function ouvrirRejet(id) {
+    currentRejectDocId = id;
+    $('#rejectMotif').val('');
+    $('#rejectModal').modal('show');
+}
+
+async function confirmerRejet() {
+    const motif = $('#rejectMotif').val();
+    if (!motif) {
+        showToast('Veuillez saisir un motif', true);
+        return;
+    }
+    try {
+        const res = await fetch(`/documents/${currentRejectDocId}/rejeter`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ motif: motif })
+        });
+        if (res.ok) {
+            showToast('Document rejeté');
+            $('#rejectModal').modal('hide');
+            chargerDocuments();
+            chargerValidation();
+            loadStats();
+        } else {
+            showToast('Erreur lors du rejet', true);
         }
+    } catch(e) { showToast('Erreur', true); }
+}
 
-        async function loadDashboard() {
-            const statTotal = document.getElementById('statTotalDocs');
-            const statPending = document.getElementById('statPending');
-            const statValidated = document.getElementById('statValidated');
-            const statEmployees = document.getElementById('statEmployees');
-            statTotal.textContent = '...';
-            statPending.textContent = '...';
-            statValidated.textContent = '...';
-            statEmployees.textContent = '...';
-            const data = await fetchJson('/api/pme/stats');
-            if (!data) return;
-            const stats = data.stats || data || {};
-            statTotal.textContent = stats.total_documents ?? stats.documents ?? 0;
-            statPending.textContent = stats.en_attente ?? stats.pending ?? 0;
-            statValidated.textContent = stats.valides ?? stats.approved ?? 0;
-            statEmployees.textContent = stats.total_employes ?? stats.employes ?? 0;
+function ajouterDocumentModal() {
+    const file = $('#modalFileInput')[0].files[0];
+    const titre = $('#modalTitre').val();
+    if (!file || !titre) {
+        showToast('Fichier et titre requis', true);
+        return;
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('titre', titre);
+    formData.append('description', $('#modalDescription').val());
+    formData.append('categorie_id', $('#modalCategorie').val());
+    
+    fetch('/documents/upload', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            showToast('Document ajouté');
+            $('#addDocumentModal').modal('hide');
+            chargerDocuments();
+            loadStats();
+            $('#modalFileInput').val('');
+            $('#modalTitre').val('');
+            $('#modalDescription').val('');
+        } else {
+            showToast(data.message || 'Erreur', true);
+        }
+    }).catch(e => showToast('Erreur', true));
+}
 
-            const chartLabels = [];
-            const chartValues = [];
-            if (stats.evolution && Array.isArray(stats.evolution)) {
-                stats.evolution.forEach(item => {
-                    chartLabels.push(item.label || item.semaine || item.date || '');
-                    chartValues.push(item.value ?? item.count ?? 0);
-                });
-            } else {
-                const fallback = [stats.semaine1, stats.semaine2, stats.semaine3, stats.semaine4, stats.semaine5, stats.semaine6, stats.semaine7, stats.semaine8];
-                if (fallback.some(v => v !== undefined)) {
-                    fallback.forEach((value, index) => { chartLabels.push(`S${index + 1}`); chartValues.push(value ?? 0); });
-                } else {
-                    chartLabels.push('S1','S2','S3','S4','S5','S6','S7','S8');
-                    chartValues.push(0,0,0,0,0,0,0,0);
-                }
+// ============================================
+// GESTION CATÉGORIES
+// ============================================
+async function chargerCategories() {
+    try {
+        const res = await fetch('/categories', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.categories) {
+            $('#statCategories').text(data.categories.length);
+            let html = '';
+            for (let cat of data.categories) {
+                html += `<tr>
+                    <td>${cat.id}<\/td>
+                    <td class="fw-semibold">${escapeHtml(cat.nom)}<\/td>
+                    <td>${escapeHtml(cat.description) || '-'}<\/td>
+                    <td>0<\/td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="supprimerCategorie(${cat.id})"><i class="fas fa-trash"></i><\/button>
+                    <\/td>
+                <\/tr>`;
             }
-
-            if (dashboardChart) {
-                dashboardChart.data.labels = chartLabels;
-                dashboardChart.data.datasets[0].data = chartValues;
-                dashboardChart.update();
-            } else {
-                dashboardChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [{ label: 'Documents', data: chartValues, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.18)', tension: 0.35, fill: true, pointRadius: 4 }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { x: { grid: { display: false } }, y: { ticks: { precision: 0 }, grid: { color: '#e2e8f0' } } }
-                    }
-                });
-            }
+            $('#categoriesList').html(html);
         }
+    } catch(e) { console.error(e); }
+}
 
-        function renderTable(rows, containerId, columns) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            if (!rows || rows.length === 0) {
-                container.innerHTML = `<tr><td colspan="${columns.length}" class="text-center py-4 text-muted">Aucune donnée disponible</td></tr>`;
-                return;
-            }
-            container.innerHTML = rows.map(row => {
-                const cells = columns.map(col => `<td>${col.render ? col.render(row) : (row[col.key] ?? '-')}</td>`).join('');
-                return `<tr>${cells}</tr>`;
-            }).join('');
+async function ajouterCategorie() {
+    const nom = $('#newCategorieNom').val();
+    if (!nom) { showToast('Nom requis', true); return; }
+    try {
+        const res = await fetch('/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ nom: nom, description: $('#newCategorieDesc').val() })
+        });
+        if (res.ok) {
+            showToast('Catégorie créée');
+            $('#addCategorieModal').modal('hide');
+            chargerCategories();
+            $('#newCategorieNom').val('');
+            $('#newCategorieDesc').val('');
         }
+    } catch(e) { showToast('Erreur', true); }
+}
 
-        async function loadDocuments() {
-            renderTable([], 'documentsBody', [{ key: 'titre' }, { key: 'auteur_nom' }, { key: 'date_creation', render: r => formatDate(r.date_creation) }, { key: 'statut', render: r => createStatusBadge(r.statut || r.status) }]);
-            const data = await fetchJson('/api/pme/documents');
-            if (!data) return;
-            const docs = data.documents || data || [];
-            renderTable(docs, 'documentsBody', [
-                { key: 'titre', render: r => r.titre || r.title || '-' },
-                { key: 'auteur_nom', render: r => r.auteur_nom || r.auteur || r.author || '-' },
-                { key: 'date_creation', render: r => formatDate(r.date_creation || r.created_at || r.date) },
-                { key: 'statut', render: r => createStatusBadge(r.statut || r.status || 'Inconnu') }
-            ]);
+async function supprimerCategorie(id) {
+    if (!confirm('Supprimer cette catégorie ?')) return;
+    try {
+        await fetch(`/categories/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        showToast('Catégorie supprimée');
+        chargerCategories();
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ============================================
+// GESTION EMPLOYÉS
+// ============================================
+async function chargerEmployes() {
+    try {
+        const res = await fetch('/api/pme/employes', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const employes = data.employes || [];
+        if (employes.length === 0) {
+            $('#employesList').html('<tr><td colspan="8" class="text-center py-4 text-muted">Aucun employé<\/td><\/tr>');
+            return;
         }
-
-        async function loadEmployes() {
-            renderTable([], 'employesBody', [{ key: 'nom' }, { key: 'email' }, { key: 'telephone' }, { key: 'date_inscription' }, { key: 'statut' }]);
-            const data = await fetchJson('/api/pme/employes');
-            if (!data) return;
-            const users = data.employes || data.users || data || [];
-            renderTable(users, 'employesBody', [
-                { key: 'nom', render: r => r.nom || r.name || '-' },
-                { key: 'email', render: r => r.email || '-' },
-                { key: 'telephone', render: r => r.telephone || r.phone || '-' },
-                { key: 'date_inscription', render: r => formatDate(r.date_inscription || r.created_at || r.created_at) },
-                { key: 'statut', render: r => createStatusBadge(r.statut || (r.actif === 1 ? 'Actif' : r.actif === 0 ? 'Inactif' : r.status || '')) }
-            ]);
+        let html = '';
+        for (let emp of employes) {
+            let badge = emp.actif ? '<span class="badge-custom badge-actif">Actif</span>' : '<span class="badge-custom badge-inactif">Inactif</span>';
+            html += `<tr>
+                <td>${emp.id}<\/td>
+                <td class="fw-semibold">${escapeHtml(emp.nom)}<\/td>
+                <td>${escapeHtml(emp.email)}<\/td>
+                <td>${escapeHtml(emp.telephone) || '-'}<\/td>
+                <td>${emp.role}<\/td>
+                <td>${badge}<\/td>
+                <td>${formatDate(emp.date_inscription)}<\/td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="desactiverEmploye(${emp.id})"><i class="fas fa-ban"></i><\/button>
+                <\/td>
+            <\/tr>`;
         }
+        $('#employesList').html(html);
+    } catch(e) { console.error(e); }
+}
 
-        async function loadCategories() {
-            renderTable([], 'categoriesBody', [{ key: 'nom' }, { key: 'description' }]);
-            const data = await fetchJson('/categories');
-            if (!data) return;
-            const categories = data.categories || data || [];
-            renderTable(categories, 'categoriesBody', [
-                { key: 'nom', render: r => r.nom || r.name || '-' },
-                { key: 'description', render: r => r.description || r.desc || '-' }
-            ]);
+async function ajouterEmploye() {
+    const nom = $('#newEmployeNom').val();
+    const email = $('#newEmployeEmail').val();
+    const password = $('#newEmployePassword').val();
+    if (!nom || !email || !password) {
+        showToast('Nom, email et mot de passe requis', true);
+        return;
+    }
+    try {
+        const res = await fetch('/admin/employes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ nom: nom, email: email, password: password, telephone: $('#newEmployeTelephone').val() })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Employé créé');
+            $('#addEmployeModal').modal('hide');
+            chargerEmployes();
+            loadStats();
+            $('#newEmployeNom').val('');
+            $('#newEmployeEmail').val('');
+            $('#newEmployePassword').val('');
+            $('#newEmployeTelephone').val('');
+        } else {
+            showToast(data.error || 'Erreur', true);
         }
+    } catch(e) { showToast('Erreur', true); }
+}
 
-        async function loadCorbeille() {
-            renderTable([], 'corbeilleBody', [{ key: 'titre' }, { key: 'date_suppression' }, { key: 'etat' }]);
-            const data = await fetchJson('/api/pme/corbeille');
-            if (!data) return;
-            const items = data.documents || data || [];
-            renderTable(items, 'corbeilleBody', [
-                { key: 'titre', render: r => r.titre || r.title || '-' },
-                { key: 'date_suppression', render: r => formatDate(r.date_suppression || r.deleted_at || r.supprime_le) },
-                { key: 'etat', render: r => createStatusBadge(r.statut || r.status || 'Supprimé') }
-            ]);
+async function desactiverEmploye(id) {
+    if (!confirm('Désactiver cet employé ?')) return;
+    try {
+        await fetch(`/users/${id}/desactiver`, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        showToast('Employé désactivé');
+        chargerEmployes();
+        loadStats();
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ============================================
+// WORKFLOW (VALIDATION)
+// ============================================
+async function chargerValidation() {
+    try {
+        const res = await fetch('/api/pme/validation', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const docs = data.documents || [];
+        if (docs.length === 0) {
+            $('#validationList').html('<td><td colspan="6" class="text-center py-4 text-muted">Aucun document en attente<\/td><\/tr>');
+            return;
         }
+        let html = '';
+        for (let doc of docs) {
+            html += `<tr>
+                <td>${doc.id}<\/td>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_creation)}<\/td>
+                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
+                <td>
+                    <button class="btn btn-sm btn-success me-1" onclick="validerDocument(${doc.id})"><i class="fas fa-check"></i> Valider</button>
+                    <button class="btn btn-sm btn-danger" onclick="ouvrirRejet(${doc.id})"><i class="fas fa-times"></i> Rejeter</button>
+                <\/td>
+            <\/tr>`;
+        }
+        $('#validationList').html(html);
+    } catch(e) { console.error(e); }
+}
 
-        loadDashboard();
-    </script>
+// ============================================
+// ARCHIVES
+// ============================================
+async function chargerArchives() {
+    try {
+        const res = await fetch('/api/pme/corbeille', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const docs = data.documents || [];
+        if (docs.length === 0) {
+            $('#archivesList').html('<tr><td colspan="5" class="text-center py-4 text-muted">Aucune archive<\/td><\/tr>');
+            return;
+        }
+        let html = '';
+        for (let doc of docs) {
+            html += `<tr>
+                <td>${doc.id}<\/td>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_suppression)}<\/td>
+                <td>
+                    <button class="btn btn-sm btn-success me-1" onclick="restaurerDocument(${doc.id})"><i class="fas fa-undo"></i> Restaurer</button>
+                    <button class="btn btn-sm btn-danger" onclick="supprimerDefinitivement(${doc.id})"><i class="fas fa-trash"></i> Détruire</button>
+                <\/td>
+            <\/tr>`;
+        }
+        $('#archivesList').html(html);
+    } catch(e) { console.error(e); }
+}
+
+async function restaurerDocument(id) {
+    await fetch(`/documents/${id}/restaurer`, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    chargerArchives();
+    chargerDocuments();
+    loadStats();
+}
+
+async function supprimerDefinitivement(id) {
+    if (!confirm('Suppression définitive ?')) return;
+    await fetch(`/documents/${id}/effacer`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    chargerArchives();
+    chargerDocuments();
+    loadStats();
+}
+
+// ============================================
+// RECHERCHE AVANCÉE
+// ============================================
+async function chargerCategoriesFiltres() {
+    try {
+        const res = await fetch('/categories', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.categories) {
+            let options = '<option value="">Toutes catégories</option>';
+            data.categories.forEach(c => { options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`; });
+            $('#searchCategorieFilter').html(options);
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function rechercheAvancee() {
+    let url = `/api/pme/documents?limit=50`;
+    const titre = $('#searchTitre').val();
+    const categorie = $('#searchCategorieFilter').val();
+    const statut = $('#searchStatutFilter').val();
+    if (titre) url += `&search=${encodeURIComponent(titre)}`;
+    if (categorie) url += `&categorie=${categorie}`;
+    if (statut) url += `&statut=${statut}`;
+    
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const docs = data.documents || [];
+        if (docs.length === 0) {
+            $('#searchResultsList').html('<tr><td colspan="6" class="text-center py-4 text-muted">Aucun résultat<\/td><\/tr>');
+            return;
+        }
+        let html = '';
+        for (let doc of docs) {
+            let badge = '';
+            if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
+            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
+            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
+            else badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
+            
+            html += `<tr>
+                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
+                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
+                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
+                <td>${formatDate(doc.date_creation)}<\/td>
+                <td>${badge}<\/td>
+                <td><button class="btn btn-sm btn-primary" onclick="visualiserDocument(${doc.id})"><i class="fas fa-eye"></i> Voir</button><\/td>
+            <\/tr>`;
+        }
+        $('#searchResultsList').html(html);
+    } catch(e) { console.error(e); }
+}
+
+function resetRecherche() {
+    $('#searchTitre').val('');
+    $('#searchCategorieFilter').val('');
+    $('#searchStatutFilter').val('');
+    $('#searchDateDebut').val('');
+    $('#searchDateFin').val('');
+    $('#searchAuteur').val('');
+    $('#searchResultsList').html('<td><td colspan="6" class="text-center text-muted py-4">Utilisez les filtres ci-dessus<\/td><\/tr>');
+}
+
+// ============================================
+// AUDIT
+// ============================================
+async function chargerAudit() {
+    let url = `/api/entreprise/logs?page=${auditPage}&limit=20`;
+    const action = $('#auditAction').val();
+    const date = $('#auditDate').val();
+    if (action) url += `&action=${action}`;
+    if (date) url += `&date=${date}`;
+    
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const logs = data.logs || [];
+        auditTotalPages = data.total_pages || 1;
+        
+        if (logs.length === 0) {
+            $('#auditList').html('<tr><td colspan="4" class="text-center py-4 text-muted">Aucun log<\/td><\/tr>');
+            return;
+        }
+        let html = '';
+        for (let log of logs) {
+            html += `<tr>
+                <td>${escapeHtml(log.user_nom) || '-'}<br><small class="text-muted">${escapeHtml(log.user_email)}</small><\/td>
+                <td><span class="badge bg-secondary">${escapeHtml(log.action)}<\/span><\/td>
+                <td>${escapeHtml(log.details) || '-'}<\/td>
+                <td>${formatDateTime(log.created_at)}<\/td>
+            <\/tr>`;
+        }
+        $('#auditList').html(html);
+        renderAuditPagination();
+    } catch(e) { console.error(e); }
+}
+
+function renderAuditPagination() {
+    if (auditTotalPages <= 1) { $('#auditPagination').empty(); return; }
+    let html = '<ul class="pagination pagination-custom">';
+    for (let i = 1; i <= auditTotalPages; i++) {
+        html += `<li class="page-item ${auditPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="auditChangePage(${i}); return false;">${i}</a></li>`;
+    }
+    html += '</ul>';
+    $('#auditPagination').html(html);
+}
+
+function auditChangePage(page) { auditPage = page; chargerAudit(); }
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+async function chargerNotifications() {
+    try {
+        const res = await fetch('/notifications/all', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const notifs = data.notifications || [];
+        const nonLues = notifs.filter(n => !n.lue).length;
+        $('#notifBadge').text(nonLues);
+        $('#notifTopBadge').text(nonLues).css('display', nonLues > 0 ? 'inline-block' : 'none');
+        
+        if (notifs.length === 0) {
+            $('#notificationsList').html('<div class="text-center py-4 text-muted">Aucune notification</div>');
+            return;
+        }
+        let html = '';
+        for (let n of notifs) {
+            html += `<div class="list-group-item ${!n.lue ? 'bg-light' : ''}">
+                        <div class="d-flex justify-content-between">
+                            <div>${escapeHtml(n.message)}</div>
+                            <small class="text-muted">${formatDateTime(n.created_at)}</small>
+                        </div>
+                    </div>`;
+        }
+        $('#notificationsList').html(html);
+    } catch(e) { console.error(e); }
+}
+
+async function marquerToutLu() {
+    await fetch('/notifications/lire-tout', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    chargerNotifications();
+}
+
+// ============================================
+// SAUVEGARDES
+// ============================================
+async function chargerSauvegardes() {
+    // À implémenter avec votre API
+    $('#backupsList').html('<tr><td colspan="4" class="text-center py-4 text-muted">Fonctionnalité à venir<\/td><\/tr>');
+}
+
+function creerSauvegarde() {
+    showToast('Fonctionnalité à venir');
+}
+
+// ============================================
+// PARAMÈTRES ENTREPRISE
+// ============================================
+async function chargerEntrepriseInfos() {
+    try {
+        const res = await fetch('/api/entreprise/info', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.success) {
+            $('#entrepriseNomInput').val(data.nom || '');
+            $('#entrepriseEmail').val(data.email || '');
+            $('#entrepriseTelephone').val(data.telephone || '');
+            $('#entrepriseAdresse').val(data.adresse || '');
+            $('#entrepriseSecteur').val(data.secteur || '');
+            $('#entrepriseNom').text(data.nom || 'Administration');
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function saveEntrepriseSettings() {
+    try {
+        await fetch('/api/entreprise/info', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({
+                nom: $('#entrepriseNomInput').val(),
+                email: $('#entrepriseEmail').val(),
+                telephone: $('#entrepriseTelephone').val(),
+                adresse: $('#entrepriseAdresse').val(),
+                secteur: $('#entrepriseSecteur').val()
+            })
+        });
+        showToast('Paramètres enregistrés');
+        loadUserInfo();
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ============================================
+// INITIALISATION
+// ============================================
+$('#tabDashboard').show();
+loadStats();
+chargerCategoriesFiltres();
+chargerCategories();
+
+// Intervalle notifications
+setInterval(() => { chargerNotifications(); }, 30000);
+chargerNotifications();
+
+</script>
 </body>
 </html>

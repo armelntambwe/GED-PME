@@ -4,46 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GED-PME - Mode hors-ligne</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 { color: #333; }
-        p { color: #666; line-height: 1.6; }
-        .offline-icon { font-size: 64px; margin-bottom: 20px; }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
+        .card-offline {
+            border-radius: 2rem;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            max-width: 500px;
         }
-        button:hover {
-            background-color: #45a049;
-        }
+        .icon { font-size: 5rem; color: #f59e0b; margin-bottom: 1rem; }
+        h2 { color: #0f172a; font-weight: 700; margin-bottom: 1rem; }
+        p { color: #64748b; margin-bottom: 2rem; }
+        .btn-retry { background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none; padding: 12px 30px; border-radius: 2rem; color: white; font-weight: 600; }
+        .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(14,165,233,0.4); }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="offline-icon">📴</div>
-        <h1>Mode hors-ligne</h1>
-        <p>Vous êtes actuellement sans connexion Internet.</p>
-        <p>Les documents que vous avez déjà consultés sont toujours accessibles.</p>
-        <p>Dès que la connexion sera rétablie, vos nouvelles actions seront synchronisées.</p>
-        <button onclick="window.location.reload()">Réessayer</button>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card-offline">
+                    <div class="icon"><i class="bi bi-wifi-off"></i></div>
+                    <h2>Vous êtes hors ligne</h2>
+                    <p>Veuillez vérifier votre connexion internet pour accéder à l'application.</p>
+                    <p><small>Les documents déjà consultés restent accessibles.</small></p>
+                    <button class="btn-retry" onclick="location.reload()"><i class="bi bi-arrow-repeat me-2"></i> Réessayer</button>
+                </div>
+            </div>
+        </div>
     </div>
+    <script>
+        // Vérifier périodiquement la connexion
+        setInterval(() => {
+            if (navigator.onLine) location.reload();
+        }, 5000);
+    </script>
 </body>
 </html>

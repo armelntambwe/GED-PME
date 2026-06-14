@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 
 def register_admin_routes(app):
 
-    # ============================================
+   
     # STATISTIQUES
-    # ============================================
+
 
     @app.route("/api/admin-global/stats", methods=["GET"])
     @token_required
@@ -35,9 +35,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_stats: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # GESTION UTILISATEURS
-    # ============================================
+    
 
     @app.route("/api/admin-global/users/<int:user_id>/toggle", methods=["PUT"])
     @token_required
@@ -86,9 +86,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_reset_password: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+   
     # ENTREPRISES
-    # ============================================
+    
 
     @app.route("/api/admin-global/entreprises/<int:entreprise_id>/delete", methods=["DELETE"])
     @token_required
@@ -201,9 +201,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_filter_logs: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # ENTREPRISES (CRUD)
-    # ============================================
+    
 
     @app.route("/api/admin-global/entreprises", methods=["GET"])
     @token_required
@@ -323,9 +323,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_toggle_entreprise: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # UTILISATEURS
-    # ============================================
+    
 
     @app.route("/api/admin-global/all-users", methods=["GET"])
     @token_required
@@ -349,9 +349,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_all_users: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # DOCUMENTS
-    # ============================================
+    
 
     @app.route("/api/admin-global/all-documents", methods=["GET"])
     @token_required
@@ -366,9 +366,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_all_documents: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # LOGS
-    # ============================================
+    
 
     @app.route("/api/admin-global/all-logs", methods=["GET"])
     @token_required
@@ -405,9 +405,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_logs_export: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # STOCKAGE
-    # ============================================
+
 
     @app.route("/api/admin-global/storage", methods=["GET"])
     @token_required
@@ -433,9 +433,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_storage: {e}")
             return jsonify({"success": True, "storage": {"used_mb": 0, "total_mb": 1024, "used_gb": 0, "total_gb": 1, "free_gb": 1, "uploads_mb": 0, "percent": 0}}), 200
 
-    # ============================================
+    
     # BACKUP
-    # ============================================
+    
 
     @app.route("/api/admin-global/backup", methods=["POST"])
     @token_required
@@ -474,9 +474,9 @@ def register_admin_routes(app):
             logger.error(f"Erreur admin_global_backup: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
-    # ============================================
+    
     # STATISTIQUES ÉVOLUTION
-    # ============================================
+    
 
     @app.route("/api/admin-global/stats/evolution", methods=["GET"])
     @token_required

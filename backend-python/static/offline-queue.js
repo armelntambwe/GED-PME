@@ -369,3 +369,32 @@ const offlineQueue = new OfflineQueue();
 window.offlineQueue = offlineQueue;
 
 console.log('✅ File d\'attente hors-ligne initialisée avec API réelle');
+
+
+// Ajouter à la fin du fichier offline-queue.js
+// Fonction pour afficher le nombre d'actions en attente
+window.getPendingActionsCount = async function() {
+    if (window.offlineQueue) {
+        return await window.offlineQueue.getPendingCount();
+    }
+    return 0;
+};
+
+// Afficher un badge sur l'icône de synchronisation
+window.updateSyncBadge = async function() {
+    const count = await window.getPendingActionsCount();
+    const badge = document.getElementById('syncBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.style.display = 'inline-block';
+            badge.textContent = count;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+};
+
+// Appeler périodiquement
+setInterval(() => {
+    if (window.updateSyncBadge) window.updateSyncBadge();
+}, 5000);
