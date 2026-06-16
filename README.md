@@ -280,6 +280,6 @@ GitHub : @armelntambwe
 Projet : GED-PME
 
 🙏 Remerciements
-Université de Lubumbashi - Faculté des Sciences Informatiques
+Université Nouveaux Horizons - Faculté des Sciences Informatiques
 
 Encadreurs : Jordan Masakuna & Jonathan Mbemba
