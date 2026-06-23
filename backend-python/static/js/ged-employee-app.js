@@ -590,7 +590,7 @@
     }
 
     // ========== DATA LOADING ==========
-    async function loadUserInfo() {
+    async function loadUserInfo(skipWhatsapp) {
         try {
             const { json } = await apiFetch('/api/user/profile', { headers: authHeaders() });
             if (!json.success) return;
@@ -610,7 +610,7 @@
             if (json.whatsapp_api_key_set) {
                 $('#profileWhatsappApiKey').attr('placeholder', 'Clé enregistrée — laissez vide pour conserver');
             }
-            await updateWhatsappUI();
+            if (!skipWhatsapp) await updateWhatsappUI();
             const preview = document.getElementById('profilePhotoPreview');
             if (preview) preview.src = resolvePhotoUrl(json.photo_url);
             const displayName = document.getElementById('profileDisplayName');
@@ -1445,7 +1445,10 @@
         apiFetch('/notifications/lire-tout', { method: 'PUT', headers: authHeaders() }).then(() => loadNotifications());
     };
 
-    window.loadProfile = loadUserInfo;
+    window.loadProfile = async function () {
+        await loadUserInfo(true);
+        await updateWhatsappUI();
+    };
 
     window.saveProfile = async function () {
         const data = {
@@ -1555,22 +1558,25 @@
     // ========== INIT ==========
     async function warmOfflineCache() {
         const urls = [
-            '/api/user/profile',
             '/documents/stats',
             '/documents?page=1&limit=15',
-            '/documents?limit=200',
             '/categories',
-            '/notifications/all',
         ];
-        for (const u of urls) {
-            try { await apiFetch(u, { headers: authHeaders() }); } catch (e) { /* ignore */ }
-        }
+        await Promise.allSettled(urls.map((u) => apiFetch(u, { headers: authHeaders() })));
     }
 
-    loadUserInfo();
-    loadDashboard();
-    loadNotifications();
-    warmOfflineCache();
+    Promise.all([
+        loadUserInfo(true),
+        loadDashboard(),
+        loadNotifications(),
+    ]).catch(() => {});
+
+    const deferCache = () => warmOfflineCache().catch(() => {});
+    if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(deferCache, { timeout: 4000 });
+    } else {
+        setTimeout(deferCache, 2000);
+    }
 
     (function initUploadDropzone() {
         const dropzone = document.getElementById('uploadDropzone');

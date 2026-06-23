@@ -57,3 +57,6 @@ def ensure_schema(app):
         if missing_tables:
             db.create_all()
             logger.info("Tables créées: %s", ', '.join(sorted(missing_tables)))
+
+        from services.category_service import CategoryService
+        CategoryService.migrate_orphan_categories()

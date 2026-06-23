@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GED-PME | Guide utilisateur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/ged-theme.css">
+    <style>
+        body { background: #f1f5f9; }
+        .guide-wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+        .guide-nav { position: sticky; top: 1rem; }
+        .guide-nav a { display: block; padding: .45rem .75rem; border-radius: 8px; color: #334155; text-decoration: none; font-size: .9rem; }
+        .guide-nav a:hover, .guide-nav a.active { background: #e0f2fe; color: #0369a1; }
+        .guide-section { background: #fff; border-radius: 12px; padding: 1.75rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); scroll-margin-top: 1rem; }
+        .guide-section h2 { font-size: 1.35rem; color: #0ea5e9; margin-bottom: 1rem; }
+        .guide-section h3 { font-size: 1.05rem; margin-top: 1.25rem; }
+        .guide-header { background: linear-gradient(135deg, #0891b2, #0ea5e9); color: #fff; padding: 2.5rem 1rem; margin-bottom: 2rem; }
+        .step-list { counter-reset: step; list-style: none; padding: 0; }
+        .step-list li { counter-increment: step; padding-left: 2.5rem; position: relative; margin-bottom: .75rem; }
+        .step-list li::before { content: counter(step); position: absolute; left: 0; width: 1.75rem; height: 1.75rem; background: #e0f2fe; color: #0369a1; border-radius: 50%; text-align: center; line-height: 1.75rem; font-weight: 600; font-size: .85rem; }
+        kbd { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 6px; font-size: .85em; }
+    </style>
+</head>
+<body>
+<div class="guide-header text-center">
+    <h1 class="h3 mb-2"><i class="fas fa-book-open me-2"></i>Guide utilisateur GED-PME</h1>
+    <p class="mb-0 opacity-75">Gestion Électronique de Documents — PME multi-entreprises</p>
+</div>
+
+<div class="guide-wrap">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <nav class="guide-nav card border-0 shadow-sm p-2">
+                <strong class="px-2 py-1 small text-muted text-uppercase">Sommaire</strong>
+                <a href="#install">Installation</a>
+                <a href="#employe">Employé</a>
+                <a href="#admin-pme">Admin PME</a>
+                <a href="#admin-global">Admin global</a>
+                <a href="#securite">Sécurité & 2FA</a>
+                <a href="#faq">FAQ</a>
+                <hr class="my-2">
+                <a href="/login"><i class="fas fa-sign-in-alt me-1"></i>Connexion</a>
+            </nav>
+        </div>
+        <div class="col-lg-9">
+
+            <section id="install" class="guide-section">
+                <h2><i class="fas fa-server me-2"></i>Installation & démarrage</h2>
+                <h3>Prérequis</h3>
+                <ul>
+                    <li>Python 3.10+, MySQL 8.0</li>
+                    <li>Dépendances : <code>pip install -r requirements.txt</code></li>
+                    <li>Variables dans <code>.env</code> : connexion MySQL, clé secrète JWT</li>
+                </ul>
+                <h3>Lancement</h3>
+                <ol class="step-list">
+                    <li>Créer la base <code>ged_pme</code> et configurer <code>.env</code></li>
+                    <li>Exécuter <code>python app.py</code> depuis <code>backend-python/</code></li>
+                    <li>Ouvrir <a href="/">http://localhost:5000</a></li>
+                    <li>Premier compte : inscription entreprise (<code>/register</code>) ou admin global pré-configuré</li>
+                </ol>
+                <p class="text-muted small mb-0">Les sauvegardes SQL sont stockées dans <code>backend-python/backups/</code>.</p>
+            </section>
+
+            <section id="employe" class="guide-section">
+                <h2><i class="fas fa-user me-2"></i>Interface Employé</h2>
+                <p>Accès : <kbd>/dashboard-employee</kbd> après connexion avec le rôle <strong>employé</strong>.</p>
+                <h3>Workflow documentaire</h3>
+                <ol class="step-list">
+                    <li><strong>Créer</strong> un document (brouillon) avec titre, catégorie et fichier</li>
+                    <li><strong>Soumettre</strong> pour validation par l'admin PME</li>
+                    <li>Suivre le statut : en révision → validé/rejeté → publié</li>
+                    <li>Consulter les documents <strong>publiés</strong> de l'entreprise</li>
+                </ol>
+                <h3>Fonctions principales</h3>
+                <ul>
+                    <li><strong>Aperçu</strong> : PDF, images, DOCX, XLSX, CSV</li>
+                    <li><strong>Versions</strong> : historique et restauration de vos documents</li>
+                    <li><strong>OCR</strong> : extraction de texte pour recherche</li>
+                    <li><strong>Partage</strong> : email, WhatsApp, QR code</li>
+                    <li><strong>Favoris</strong> et recherche avancée</li>
+                    <li><strong>Profil</strong> : mot de passe, alertes WhatsApp, 2FA</li>
+                </ul>
+            </section>
+
+            <section id="admin-pme" class="guide-section">
+                <h2><i class="fas fa-building me-2"></i>Interface Admin PME</h2>
+                <p>Accès : <kbd>/dashboard-pme</kbd> — gestion d'une entreprise.</p>
+                <h3>Validation</h3>
+                <p>Onglet <strong>Validation</strong> : approuver ou rejeter (avec commentaire) les documents soumis par les employés.</p>
+                <h3>Publication directe</h3>
+                <p>Quand l'admin PME <strong>publie</strong> un document, celui-ci est immédiatement validé et visible par les employés (sans passer par le workflow employé).</p>
+                <h3>Gestion</h3>
+                <ul>
+                    <li><strong>Employés</strong> : création, activation/désactivation</li>
+                    <li><strong>Catégories</strong> : organisation documentaire, partage par email</li>
+                    <li><strong>Corbeille</strong> : restauration ou suppression définitive</li>
+                    <li><strong>Paramètres</strong> : identité entreprise (NIF, RCCM, logo), sauvegarde SQL, <strong>configuration workflow</strong></li>
+                </ul>
+                <h3>Workflow configurable</h3>
+                <p>Dans Paramètres → Configuration du workflow : définissez les étapes (nom, rôle responsable, délai en heures). Exemple : Soumission (employé, 24 h) → Validation (admin PME, 48 h).</p>
+                <h3>Documents</h3>
+                <p>Recherche multi-critères, aperçu tous formats, <strong>Versions</strong> et <strong>Journal</strong> d'activité par document.</p>
+            </section>
+
+            <section id="admin-global" class="guide-section">
+                <h2><i class="fas fa-globe me-2"></i>Interface Admin global</h2>
+                <p>Accès : <kbd>/dashboard-admin-global</kbd> — supervision de toute la plateforme.</p>
+                <h3>Onboarding PME</h3>
+                <p>Créer une entreprise avec NIF, RCCM, logo et compte <strong>admin PME</strong> (pas un second admin global).</p>
+                <h3>Supervision</h3>
+                <ul>
+                    <li>Vue documents <strong>toutes entreprises</strong> (lecture, aperçu, téléchargement)</li>
+                    <li>Gestion utilisateurs et entreprises (CRUD)</li>
+                    <li>Onglet <strong>En attente</strong> : consultation seule (pas de validation)</li>
+                    <li><strong>Activité</strong> : rapport par utilisateur + export CSV</li>
+                    <li><strong>Paramètres plateforme</strong> : maintenance, WhatsApp, email</li>
+                    <li><strong>Sauvegardes</strong> : liste et téléchargement SQL</li>
+                </ul>
+            </section>
+
+            <section id="securite" class="guide-section">
+                <h2><i class="fas fa-shield-alt me-2"></i>Sécurité & double authentification</h2>
+                <ul>
+                    <li>Authentification JWT (session 24 h)</li>
+                    <li>Mots de passe hashés (bcrypt)</li>
+                    <li>Isolation des données par entreprise</li>
+                    <li><strong>2FA TOTP</strong> : disponible dans le profil (employé, admin PME, admin global)</li>
+                </ul>
+                <h3>Activer la 2FA</h3>
+                <ol class="step-list">
+                    <li>Profil → Configurer la 2FA</li>
+                    <li>Scanner le QR code avec Google Authenticator ou Microsoft Authenticator</li>
+                    <li>Saisir le code à 6 chiffres et activer</li>
+                    <li>À la connexion, un second code sera demandé</li>
+                </ol>
+            </section>
+
+            <section id="faq" class="guide-section">
+                <h2><i class="fas fa-question-circle me-2"></i>FAQ</h2>
+                <h3>Je ne vois pas les documents d'une autre entreprise</h3>
+                <p>Normal : chaque PME est isolée. Seul l'admin global voit toutes les entreprises.</p>
+                <h3>Format de fichier non prévisualisable</h3>
+                <p>Utilisez Télécharger ou lancez l'OCR si c'est une image/PDF scanné.</p>
+                <h3>WhatsApp ne fonctionne pas</h3>
+                <p>Configurez CallMeBot dans le profil (clé API personnelle) et vérifiez le numéro au format international (+243…).</p>
+                <h3>Mode maintenance</h3>
+                <p>L'admin global peut activer la maintenance ; seuls les admins globaux conservent l'accès.</p>
+            </section>
+
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const role = {{ default_role|tojson }};
+    const map = { employe: '#employe', admin_pme: '#admin-pme', admin_global: '#admin-global' };
+    if (role && map[role]) {
+        const el = document.querySelector(map[role]);
+        if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 300);
+        document.querySelector('.guide-nav a[href="' + map[role] + '"]')?.classList.add('active');
+    }
+    document.querySelectorAll('.guide-nav a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+})();
+</script>
+</body>
+</html>

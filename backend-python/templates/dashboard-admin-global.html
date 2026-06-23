@@ -3,967 +3,473 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME - Admin Global</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <title>GED-PME | Administration Globale</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="theme-color" content="#0c4a6e">
+    <link rel="stylesheet" href="/static/css/ged-theme.css">
+    <link rel="stylesheet" href="/static/css/ged-dashboard.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f9ff; }
-        .sidebar { background: linear-gradient(180deg, #0c4a6e 0%, #075985 100%); min-height: 100vh; transition: all 0.3s; }
-        .sidebar a { color: #e0f2fe; text-decoration: none; padding: 12px 20px; display: block; transition: 0.3s; border-radius: 12px; margin: 4px 12px; cursor: pointer; }
-        .sidebar a:hover { background-color: #0ea5e9; transform: translateX(4px); }
-        .sidebar a.active { background-color: #0ea5e9; box-shadow: 0 4px 10px rgba(14,165,233,0.3); }
-        .card-stats { border: none; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.2s; background: white; }
-        .card-stats:hover { transform: translateY(-4px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
-        .btn-primary-custom { background: linear-gradient(135deg, #0ea5e9, #3b82f6); border: none; border-radius: 12px; padding: 8px 20px; font-weight: 500; color: white; cursor: pointer; }
-        .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(14,165,233,0.4); }
-        .badge-active { background-color: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .badge-inactive { background-color: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .badge-admin { background-color: #8b5cf6; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .badge-pme { background-color: #f59e0b; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .badge-employe { background-color: #3b82f6; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .online-status { display: inline-flex; align-items: center; gap: 8px; background: #10b981; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: white; }
-        .online-status.offline { background: #ef4444; }
-        .notification-icon { position: relative; cursor: pointer; }
-        .notification-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
-        .notification-dropdown { display: none; position: absolute; right: 20px; top: 60px; width: 350px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 1000; max-height: 450px; overflow-y: auto; }
-        .notification-header { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: bold; display: flex; justify-content: space-between; background: #f8fafc; border-radius: 12px 12px 0 0; }
-        .notification-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
-        .notification-item:hover { background: #f8fafc; }
-        .notification-date { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
-        .notification-message { font-size: 13px; color: #1e293b; }
-        .empty-notification { padding: 30px; text-align: center; color: #94a3b8; }
-        .modal-content-custom { border-radius: 20px; border: none; }
-        .form-control-custom { border-radius: 12px; padding: 10px 15px; border: 1px solid #e2e8f0; }
-        .form-control-custom:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.2); }
-        .loading { text-align: center; padding: 40px; color: #94a3b8; }
-        .search-box { border-radius: 20px; padding: 8px 15px; border: 1px solid #e2e8f0; width: 250px; }
-        .pagination .page-link { border-radius: 10px; margin: 0 3px; color: #0ea5e9; }
-        .pagination .active .page-link { background-color: #0ea5e9; border-color: #0ea5e9; color: white; }
+        body.ged-dashboard { --primary: #0c4a6e; --primary-dark: #075985; }
+        .sidebar { background: linear-gradient(180deg, #0c4a6e 0%, #075985 100%); }
+        .badge-admin { background: #8b5cf6; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-pme { background: #f59e0b; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-employe { background: #3b82f6; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-active { background: #10b981; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-inactive { background: #ef4444; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .company-logo-sm { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #f1f5f9; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+        .detail-item { background: #f8fafc; border-radius: 8px; padding: 10px 12px; }
+        .detail-item .lbl { font-size: 11px; color: #64748b; text-transform: uppercase; }
+        .detail-item .val { font-weight: 600; font-size: 14px; }
+        .workflow-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     </style>
 </head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-auto px-0 sidebar" style="width: 260px;">
-                <div class="p-4 text-white text-center fw-bold fs-4 border-bottom">
-                    <i class="bi bi-folder2-open me-2"></i>GED-PME
+<body class="ged-app ged-dashboard">
+
+<div class="header">
+    <div class="header-left">
+        <i class="fas fa-bars menu-toggle" id="menuToggle" style="cursor:pointer;font-size:20px;"></i>
+        <div class="logo"><i class="fas fa-globe me-2"></i>GED-PME Global</div>
+        <div class="entreprise-name"><i class="fas fa-shield-alt me-1"></i> Supervision plateforme</div>
+    </div>
+    <div class="header-right">
+        <div class="status-online" id="connectionStatus"><span class="dot"></span> Connecté</div>
+        <div class="notif-icon" id="notifIcon">
+            <i class="fas fa-bell fs-5" style="color:var(--gray);"></i>
+            <span class="notif-badge" id="notifBadge">0</span>
+            <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <div class="dropdown">
+            <div class="user-profile" data-bs-toggle="dropdown">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-info">
+                    <div class="name" id="userName">Chargement...</div>
+                    <div class="role" id="userRole">Administrateur global</div>
                 </div>
-                <nav class="nav flex-column mt-3">
-                    <a class="active" data-tab="dashboard"><i class="bi bi-speedometer2 me-2"></i> Tableau de bord</a>
-                    <a data-tab="entreprises"><i class="bi bi-building me-2"></i> Entreprises</a>
-                    <a data-tab="users"><i class="bi bi-people me-2"></i> Utilisateurs</a>
-                    <a data-tab="documents"><i class="bi bi-file-earmark-text me-2"></i> Documents</a>
-                    <a data-tab="logs"><i class="bi bi-journal me-2"></i> Logs</a>
-                    <a data-tab="storage"><i class="bi bi-hdd-stack me-2"></i> Stockage</a>
-                </nav>
+                <i class="fas fa-chevron-down" style="font-size:12px;color:var(--gray);"></i>
             </div>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="openProfileModal(); return false;"><i class="fas fa-user me-2"></i>Mon profil</a></li>
+                <li><a class="dropdown-item" href="#" onclick="openPasswordModal(); return false;"><i class="fas fa-key me-2"></i>Modifier mot de passe</a></li>
+                <li><a class="dropdown-item" href="/guide?role=admin_global" target="_blank" rel="noopener"><i class="fas fa-book me-2"></i>Guide utilisateur</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-            <!-- Main content -->
-            <div class="col p-4">
-                <!-- Top bar -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 id="pageTitle" class="fw-bold" style="color: #0c4a6e;">Tableau de bord</h2>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="online-status" id="onlineStatus">
-                            <i class="bi bi-wifi"></i>
-                            <span id="statusText">En ligne</span>
-                        </div>
-                        <div class="notification-icon position-relative" id="notificationIcon">
-                            <i class="bi bi-bell fs-5" style="color: #0ea5e9;"></i>
-                            <span id="notificationBadge" class="notification-badge">0</span>
-                        </div>
-                        <span class="fw-semibold" id="userName">Admin Global</span>
-                        <button class="btn btn-danger btn-sm rounded-pill px-3" onclick="logout()">Déconnexion</button>
-                    </div>
-                </div>
+<div class="sidebar" id="sidebar">
+    <div class="section-title">Navigation</div>
+    <a href="#" class="active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+    <div class="section-title">Gestion</div>
+    <a href="#" data-tab="entreprises"><i class="fas fa-building"></i> Entreprises</a>
+    <a href="#" data-tab="users"><i class="fas fa-users"></i> Utilisateurs</a>
+    <a href="#" data-tab="documents"><i class="fas fa-file-alt"></i> Documents</a>
+    <a href="#" data-tab="validation"><i class="fas fa-clock"></i> En attente</a>
+    <a href="#" data-tab="activity"><i class="fas fa-chart-bar"></i> Activité</a>
+    <div class="section-title">Système</div>
+    <a href="#" data-tab="logs"><i class="fas fa-list-alt"></i> Logs</a>
+    <a href="#" data-tab="storage"><i class="fas fa-hdd"></i> Stockage</a>
+    <a href="#" data-tab="settings"><i class="fas fa-cog"></i> Paramètres</a>
+</div>
 
-                <!-- Notification Dropdown -->
-                <div class="notification-dropdown" id="notificationDropdown">
-                    <div class="notification-header">
-                        <span>Notifications</span>
-                        <button class="btn btn-link btn-sm" onclick="marquerToutLu()">Tout marquer lu</button>
-                    </div>
-                    <div id="notificationList">
-                        <div class="empty-notification">Aucune notification</div>
-                    </div>
-                </div>
+<div class="main-content" id="mainContent">
 
-                <!-- Tab content -->
-                <div id="tabDashboard" class="tab-content">
-                    <div class="row g-4 mb-4" id="statsGrid"></div>
-                    <div class="row">
-                        <div class="col-md-8"><div class="card border-0 shadow-sm rounded-4"><div class="card-header bg-white border-0 pt-4"><h5 class="fw-semibold">Évolution des documents (8 semaines)</h5></div><div class="card-body"><canvas id="evolutionChart" height="200"></canvas></div></div></div>
-                        <div class="col-md-4"><div class="card border-0 shadow-sm rounded-4"><div class="card-header bg-white border-0 pt-4"><h5 class="fw-semibold">Top entreprises</h5></div><div class="card-body"><canvas id="topChart" height="200"></canvas></div></div></div>
-                    </div>
-                    <div class="card border-0 shadow-sm rounded-4 mt-4">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
-                            <h5 class="fw-semibold">Dernières activités</h5>
-                            <button class="btn btn-primary-custom btn-sm" onclick="loadLastLogs()">Actualiser</button>
-                        </div>
-                        <div class="card-body">
-                            <table class="table" id="lastLogsTable">
-                                <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th></tr></thead>
-                                <tbody><tr><td colspan="3" class="loading">Chargement...</td></tbody>
-                            </table>
-                        </div>
-                    </div>
+    <div id="tabDashboard" class="tab-pane">
+        <div class="page-intro">
+            <h4><i class="fas fa-tachometer-alt me-2 text-primary"></i>Tableau de bord global</h4>
+            <p>Vue d'ensemble de toutes les entreprises et de l'activité documentaire.</p>
+        </div>
+        <div class="quick-actions mb-3">
+            <button type="button" class="btn-quick primary" onclick="showTab('entreprises')"><i class="fas fa-building"></i>Entreprises</button>
+            <button type="button" class="btn-quick" onclick="showTab('users')"><i class="fas fa-users"></i>Utilisateurs</button>
+            <button type="button" class="btn-quick" onclick="showTab('validation')"><i class="fas fa-clock"></i>Docs en attente</button>
+            <button type="button" class="btn-quick" onclick="showTab('settings')"><i class="fas fa-cog"></i>Paramètres</button>
+            <button type="button" class="btn-quick" onclick="manualBackup()"><i class="fas fa-database"></i>Sauvegarde</button>
+        </div>
+        <div class="row g-3 mb-4" id="statsGrid">
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon primary"><i class="fas fa-building"></i></div><div class="stat-body"><div class="number" id="statEntreprises">0</div><div class="label">Entreprises</div></div></div></div>
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon info"><i class="fas fa-file-alt"></i></div><div class="stat-body"><div class="number" id="statDocuments">0</div><div class="label">Documents</div></div></div></div>
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon success"><i class="fas fa-users"></i></div><div class="stat-body"><div class="number" id="statUsers">0</div><div class="label">Utilisateurs</div></div></div></div>
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon warning"><i class="fas fa-user-check"></i></div><div class="stat-body"><div class="number" id="statUsersActifs">0</div><div class="label">Utilisateurs actifs</div></div></div></div>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="card-custom">
+                    <div class="card-title"><i class="fas fa-chart-line me-2 text-primary"></i>Évolution documents (8 semaines)</div>
+                    <div style="position:relative;height:260px;"><canvas id="evolutionChart"></canvas></div>
                 </div>
-
-                <div id="tabEntreprises" class="tab-content d-none">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-4">
-                            <h5 class="fw-semibold">Entreprises</h5>
-                            <div class="d-flex gap-2">
-                                <input type="text" id="searchEntreprise" class="search-box" placeholder="Rechercher..." onkeyup="filterEntreprises()">
-                                <button class="btn btn-primary-custom btn-sm" onclick="showAddEntrepriseModal()">+ Nouvelle entreprise</button>
-                                <button class="btn btn-success btn-sm" onclick="exportEntreprisesCSV()"><i class="bi bi-file-earmark-excel"></i> Export CSV</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped" id="entreprisesTable">
-                                <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Employés</th><th>Documents</th><th>Actions</th></tr></thead>
-                                <tbody><tr><td colspan="6" class="loading">Chargement...</td></tbody>
-                            </table>
-                            <div id="paginationEntreprises" class="mt-3"></div>
-                        </div>
-                    </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card-custom">
+                    <div class="card-title"><i class="fas fa-trophy me-2 text-primary"></i>Top entreprises</div>
+                    <div style="position:relative;height:260px;"><canvas id="topChart"></canvas></div>
                 </div>
-
-                <div id="tabUsers" class="tab-content d-none">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
-                            <h5 class="fw-semibold">Utilisateurs</h5>
-                            <div class="d-flex gap-2">
-                                <input type="text" id="searchUser" class="search-box" placeholder="Rechercher..." onkeyup="filterUsers()">
-                                <button class="btn btn-success btn-sm" onclick="exportUsersCSV()"><i class="bi bi-file-earmark-excel"></i> Export CSV</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped" id="usersTable">
-                                <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Entreprise</th><th>Statut</th><th>Actions</th></tr></thead>
-                                <tbody><tr><td colspan="7" class="loading">Chargement...</td></tbody>
-                            </table>
-                            <div id="paginationUsers" class="mt-3"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tabDocuments" class="tab-content d-none">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
-                            <h5 class="fw-semibold">Documents</h5>
-                            <input type="text" id="searchDoc" class="search-box" placeholder="Rechercher..." onkeyup="filterDocs()">
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-striped" id="documentsTable">
-                                <thead><tr><th>Titre</th><th>Auteur</th><th>Entreprise</th><th>Date</th></tr></thead>
-                                <tbody><td><td colspan="4" class="loading">Chargement...</td></tbody>
-                            </table>
-                            <div id="paginationDocuments" class="mt-3"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tabLogs" class="tab-content d-none">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
-                            <h5 class="fw-semibold">Logs système</h5>
-                            <button class="btn btn-primary-custom btn-sm" onclick="exportLogs()">Exporter CSV</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label>Date début</label>
-                                    <input type="date" id="logDateDebut" class="form-control">
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Date fin</label>
-                                    <input type="date" id="logDateFin" class="form-control">
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Action</label>
-                                    <select id="logAction" class="form-select">
-                                        <option value="">Toutes</option>
-                                        <option value="CREATION_ENTREPRISE">Création entreprise</option>
-                                        <option value="MODIFICATION_ENTREPRISE">Modification entreprise</option>
-                                        <option value="SUPPRESSION_ENTREPRISE">Suppression entreprise</option>
-                                        <option value="CONNEXION">Connexion</option>
-                                        <option value="USER_TOGGLE">Activation/Désactivation utilisateur</option>
-                                        <option value="PASSWORD_RESET">Réinitialisation mot de passe</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button class="btn btn-primary-custom btn-sm" onclick="filterLogs()">Filtrer</button>
-                                    <button class="btn btn-secondary btn-sm ms-2" onclick="resetLogsFilter()">Réinitialiser</button>
-                                </div>
-                            </div>
-                            <table class="table table-striped" id="logsTable">
-                                <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead>
-                                <tbody><tr><td colspan="4" class="loading">Chargement...</td></tbody>
-                            </table>
-                            <div id="paginationLogs" class="mt-3"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tabStorage" class="tab-content d-none">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between pt-4">
-                            <h5 class="fw-semibold">Stockage</h5>
-                            <button class="btn btn-primary-custom btn-sm" onclick="manualBackup()">Sauvegarde manuelle</button>
-                        </div>
-                        <div class="card-body" id="storageInfo">
-                            <div class="loading">Chargement...</div>
-                        </div>
-                    </div>
-                </div>
+            </div>
+        </div>
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="card-title mb-0"><i class="fas fa-history me-2 text-primary"></i>Dernières activités</div>
+                <button class="btn-primary-custom btn-sm" onclick="loadLastLogs()"><i class="fas fa-sync-alt me-1"></i>Actualiser</button>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom">
+                    <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th></tr></thead>
+                    <tbody id="lastLogsBody"><tr><td colspan="3" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Modal Ajout/Modification Entreprise -->
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content modal-content-custom">
-                <div class="modal-header border-0">
-                    <h5 class="fw-bold" id="modalTitle">Nouvelle entreprise</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div id="tabEntreprises" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-building me-2 text-primary"></i>Entreprises</h4><p>Onboarding complet PME + admin, fiche détaillée et workflow.</p></div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <input type="text" id="searchEntreprise" class="form-control form-control-sm" style="max-width:260px;" placeholder="Rechercher..." onkeyup="filterEntreprises()">
+                <div class="d-flex gap-2">
+                    <button class="btn-primary-custom" onclick="showAddEntrepriseModal()"><i class="fas fa-plus me-1"></i>Nouvelle PME</button>
+                    <button class="btn btn-outline-success btn-sm" onclick="exportEntreprisesCSV()"><i class="fas fa-file-export me-1"></i>Export CSV</button>
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editId">
-                    <div class="mb-3"><label class="form-label">Nom *</label><input type="text" id="editNom" class="form-control form-control-custom" placeholder="Nom de l'entreprise"></div>
-                    <div class="mb-3"><label class="form-label">Adresse</label><input type="text" id="editAdresse" class="form-control form-control-custom" placeholder="Adresse"></div>
-                    <div class="mb-3"><label class="form-label">Téléphone</label><input type="text" id="editTel" class="form-control form-control-custom" placeholder="Téléphone"></div>
-                    <div class="mb-3"><label class="form-label">Email</label><input type="email" id="editEmail" class="form-control form-control-custom" placeholder="Email"></div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button class="btn btn-primary-custom" id="modalSaveBtn" onclick="createEntreprise()">Créer</button>
-                </div>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="entreprisesTable">
+                    <thead><tr><th>ID</th><th>Entreprise</th><th>NIF / RCCM</th><th>Email</th><th>Employés</th><th>Docs</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody><tr><td colspan="8" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="paginationEntreprises" class="mt-3"></div>
+        </div>
+    </div>
+
+    <div id="tabUsers" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-users me-2 text-primary"></i>Utilisateurs</h4><p>Création, rôles, filtres et gestion avancée.</p></div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap gap-2 mb-3 align-items-end">
+                <input type="text" id="searchUser" class="form-control form-control-sm" style="max-width:200px;" placeholder="Rechercher..." onkeyup="applyUserFilters()">
+                <select id="filterUserRole" class="form-select form-select-sm" style="max-width:140px;" onchange="applyUserFilters()">
+                    <option value="">Tous rôles</option>
+                    <option value="admin_global">Admin global</option>
+                    <option value="admin_pme">admin_pme</option>
+                    <option value="employe">employe</option>
+                </select>
+                <select id="filterUserEntreprise" class="form-select form-select-sm" style="max-width:180px;" onchange="applyUserFilters()"><option value="">Toutes entreprises</option></select>
+                <select id="filterUserActif" class="form-select form-select-sm" style="max-width:120px;" onchange="applyUserFilters()">
+                    <option value="">Tous statuts</option>
+                    <option value="1">Actifs</option>
+                    <option value="0">Inactifs</option>
+                </select>
+                <button class="btn-primary-custom btn-sm" onclick="showCreateUserModal()"><i class="fas fa-user-plus me-1"></i>Créer</button>
+                <button class="btn btn-outline-success btn-sm" onclick="exportUsersCSV()"><i class="fas fa-file-export"></i></button>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="usersTable">
+                    <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Rôle</th><th>Entreprise</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody><tr><td colspan="7" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="paginationUsers" class="mt-3"></div>
+        </div>
+    </div>
+
+    <div id="tabDocuments" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-file-alt me-2 text-primary"></i>Documents</h4><p>Liste globale avec filtres, aperçu et téléchargement.</p></div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap gap-2 mb-3 align-items-end">
+                <input type="text" id="searchDoc" class="form-control form-control-sm" style="max-width:280px;" placeholder="Titre, fichier, auteur, OCR…" onkeyup="debounceLoadDocuments()">
+                <select id="filterDocFormat" class="form-select form-select-sm" style="max-width:120px;" onchange="loadDocuments()">
+                    <option value="">Tous formats</option>
+                    <option value="pdf">PDF</option>
+                    <option value="docx">Word</option>
+                    <option value="xlsx">Excel</option>
+                    <option value="pptx">PowerPoint</option>
+                    <option value="jpg">Image</option>
+                    <option value="mp4">Vidéo</option>
+                    <option value="zip">Archive</option>
+                </select>
+                <select id="filterDocStatut" class="form-select form-select-sm" style="max-width:140px;" onchange="loadDocuments()">
+                    <option value="">Tous statuts</option>
+                    <option value="brouillon">brouillon</option>
+                    <option value="soumis">soumis</option>
+                    <option value="valide">valide</option>
+                    <option value="rejete">rejete</option>
+                    <option value="publie">publie</option>
+                    <option value="obsolete">obsolete</option>
+                </select>
+                <select id="filterDocEntreprise" class="form-select form-select-sm" style="max-width:180px;" onchange="loadDocuments()"><option value="">Toutes entreprises</option></select>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="documentsTable">
+                    <thead><tr><th>Titre / Fichier</th><th>Format</th><th>Auteur</th><th>Entreprise</th><th>Date</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody><tr><td colspan="7" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="paginationDocuments" class="mt-3"></div>
+            <p class="small text-muted mb-0" id="documentsTotalInfo"></p>
+        </div>
+    </div>
+
+    <div id="tabValidation" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-clock me-2 text-primary"></i>Documents en attente</h4><p>Supervision en lecture seule — la validation est réservée aux admins PME.</p></div>
+        <div class="card-custom">
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="validationTable">
+                    <thead><tr><th>Titre</th><th>Auteur</th><th>Entreprise</th><th>Date</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody><tr><td colspan="5" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // ==========================================
-        // VARIABLES GLOBALES
-        // ==========================================
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login';
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        document.getElementById('userName').innerText = user.nom || 'Admin Global';
+    <div id="tabActivity" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-chart-bar me-2 text-primary"></i>Rapport d'activité</h4><p>Connexions, actions et documents par utilisateur.</p></div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <select id="filterActivityEntreprise" class="form-select form-select-sm" style="max-width:220px;" onchange="loadActivity()"><option value="">Toutes entreprises</option></select>
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="exportActivityCSV()"><i class="fas fa-file-csv me-1"></i>Export CSV</button>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="activityTable">
+                    <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Entreprise</th><th>Docs</th><th>Actions</th><th>Dernière connexion</th></tr></thead>
+                    <tbody><tr><td colspan="6" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        let entreprisesData = [], usersData = [], documentsData = [];
-        let evolutionChart, topChart;
-        let notificationInterval;
+    <div id="tabLogs" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-list-alt me-2 text-primary"></i>Logs système</h4></div>
+        <div class="card-custom">
+            <div class="row g-2 mb-3">
+                <div class="col-md-3"><label class="form-label small">Date début</label><input type="date" id="logDateDebut" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><label class="form-label small">Date fin</label><input type="date" id="logDateFin" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><label class="form-label small">Action</label>
+                    <select id="logAction" class="form-select form-select-sm">
+                        <option value="">Toutes</option>
+                        <option value="CONNEXION">Connexion</option>
+                        <option value="CREATION_ENTREPRISE">Création entreprise</option>
+                        <option value="USER_TOGGLE">Activation/Désactivation</option>
+                        <option value="PASSWORD_RESET">Réinitialisation MDP</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button class="btn-primary-custom btn-sm" onclick="filterLogs()"><i class="fas fa-filter"></i></button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="resetLogsFilter()"><i class="fas fa-undo"></i></button>
+                    <button class="btn btn-outline-success btn-sm" onclick="exportLogs()"><i class="fas fa-file-export"></i></button>
+                </div>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="logsTable">
+                    <thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead>
+                    <tbody><tr><td colspan="4" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="paginationLogs" class="mt-3"></div>
+        </div>
+    </div>
 
-        // Pagination variables
-        let currentPageEntreprises = 1;
-        let currentPageUsers = 1;
-        let currentPageDocuments = 1;
-        let currentPageLogs = 1;
-        const itemsPerPage = 10;
-        const itemsPerPageLogs = 20;
-        let filteredEntreprises = [];
-        let filteredUsers = [];
-        let filteredDocuments = [];
-        let logsData = [];
+    <div id="tabStorage" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-hdd me-2 text-primary"></i>Stockage & sauvegardes</h4></div>
+        <div class="card-custom mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="card-title mb-0"><i class="fas fa-database me-2"></i>État du stockage</div>
+                <button class="btn-primary-custom btn-sm" onclick="manualBackup()"><i class="fas fa-download me-1"></i>Nouvelle sauvegarde</button>
+            </div>
+            <div id="storageInfo"><div class="loading text-center py-4"><div class="spinner-border text-primary"></div></div></div>
+        </div>
+        <div class="card-custom">
+            <div class="card-title mb-3"><i class="fas fa-history me-2"></i>Sauvegardes disponibles</div>
+            <div class="table-doc-wrap">
+                <table class="table-custom" id="backupsTable">
+                    <thead><tr><th>Fichier</th><th>Taille</th><th>Date</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody><tr><td colspan="4" class="text-muted text-center py-3">Chargement...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        // ==========================================
-        // INDICATEUR DE CONNEXION
-        // ==========================================
-        function updateOnlineStatus() {
-            const statusDiv = document.getElementById('onlineStatus');
-            const statusText = document.getElementById('statusText');
-            const icon = statusDiv.querySelector('i');
-            if (navigator.onLine) {
-                statusDiv.classList.remove('offline');
-                statusDiv.style.background = '#10b981';
-                icon.className = 'bi bi-wifi';
-                statusText.textContent = 'En ligne';
-            } else {
-                statusDiv.classList.add('offline');
-                statusDiv.style.background = '#ef4444';
-                icon.className = 'bi bi-plug';
-                statusText.textContent = 'Hors-ligne';
-            }
-        }
-        window.addEventListener('online', () => { updateOnlineStatus(); setTimeout(() => location.reload(), 1000); });
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
+    <div id="tabSettings" class="tab-pane" style="display:none;">
+        <div class="page-intro"><h4><i class="fas fa-cog me-2 text-primary"></i>Paramètres plateforme</h4><p>Configuration système, santé et maintenance.</p></div>
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="card-custom h-100">
+                    <div class="card-title"><i class="fas fa-heartbeat me-2"></i>Santé système</div>
+                    <div id="healthInfo" class="small">Chargement...</div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-custom h-100">
+                    <div class="card-title"><i class="fas fa-tools me-2"></i>Maintenance</div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="maintenanceToggle">
+                        <label class="form-check-label" for="maintenanceToggle">Mode maintenance (bloque employés / PME)</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Message affiché</label>
+                        <textarea id="maintenanceMessage" class="form-control form-control-sm" rows="2"></textarea>
+                    </div>
+                    <button class="btn-primary-custom btn-sm" onclick="saveMaintenance()"><i class="fas fa-save me-1"></i>Enregistrer</button>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card-custom">
+                    <div class="card-title"><i class="fab fa-whatsapp me-2"></i>WhatsApp & Email</div>
+                    <div id="platformConfigInfo" class="small">Chargement...</div>
+                    <button class="btn btn-outline-success btn-sm mt-2" onclick="testWhatsapp()"><i class="fas fa-paper-plane me-1"></i>Tester WhatsApp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // ==========================================
-        // NOTIFICATIONS
-        // ==========================================
-        async function chargerNotifications() {
-            if (!navigator.onLine) return;
-            try {
-                const res = await fetch('/notifications/all', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                const badge = document.getElementById('notificationBadge');
-                if (data.notifications) {
-                    const nonLues = data.notifications.filter(n => !n.lue);
-                    badge.style.display = nonLues.length > 0 ? 'inline-block' : 'none';
-                    if (nonLues.length > 0) badge.textContent = nonLues.length;
-                }
-                const list = document.getElementById('notificationList');
-                list.innerHTML = '';
-                if (data.notifications && data.notifications.length > 0) {
-                    for (const notif of data.notifications) {
-                        const date = notif.date_creation ? notif.date_creation.slice(0, 16).replace('T', ' ') : '';
-                        list.innerHTML += `<div class="notification-item" onclick="marquerLu(${notif.id})">
-                            <div class="notification-date">${date} ${notif.lue ? '✓ Lu' : ''}</div>
-                            <div class="notification-message">${notif.message}</div>
-                        </div>`;
-                    }
-                } else {
-                    list.innerHTML = '<div class="empty-notification">Aucune notification</div>';
-                }
-            } catch(e) { console.error(e); }
-        }
+<div id="toastMessage" class="ged-toast"></div>
 
-        async function marquerLu(id) {
-            if (!navigator.onLine) return;
-            await fetch(`/notifications/${id}/lire`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-            chargerNotifications();
-        }
+<!-- Modal Profil -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fas fa-user me-2"></i>Mon profil</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-id-card"></i>Informations</div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Nom</label><input type="text" id="profileNom" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">Email</label><input type="email" id="profileEmail" class="form-control" readonly></div>
+                    <div class="col-md-6"><label class="form-label">Téléphone</label><input type="tel" id="profileTelephone" class="form-control"></div>
+                    <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="profileNotifyWhatsapp"><label class="form-check-label" for="profileNotifyWhatsapp">Alertes WhatsApp</label></div></div>
+                </div>
+            </div>
+            <div class="form-section mb-0">
+                <div class="form-section-title"><i class="fas fa-shield-alt"></i>Double authentification (2FA)</div>
+                <p class="small text-muted mb-3">Protégez votre compte administrateur avec un code TOTP.</p>
+                <div id="twofaStatus" class="mb-3"><span class="badge bg-secondary">Chargement…</span></div>
+                <div id="twofaSetupPanel" class="d-none">
+                    <img id="twofaQrImg" class="d-none mb-3 rounded border" alt="QR code 2FA" width="180" height="180">
+                    <p class="small mb-2">Secret manuel :</p>
+                    <code id="twofaSecretDisplay" class="d-block p-2 bg-light rounded mb-2 user-select-all"></code>
+                    <div class="mb-2"><label class="form-label small">Code de vérification</label><input type="text" id="twofaEnableCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" placeholder="000000"></div>
+                    <button type="button" class="btn btn-sm btn-success" onclick="confirmEnable2FA()"><i class="fas fa-check me-1"></i>Activer la 2FA</button>
+                </div>
+                <div id="twofaDisablePanel" class="d-none">
+                    <div class="row g-2">
+                        <div class="col-md-6"><input type="password" id="twofaDisablePassword" class="form-control form-control-sm" placeholder="Mot de passe"></div>
+                        <div class="col-md-6"><input type="text" id="twofaDisableCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" placeholder="Code 2FA"></div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="disable2FA()"><i class="fas fa-times me-1"></i>Désactiver la 2FA</button>
+                </div>
+                <button type="button" id="twofaSetupBtn" class="btn btn-sm btn-outline-primary d-none" onclick="start2FASetup()"><i class="fas fa-qrcode me-1"></i>Configurer la 2FA</button>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" onclick="saveProfile()">Enregistrer</button></div>
+    </div></div>
+</div>
 
-        async function marquerToutLu() {
-            if (!navigator.onLine) return;
-            await fetch('/notifications/lire-tout', { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-            chargerNotifications();
-        }
+<!-- Modal Mot de passe profil -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog modal-sm"><div class="modal-content">
+        <div class="modal-header bg-secondary text-white"><h5 class="modal-title"><i class="fas fa-key me-2"></i>Changer mot de passe</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input type="password" id="newPasswordInput" class="form-control" placeholder="Min. 6 caractères"></div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary btn-sm" onclick="savePassword()">Confirmer</button></div>
+    </div></div>
+</div>
 
-        document.getElementById('notificationIcon')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const dropdown = document.getElementById('notificationDropdown');
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-            if (dropdown.style.display === 'block') chargerNotifications();
-        });
-        document.addEventListener('click', () => { document.getElementById('notificationDropdown').style.display = 'none'; });
-
-        // ==========================================
-        // NAVIGATION
-        // ==========================================
-        function showTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('d-none'));
-            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('d-none');
-            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-            const titles = { dashboard: 'Tableau de bord', entreprises: 'Entreprises', users: 'Utilisateurs', documents: 'Documents', logs: 'Logs', storage: 'Stockage' };
-            document.getElementById('pageTitle').innerText = titles[tab];
-            if (tab === 'dashboard') loadDashboard();
-            else if (tab === 'entreprises') loadEntreprises();
-            else if (tab === 'users') loadUsers();
-            else if (tab === 'documents') loadDocuments();
-            else if (tab === 'logs') loadLogs();
-            else if (tab === 'storage') loadStorage();
-        }
-        document.querySelectorAll('.sidebar a').forEach(a => {
-            a.addEventListener('click', (e) => { e.preventDefault(); showTab(a.dataset.tab); });
-        });
-
-        // ==========================================
-        // DASHBOARD
-        // ==========================================
-        async function loadDashboard() {
-    // Affichage du chargement
-    document.getElementById('statsGrid').innerHTML = '<div class="col-12 text-center py-4">Chargement...</div>';
-    
-    if (!navigator.onLine) {
-        document.getElementById('statsGrid').innerHTML = `
-            <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Entreprises</div></div></div>
-            <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Documents</div></div></div>
-            <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Utilisateurs</div></div></div>`;
-        return;
-    }
-    
-    try {
-        const res = await fetch('/api/admin-global/stats', { 
-            headers: { 'Authorization': 'Bearer ' + token } 
-        });
-        const data = await res.json();
-        
-        if (data.success && data.stats) {
-            const s = data.stats;
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">${s.total_entreprises || s.entreprises || 0}</div><div class="stat-label">Entreprises</div></div></div>
-                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">${s.total_documents || s.documents || 0}</div><div class="stat-label">Documents</div></div></div>
-                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">${s.total_users || s.users || 0}</div><div class="stat-label">Utilisateurs</div></div></div>`;
-        } else {
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Entreprises</div></div></div>
-                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Documents</div></div></div>
-                <div class="col-md-4"><div class="stat-card text-center p-3"><div class="stat-number">0</div><div class="stat-label">Utilisateurs</div></div></div>`;
-        }
-            } catch(e) { console.error(e); }
-
-           try {
-    const res = await fetch('/api/admin-global/stats/evolution', { headers: { 'Authorization': `Bearer ${token}` } });
-    const data = await res.json();
-    if (evolutionChart) evolutionChart.destroy();
-    
-    // Formatage des labels en français (jj/mm)
-    const labels = data.labels.map(date => {
-        const d = new Date(date);
-        return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-    });
-    
-    evolutionChart = new Chart(document.getElementById('evolutionChart'), {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Documents',
-                data: data.data,
-                borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                borderWidth: 3,
-                tension: 0.3,
-                fill: true,
-                pointBackgroundColor: '#0ea5e9',
-                pointBorderColor: 'white',
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `📄 Documents : ${context.raw}`;
-                        }
-                    }
-                },
-                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
-            },
-            scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'Nombre de documents', color: '#64748b' }, grid: { color: '#e2e8f0' } },
-                x: { title: { display: true, text: 'Semaine', color: '#64748b' }, grid: { display: false } }
-            }
-        }
-    });
-} catch(e) { console.error(e); }
-            try {
-                const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.entreprises) {
-                    const top5 = [...data.entreprises].sort((a,b) => (b.nb_documents||0) - (a.nb_documents||0)).slice(0,5);
-                    if (topChart) topChart.destroy();
-                    topChart = new Chart(document.getElementById('topChart'), {
-                        type: 'bar', data: { labels: top5.map(e => e.nom.substring(0,10)), datasets: [{ label: 'Documents', data: top5.map(e => e.nb_documents||0), backgroundColor: '#0ea5e9', borderRadius: 8 }] }
-                    });
-                }
-            } catch(e) { console.error(e); }
-            await loadLastLogs();
-        }
-
-        async function loadLastLogs() {
-            if (!navigator.onLine) return;
-            try {
-                const res = await fetch('/api/admin-global/all-logs', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                const tbody = document.querySelector('#lastLogsTable tbody');
-                if (tbody) {
-                    tbody.innerHTML = '';
-                    if (data.logs && data.logs.length > 0) {
-                        for (const log of data.logs.slice(0,10)) {
-                            tbody.innerHTML += `<tr><td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td><td><span class="badge bg-secondary">${log.action || '-'}</span></td><td>${log.utilisateur_nom || '-'}</td></tr>`;
-                        }
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">Aucune activité récente</td></tr>';
-                    }
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        // ==========================================
-        // ENTREPRISES
-        // ==========================================
-        async function loadEntreprises() {
-            if (!navigator.onLine) return;
-            try {
-                const res = await fetch('/api/admin-global/entreprises', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                entreprisesData = data.entreprises || [];
-                filteredEntreprises = [...entreprisesData];
-                currentPageEntreprises = 1;
-                renderEntreprisesPage();
-            } catch(e) { console.error(e); }
-        }
-
-        function renderEntreprisesPage() {
-            const tbody = document.querySelector('#entreprisesTable tbody');
-            tbody.innerHTML = '';
-            if (filteredEntreprises.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Aucune entreprise</td></tr>';
-                document.getElementById('paginationEntreprises').innerHTML = '';
-                return;
-            }
-            const start = (currentPageEntreprises - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredEntreprises.slice(start, end);
-            for (const ent of pageData) {
-                tbody.innerHTML += `<tr>
-                    <td>${ent.id || '-'}</td>
-                    <td><strong>${ent.nom || '-'}</strong><br><small>${ent.adresse || ''}</small></td>
-                    <td>${ent.email || '-'}</td>
-                    <td>${ent.nb_employes || ent.employes || 0}</td>
-                    <td>${ent.nb_documents || ent.documents || 0}</td>
-                    <td>
-                        <i class="bi bi-pencil-square text-warning me-2" style="cursor:pointer" onclick='openEditModal(${ent.id}, "${ent.nom.replace(/'/g, "\\'")}", "${(ent.adresse || "").replace(/'/g, "\\'")}", "${ent.telephone || ""}", "${ent.email.replace(/'/g, "\\'")}")'></i>
-                        <i class="bi bi-toggle-on text-success me-2" style="cursor:pointer" onclick="toggleStatus(${ent.id})"></i>
-                        <i class="bi bi-trash text-danger" style="cursor:pointer" onclick="deleteEntreprise(${ent.id})"></i>
-                    </td>
-                </tr>`;
-            }
-            const totalPages = Math.ceil(filteredEntreprises.length / itemsPerPage);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
-            paginationHtml += `<li class="page-item ${currentPageEntreprises === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${currentPageEntreprises - 1}); return false;">Précédent</a></li>`;
-            for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<li class="page-item ${currentPageEntreprises === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${i}); return false;">${i}</a></li>`;
-            }
-            paginationHtml += `<li class="page-item ${currentPageEntreprises === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageEntreprises(${currentPageEntreprises + 1}); return false;">Suivant</a></li>`;
-            paginationHtml += '</ul></nav>';
-            document.getElementById('paginationEntreprises').innerHTML = paginationHtml;
-        }
-
-        function changePageEntreprises(page) { currentPageEntreprises = page; renderEntreprisesPage(); }
-
-        function filterEntreprises() {
-            const search = document.getElementById('searchEntreprise').value.toLowerCase();
-            filteredEntreprises = entreprisesData.filter(e => (e.nom || '').toLowerCase().includes(search));
-            currentPageEntreprises = 1;
-            renderEntreprisesPage();
-        }
-
-        function showAddEntrepriseModal() {
-            document.getElementById('modalTitle').innerHTML = 'Nouvelle entreprise';
-            document.getElementById('editId').value = '';
-            document.getElementById('editNom').value = '';
-            document.getElementById('editAdresse').value = '';
-            document.getElementById('editTel').value = '';
-            document.getElementById('editEmail').value = '';
-            document.getElementById('modalSaveBtn').innerHTML = 'Créer';
-            document.getElementById('modalSaveBtn').onclick = () => createEntreprise();
-            new bootstrap.Modal(document.getElementById('editModal')).show();
-        }
-
-        function openEditModal(id, nom, adresse, tel, email) {
-            document.getElementById('modalTitle').innerHTML = 'Modifier l\'entreprise';
-            document.getElementById('editId').value = id;
-            document.getElementById('editNom').value = nom;
-            document.getElementById('editAdresse').value = adresse;
-            document.getElementById('editTel').value = tel;
-            document.getElementById('editEmail').value = email;
-            document.getElementById('modalSaveBtn').innerHTML = 'Enregistrer';
-            document.getElementById('modalSaveBtn').onclick = () => updateEntreprise();
-            new bootstrap.Modal(document.getElementById('editModal')).show();
-        }
-
-        async function createEntreprise() {
-            const data = { nom: document.getElementById('editNom').value, adresse: document.getElementById('editAdresse').value, telephone: document.getElementById('editTel').value, email: document.getElementById('editEmail').value };
-            if (!data.nom) { alert('Le nom est requis'); return; }
-            if (!navigator.onLine) { alert('Hors-ligne'); return; }
-            try {
-                const res = await fetch('/api/admin-global/entreprises', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-                const result = await res.json();
-                if (res.ok) { alert('Entreprise créée avec succès'); const modal = bootstrap.Modal.getInstance(document.getElementById('editModal')); if (modal) modal.hide(); loadEntreprises(); loadDashboard(); chargerNotifications(); }
-                else alert('Erreur: ' + result.message);
-            } catch(e) { alert('Erreur de connexion: ' + e.message); }
-        }
-
-        async function updateEntreprise() {
-            const id = document.getElementById('editId').value;
-            const data = { nom: document.getElementById('editNom').value, adresse: document.getElementById('editAdresse').value, telephone: document.getElementById('editTel').value, email: document.getElementById('editEmail').value };
-            if (!data.nom) { alert('Le nom est requis'); return; }
-            if (!navigator.onLine) { alert('Hors-ligne'); return; }
-            try {
-                const res = await fetch(`/api/admin-global/entreprises/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-                const result = await res.json();
-                if (res.ok) { alert('Entreprise modifiée avec succès'); const modal = bootstrap.Modal.getInstance(document.getElementById('editModal')); if (modal) modal.hide(); loadEntreprises(); loadDashboard(); chargerNotifications(); }
-                else alert('Erreur: ' + result.message);
-            } catch(e) { alert('Erreur de connexion: ' + e.message); }
-        }
-
-        async function toggleStatus(id) {
-            if (!navigator.onLine) { alert('Hors-ligne'); return; }
-            try { await fetch(`/api/admin-global/entreprises/${id}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } }); loadEntreprises(); chargerNotifications(); } catch(e) { alert('Erreur'); }
-        }
-
-       async function deleteEntreprise(id) {
-            if (!confirm('Supprimer cette entreprise ?')) return;
-            if (!navigator.onLine) { alert('Hors-ligne'); return; }
-            try {
-                const res = await fetch(`/api/admin-global/entreprises/${id}/delete`, { 
-                    method: 'DELETE', 
-                    headers: { 'Authorization': `Bearer ${token}` } 
-                });
-                const data = await res.json();
-                if (res.ok) { 
-                    alert('Entreprise supprimée');
-                    // Recharger les données
-                    await loadEntreprises();
-                    await loadDashboard();
-                    chargerNotifications();
-                } else {
-                    alert('Erreur: ' + data.message);
-                }
-            } catch(e) { 
-                alert('Erreur de connexion'); 
-            }
-        }
-        // ==========================================
-        // UTILISATEURS
-        // ==========================================
-        async function loadUsers() {
-            if (!navigator.onLine) return;
-            try {
-                const res = await fetch('/api/admin-global/all-users', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                usersData = data.users || [];
-                filteredUsers = [...usersData];
-                currentPageUsers = 1;
-                renderUsersPage();
-            } catch(e) { console.error(e); }
-        }
-
-        function renderUsersPage() {
-            const tbody = document.querySelector('#usersTable tbody');
-            tbody.innerHTML = '';
-            if (filteredUsers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Aucun utilisateur</td><tr>';
-                document.getElementById('paginationUsers').innerHTML = '';
-                return;
-            }
-            const start = (currentPageUsers - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredUsers.slice(start, end);
-            for (const u of pageData) {
-                let roleClass = u.role === 'admin_global' ? 'badge-admin' : (u.role === 'admin_pme' ? 'badge-pme' : 'badge-employe');
-                tbody.innerHTML += `<tr>
-                    <td>${u.id}</td>
-                    <td><strong>${u.nom || '-'}</strong></td>
-                    <td>${u.email || '-'}</td>
-                    <td><span class="${roleClass}">${u.role || '-'}</span></td>
-                    <td>${u.entreprise_nom || '-'}</td>
-                    <td><span class="${u.actif ? 'badge-active' : 'badge-inactive'}">${u.actif ? 'Actif' : 'Inactif'}</span></td>
-                    <td class="text-nowrap">
-                        <button class="btn btn-sm btn-warning me-1" onclick="toggleUserStatus(${u.id})" title="Activer/Désactiver"><i class="bi bi-toggle-on"></i></button>
-                        <button class="btn btn-sm btn-info" onclick="resetUserPassword(${u.id})" title="Réinitialiser mot de passe"><i class="bi bi-key"></i></button>
-                    </td>
-                </tr>`;
-            }
-            const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
-            paginationHtml += `<li class="page-item ${currentPageUsers === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${currentPageUsers - 1}); return false;">Précédent</a></li>`;
-            for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<li class="page-item ${currentPageUsers === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${i}); return false;">${i}</a></li>`;
-            }
-            paginationHtml += `<li class="page-item ${currentPageUsers === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageUsers(${currentPageUsers + 1}); return false;">Suivant</a></li>`;
-            paginationHtml += '</ul></nav>';
-            document.getElementById('paginationUsers').innerHTML = paginationHtml;
-        }
-
-        function changePageUsers(page) { currentPageUsers = page; renderUsersPage(); }
-
-        function filterUsers() {
-            const search = document.getElementById('searchUser').value.toLowerCase();
-            filteredUsers = usersData.filter(u => (u.nom || '').toLowerCase().includes(search));
-            currentPageUsers = 1;
-            renderUsersPage();
-        }
-
-        async function toggleUserStatus(userId) {
-            if (!confirm('Changer le statut de cet utilisateur ?')) return;
-            try {
-                const res = await fetch(`/api/admin-global/users/${userId}/toggle`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (res.ok) { alert(data.message); loadUsers(); chargerNotifications(); }
-                else alert('Erreur: ' + data.message);
-            } catch(e) { alert('Erreur'); }
-        }
-
-        async function resetUserPassword(userId) {
-            const newPassword = prompt("Entrez le nouveau mot de passe (laisser vide pour 'employe123') :");
-            const password = newPassword && newPassword.trim() !== "" ? newPassword : "employe123";
-            if (!confirm(`Réinitialiser le mot de passe de cet utilisateur ? Nouveau mot de passe: ${password}`)) return;
-            try {
-                const res = await fetch(`/api/admin-global/users/${userId}/reset-password`, { 
-                    method: 'PUT', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ password: password })
-                });
-                const data = await res.json();
-                if (res.ok) alert(`Mot de passe réinitialisé avec succès !\nNouveau mot de passe: ${password}`);
-                else alert('Erreur: ' + data.message);
-            } catch(e) { alert('Erreur'); }
-        }
-
-        // ==========================================
-        // DOCUMENTS
-        // ==========================================
-        async function loadDocuments() {
-            if (!navigator.onLine) return;
-            try {
-                const res = await fetch('/api/admin-global/all-documents', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                documentsData = data.documents || [];
-                filteredDocuments = [...documentsData];
-                currentPageDocuments = 1;
-                renderDocumentsPage();
-            } catch(e) { console.error(e); }
-        }
-
-        function renderDocumentsPage() {
-            const tbody = document.querySelector('#documentsTable tbody');
-            tbody.innerHTML = '';
-            if (filteredDocuments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun document</td></tr>';
-                document.getElementById('paginationDocuments').innerHTML = '';
-                return;
-            }
-            const start = (currentPageDocuments - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredDocuments.slice(start, end);
-            for (const doc of pageData) {
-                tbody.innerHTML += `<tr>
-                    <td><strong>${doc.titre || '-'}</strong></td>
-                    <td>${doc.auteur_nom || '-'}</td>
-                    <td class="text-muted">${doc.entreprise_nom || '-'}</td>
-                    <td>${doc.date_creation || '-'}</td>
-                </tr>`;
-            }
-            const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
-            paginationHtml += `<li class="page-item ${currentPageDocuments === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${currentPageDocuments - 1}); return false;">Précédent</a></li>`;
-            for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<li class="page-item ${currentPageDocuments === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${i}); return false;">${i}</a></li>`;
-            }
-            paginationHtml += `<li class="page-item ${currentPageDocuments === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageDocuments(${currentPageDocuments + 1}); return false;">Suivant</a></li>`;
-            paginationHtml += '</ul></nav>';
-            document.getElementById('paginationDocuments').innerHTML = paginationHtml;
-        }
-
-        function changePageDocuments(page) { currentPageDocuments = page; renderDocumentsPage(); }
-
-        function filterDocs() {
-            const search = document.getElementById('searchDoc').value.toLowerCase();
-            filteredDocuments = documentsData.filter(d => (d.titre || '').toLowerCase().includes(search));
-            currentPageDocuments = 1;
-            renderDocumentsPage();
-        }
-
-        // ==========================================
-        // LOGS
-        // ==========================================
-        async function loadLogs() {
-            if (!navigator.onLine) return;
-            try {
-                const res = await fetch('/api/admin-global/all-logs', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                logsData = data.logs || [];
-                currentPageLogs = 1;
-                renderLogsPage();
-            } catch(e) { console.error(e); }
-        }
-
-        function renderLogsPage() {
-            const tbody = document.querySelector('#logsTable tbody');
-            tbody.innerHTML = '';
-            
-            if (logsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Aucun log trouvé</td></tr>';
-                document.getElementById('paginationLogs').innerHTML = '';
-                return;
-            }
-            
-            const start = (currentPageLogs - 1) * itemsPerPageLogs;
-            const end = start + itemsPerPageLogs;
-            const pageData = logsData.slice(start, end);
-            
-            for (const log of pageData) {
-                tbody.innerHTML += `<tr>
-                    <td>${log.date_action ? log.date_action.slice(0,16) : '-'}</td>
-                    <td><span class="badge bg-secondary">${log.action || '-'}</span></td>
-                    <td>${log.utilisateur_nom || '-'}</td>
-                    <td>${log.description || '-'}</td>
-                </tr>`;
-            }
-            
-            const totalPages = Math.ceil(logsData.length / itemsPerPageLogs);
-            let paginationHtml = '<nav><ul class="pagination justify-content-center pagination-sm">';
-            paginationHtml += `<li class="page-item ${currentPageLogs === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageLogs(${currentPageLogs - 1}); return false;">Précédent</a></li>`;
-            for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<li class="page-item ${currentPageLogs === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePageLogs(${i}); return false;">${i}</a></li>`;
-            }
-            paginationHtml += `<li class="page-item ${currentPageLogs === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePageLogs(${currentPageLogs + 1}); return false;">Suivant</a></li>`;
-            paginationHtml += '</ul></nav>';
-            document.getElementById('paginationLogs').innerHTML = paginationHtml;
-        }
-
-        function changePageLogs(page) {
-            currentPageLogs = page;
-            renderLogsPage();
-        }
-
-        async function exportLogs() {
-            if (!navigator.onLine) { alert('Hors-ligne'); return; }
-            try {
-                const response = await fetch('/api/admin-global/logs/export', { headers: { 'Authorization': `Bearer ${token}` } });
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `logs_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                alert('Export CSV réussi');
-            } catch(e) { alert('Erreur export'); }
-        }
-
-        async function filterLogs() {
-            const dateDebut = document.getElementById('logDateDebut').value;
-            const dateFin = document.getElementById('logDateFin').value;
-            const action = document.getElementById('logAction').value;
-            let url = '/api/admin-global/logs/filter?';
-            if (dateDebut) url += `date_debut=${dateDebut}&`;
-            if (dateFin) url += `date_fin=${dateFin}&`;
-            if (action) url += `action=${action}&`;
-            try {
-                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                logsData = data.logs || [];
-                currentPageLogs = 1;
-                renderLogsPage();
-            } catch(e) { console.error(e); }
-        }
-
-        function resetLogsFilter() {
-            document.getElementById('logDateDebut').value = '';
-            document.getElementById('logDateFin').value = '';
-            document.getElementById('logAction').value = '';
-            loadLogs();
-        }
-
-        // ==========================================
-        // EXPORTS CSV
-        // ==========================================
-        async function exportEntreprisesCSV() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Vous devez être connecté');
-                return;
-            }
-            try {
-                const response = await fetch('/api/admin-global/entreprises/export', {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `entreprises_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    alert('Erreur lors de l\'export');
-                }
-            } catch(e) {
-                alert('Erreur de connexion');
-            }
-        }
-
-        async function exportUsersCSV() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Vous devez être connecté');
-                return;
-            }
-            try {
-                const response = await fetch('/api/admin-global/users/export', {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `utilisateurs_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    alert('Erreur lors de l\'export');
-                }
-            } catch(e) {
-                alert('Erreur de connexion');
-            }
-        }
-
-        // ==========================================
-        // STOCKAGE
-        // ==========================================
-        async function loadStorage() {
-            if (!navigator.onLine) { document.getElementById('storageInfo').innerHTML = '<div class="loading">Hors-ligne - Données non disponibles</div>'; return; }
-            try {
-                const res = await fetch('/api/admin-global/storage', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.success) {
-                    const s = data.storage;
-                    document.getElementById('storageInfo').innerHTML = `
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.total_gb || 0} GB</div><div>Total</div></div></div>
-                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.used_gb || 0} GB</div><div>Utilisé</div></div></div>
-                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.free_gb || 0} GB</div><div>Libre</div></div></div>
-                            <div class="col-md-3"><div class="card-stats p-3 text-center"><div class="stat-number">${s.uploads_mb || 0} MB</div><div>Documents</div></div></div>
+<!-- Modal Entreprise complète -->
+<div class="modal fade" id="companyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="companyModalTitle">Nouvelle PME</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="companyEditId">
+            <ul class="nav nav-tabs mb-3" id="companyModalTabs">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#compTabInfo">Entreprise</button></li>
+                <li class="nav-item" id="compTabAdminLi"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#compTabAdmin">Admin PME</button></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="compTabInfo">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Nom *</label><input type="text" id="compNom" class="form-control"></div>
+                        <div class="col-md-3"><label class="form-label">NIF</label><input type="text" id="compNif" class="form-control"></div>
+                        <div class="col-md-3"><label class="form-label">RCCM</label><input type="text" id="compRccm" class="form-control"></div>
+                        <div class="col-12"><label class="form-label">Adresse</label><input type="text" id="compAdresse" class="form-control"></div>
+                        <div class="col-md-4"><label class="form-label">Téléphone</label><input type="text" id="compTel" class="form-control"></div>
+                        <div class="col-md-4"><label class="form-label">Email</label><input type="email" id="compEmail" class="form-control"></div>
+                        <div class="col-md-4"><label class="form-label">Secteur</label>
+                            <select id="compSecteur" class="form-select"><option value="">—</option><option>Commerce</option><option>Services</option><option>Industrie</option><option>Technologie & IT</option><option>Autre</option></select>
                         </div>
-                        <div style="max-width: 300px; margin: 0 auto;"><canvas id="storageChart" style="max-height: 200px;"></canvas></div>
-                    `;
-                    const ctx = document.getElementById('storageChart').getContext('2d');
-                    new Chart(ctx, { type: 'doughnut', data: { labels: ['Utilisé', 'Libre'], datasets: [{ data: [s.used_gb || 0, s.free_gb || 0], backgroundColor: ['#0ea5e9', '#e2e8f0'], borderWidth: 0 }] } });
-                }
-            } catch(e) { console.error(e); }
-        }
+                        <div class="col-md-6"><label class="form-label">Logo</label><input type="file" id="compLogo" class="form-control" accept="image/*"></div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="compTabAdmin">
+                    <p class="small text-muted mb-3"><i class="fas fa-info-circle me-1"></i>Compte <strong>administrateur PME</strong> pour cette entreprise — ce n'est pas un admin global. Votre compte plateforme existe déjà.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Nom admin *</label><input type="text" id="adminNom" class="form-control"></div>
+                        <div class="col-md-6"><label class="form-label">Email admin *</label><input type="email" id="adminEmail" class="form-control"></div>
+                        <div class="col-md-6"><label class="form-label">Téléphone</label><input type="text" id="adminTel" class="form-control"></div>
+                        <div class="col-md-6"><label class="form-label">Mot de passe *</label><input type="password" id="adminPassword" class="form-control" minlength="6"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" id="companySaveBtn" onclick="saveCompany()">Créer</button></div>
+    </div></div>
+</div>
 
-        async function manualBackup() {
-            if (!navigator.onLine) { alert('Hors-ligne'); return; }
-            if (confirm('Lancer une sauvegarde manuelle ?')) {
-                try {
-                    const res = await fetch('/api/admin-global/backup', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-                    const data = await res.json();
-                    alert(data.success ? 'Sauvegarde réussie' : 'Erreur');
-                    chargerNotifications();
-                } catch(e) { alert('Erreur'); }
-            }
-        }
+<!-- Modal Fiche entreprise -->
+<div class="modal fade" id="companyDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="companyDetailTitle">Fiche entreprise</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" id="companyDetailBody">Chargement...</div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button></div>
+    </div></div>
+</div>
 
-        // ==========================================
-        // DÉCONNEXION
-        // ==========================================
-        function logout() { localStorage.clear(); window.location.href = '/login'; }
+<!-- Modal Utilisateur -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="userModalTitle">Créer utilisateur</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="userEditId">
+            <div class="mb-3"><label class="form-label">Nom *</label><input type="text" id="userNom" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">Email *</label><input type="email" id="userEmail" class="form-control"></div>
+            <div class="mb-3" id="userPasswordRow"><label class="form-label">Mot de passe *</label><input type="password" id="userPassword" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">Téléphone</label><input type="text" id="userTel" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">Rôle</label>
+                <select id="userRoleSelect" class="form-select" onchange="toggleUserEntrepriseField()">
+                    <option value="employe">Employé</option>
+                    <option value="admin_pme">Admin PME</option>
+                </select>
+                <p class="small text-muted mt-1 mb-0">L'admin global (vous) gère la plateforme. Pour une PME, créez plutôt un compte via <strong>Nouvelle PME</strong>.</p>
+            </div>
+            <div class="mb-3" id="userEntrepriseRow"><label class="form-label">Entreprise</label><select id="userEntrepriseSelect" class="form-select"></select></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" onclick="saveUser()">Enregistrer</button></div>
+    </div></div>
+</div>
 
-        // ==========================================
-        // INITIALISATION
-        // ==========================================
-        chargerNotifications();
-        notificationInterval = setInterval(() => chargerNotifications(), 30000);
-        loadDashboard();
-    </script>
+<!-- Modal Reset MDP user -->
+<div class="modal fade" id="resetPwdModal" tabindex="-1">
+    <div class="modal-dialog modal-sm"><div class="modal-content">
+        <div class="modal-header bg-secondary text-white"><h5 class="modal-title"><i class="fas fa-key me-2"></i>Réinitialiser MDP</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input type="hidden" id="resetPwdUserId"><input type="password" id="resetPwdInput" class="form-control" placeholder="Nouveau mot de passe"></div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary btn-sm" onclick="confirmerResetPassword()">Confirmer</button></div>
+    </div></div>
+</div>
+
+<!-- Modal Document -->
+<div class="modal fade" id="viewDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="viewDocTitle">Document</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" id="viewDocBody"></div>
+        <div class="modal-footer" id="viewDocFooter"></div>
+    </div></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="/static/js/ged-doc-preview.js"></script>
+<script src="/static/js/ged-2fa.js"></script>
+<script src="/static/js/dashboard-admin-global.js"></script>
 </body>
 </html>

@@ -9,7 +9,9 @@ from services.user_service import UserService
 from services.admin_service_orm import AdminService
 from werkzeug.security import generate_password_hash
 import csv
+import json
 import logging
+import os
 from datetime import datetime
 from io import BytesIO, StringIO
 
@@ -79,25 +81,80 @@ def register_admin_routes_orm(app):
     def admin_global_create_entreprise():
         try:
             from models_sqlalchemy import Entreprise
-            data = request.json
-            
-            if not data.get('nom'):
+            from utils.company_logo import save_company_logo
+
+            if request.content_type and 'multipart/form-data' in request.content_type:
+                entreprise = json.loads(request.form.get('entreprise', '{}'))
+                administrateur = json.loads(request.form.get('administrateur', '{}'))
+                logo_file = request.files.get('logo')
+                create_admin = bool(administrateur.get('email'))
+            else:
+                data = request.json or {}
+                administrateur = data.get('administrateur')
+                entreprise = {k: v for k, v in data.items() if k != 'administrateur'}
+                logo_file = None
+                create_admin = bool(administrateur and administrateur.get('email'))
+
+            if create_admin and administrateur:
+                required = ['nom', 'nif', 'rccm', 'adresse', 'telephone', 'email']
+                missing = [f for f in required if not (entreprise.get(f) or '').strip()]
+                if missing:
+                    return jsonify({"success": False, "message": "Champs entreprise manquants: " + ', '.join(missing)}), 400
+                if not administrateur.get('nom') or not administrateur.get('email') or not administrateur.get('password'):
+                    return jsonify({"success": False, "message": "Admin PME: nom, email et mot de passe requis"}), 400
+                administrateur['password'] = generate_password_hash(administrateur['password'])
+                result = AdminService.create_company_with_admin(entreprise, administrateur)
+                if not result.get('success'):
+                    return jsonify({"success": False, "message": result.get('message')}), result.get('status_code', 400)
+                entreprise_id = result['entreprise_id']
+                if logo_file and logo_file.filename:
+                    logo_url = save_company_logo(entreprise_id, logo_file)
+                    if logo_url:
+                        company = Entreprise.query.get(entreprise_id)
+                        if company:
+                            company.logo_url = logo_url
+                            db.session.commit()
+                return jsonify({"success": True, "message": "Entreprise et admin PME créés", "id": entreprise_id}), 201
+
+            if not entreprise.get('nom'):
                 return jsonify({"success": False, "message": "Le nom est requis"}), 400
-            
-            entreprise = Entreprise(
-                nom=data['nom'],
-                email=data.get('email', ''),
-                telephone=data.get('telephone', ''),
-                adresse=data.get('adresse', ''),
+
+            ent = Entreprise(
+                nom=entreprise['nom'],
+                nif=(entreprise.get('nif') or '').strip(),
+                rccm=(entreprise.get('rccm') or '').strip(),
+                secteur_activite=(entreprise.get('secteur_activite') or '').strip(),
+                email=entreprise.get('email', ''),
+                telephone=entreprise.get('telephone', ''),
+                adresse=entreprise.get('adresse', ''),
                 statut='actif'
             )
-            db.session.add(entreprise)
+            db.session.add(ent)
             db.session.commit()
-            
-            return jsonify({"success": True, "message": "Entreprise créée", "id": entreprise.id}), 201
+            from services.category_service import CategoryService
+            CategoryService.seed_default_categories(ent.id)
+            if logo_file and logo_file.filename:
+                logo_url = save_company_logo(ent.id, logo_file)
+                if logo_url:
+                    ent.logo_url = logo_url
+                    db.session.commit()
+            return jsonify({"success": True, "message": "Entreprise créée", "id": ent.id}), 201
         except Exception as e:
             db.session.rollback()
             logger.error(f"Erreur admin_global_create_entreprise: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/entreprises/<int:entreprise_id>", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_entreprise_detail(entreprise_id):
+        try:
+            detail = AdminService.get_company_detail(entreprise_id)
+            if not detail:
+                return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
+            return jsonify({"success": True, "entreprise": detail}), 200
+        except Exception as e:
+            logger.error(f"Erreur admin_global_entreprise_detail: {e}")
             return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/api/admin-global/entreprises/<int:entreprise_id>", methods=["PUT"])
@@ -120,6 +177,14 @@ def register_admin_routes_orm(app):
                 entreprise.telephone = data['telephone']
             if 'email' in data:
                 entreprise.email = data['email']
+            if 'nif' in data:
+                entreprise.nif = data['nif']
+            if 'rccm' in data:
+                entreprise.rccm = data['rccm']
+            if 'secteur_activite' in data:
+                entreprise.secteur_activite = data['secteur_activite']
+            if 'statut' in data:
+                entreprise.statut = data['statut']
             
             db.session.commit()
             return jsonify({"success": True, "message": "Entreprise modifiée"}), 200
@@ -151,17 +216,45 @@ def register_admin_routes_orm(app):
     @role_required(['admin_global'])
     def admin_global_delete_entreprise(entreprise_id):
         try:
+            hard = request.args.get('hard', '').lower() in ('1', 'true', 'yes')
+            if hard:
+                result = AdminService.hard_delete_company(entreprise_id)
+                status = 200 if result.get('success') else 400
+                return jsonify(result), status
+
             from models_sqlalchemy import Entreprise
             entreprise = Entreprise.query.get(entreprise_id)
             if not entreprise:
                 return jsonify({"success": False, "message": "Entreprise non trouvée"}), 404
-            
+
             entreprise.statut = 'suspendu'
             db.session.commit()
-            return jsonify({"success": True, "message": "Entreprise supprimée"}), 200
+            return jsonify({"success": True, "message": "Entreprise suspendue"}), 200
         except Exception as e:
             db.session.rollback()
             logger.error(f"Erreur admin_global_delete_entreprise: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/entreprises/<int:entreprise_id>/workflow", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_get_workflow(entreprise_id):
+        try:
+            config = AdminService.get_workflow_config(entreprise_id)
+            return jsonify({"success": True, "etapes": config}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/entreprises/<int:entreprise_id>/workflow", methods=["PUT"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_save_workflow(entreprise_id):
+        try:
+            data = request.json or {}
+            etapes = data.get('etapes', [])
+            AdminService.save_workflow_config(entreprise_id, etapes)
+            return jsonify({"success": True, "message": "Workflow enregistré"}), 200
+        except Exception as e:
             return jsonify({"success": False, "message": str(e)}), 500
 
     # ============================================
@@ -173,10 +266,106 @@ def register_admin_routes_orm(app):
     @role_required(['admin_global'])
     def admin_global_all_users():
         try:
-            users = AdminService.list_all_users()
-            return jsonify({"success": True, "users": users}), 200
+            role = request.args.get('role')
+            entreprise_id = request.args.get('entreprise_id', type=int)
+            actif = request.args.get('actif')
+            search = request.args.get('search')
+            page = request.args.get('page', 1, type=int)
+            limit = request.args.get('limit', 500, type=int)
+
+            if role or entreprise_id or actif or search or page > 1 or limit < 5000:
+                result = AdminService.list_users_filtered(
+                    role=role, entreprise_id=entreprise_id, actif=actif,
+                    search=search, page=page, limit=limit,
+                )
+                return jsonify({"success": True, **result}), 200
+
+            from models_sqlalchemy import User
+            users = User.query.order_by(User.id.desc()).limit(5000).all()
+            result = []
+            for user in users:
+                data = user.to_dict()
+                data['entreprise_nom'] = user.entreprise.nom if user.entreprise else None
+                result.append(data)
+            return jsonify({"success": True, "users": result}), 200
         except Exception as e:
             logger.error(f"Erreur admin_global_all_users: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/users", methods=["POST"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_create_user():
+        try:
+            data = request.json or {}
+            nom = (data.get('nom') or '').strip()
+            email = (data.get('email') or '').strip()
+            password = data.get('password') or ''
+            role = data.get('role', 'employe')
+            entreprise_id = data.get('entreprise_id')
+            telephone = data.get('telephone', '')
+
+            if not nom or not email or not password:
+                return jsonify({"success": False, "message": "Nom, email et mot de passe requis"}), 400
+            if role in ('employe', 'admin_pme') and not entreprise_id:
+                return jsonify({"success": False, "message": "Entreprise requise pour ce rôle"}), 400
+            if len(password) < 6:
+                return jsonify({"success": False, "message": "Mot de passe min. 6 caractères"}), 400
+
+            existing = UserService.get_user_by_email_raw(email)
+            if existing:
+                return jsonify({"success": False, "message": "Email déjà utilisé"}), 409
+
+            user_id = UserService.create_user(
+                nom, email, generate_password_hash(password), role,
+                telephone=telephone, entreprise_id=entreprise_id if role != 'admin_global' else None,
+            )
+            return jsonify({"success": True, "message": "Utilisateur créé", "id": user_id}), 201
+        except Exception as e:
+            logger.error(f"Erreur admin_global_create_user: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/users/<int:user_id>", methods=["PUT"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_update_user(user_id):
+        try:
+            from models_sqlalchemy import User
+            data = request.json or {}
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 404
+
+            if user_id == request.user_id and data.get('role') and data['role'] != user.role:
+                return jsonify({"success": False, "message": "Vous ne pouvez pas changer votre propre rôle"}), 400
+
+            if 'nom' in data:
+                user.nom = data['nom']
+            if 'telephone' in data:
+                user.telephone = data['telephone']
+            if 'role' in data:
+                user.role = data['role']
+            if 'entreprise_id' in data:
+                new_role = data.get('role', user.role)
+                user.entreprise_id = data['entreprise_id'] if new_role != 'admin_global' else None
+            if 'actif' in data:
+                user.actif = bool(data['actif'])
+
+            db.session.commit()
+            return jsonify({"success": True, "message": "Utilisateur mis à jour"}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/users/<int:user_id>", methods=["DELETE"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_delete_user(user_id):
+        try:
+            result = AdminService.delete_user(user_id, request.user_id)
+            status = result.pop('status', 200 if result.get('success') else 400)
+            return jsonify(result), status
+        except Exception as e:
             return jsonify({"success": False, "message": str(e)}), 500
 
     @app.route("/api/admin-global/users/<int:user_id>/toggle", methods=["PUT"])
@@ -227,13 +416,93 @@ def register_admin_routes_orm(app):
     @role_required(['admin_global'])
     def admin_global_all_documents():
         try:
-            from models_sqlalchemy import Document
-            documents = Document.query.filter(
-                (Document.supprime_le.is_(None)) | (Document.supprime_le == '')
-            ).order_by(Document.date_creation.desc()).limit(100).all()
-            return jsonify({"success": True, "documents": [doc.to_dict() for doc in documents]}), 200
+            search = request.args.get('search')
+            statut = request.args.get('statut')
+            entreprise_id = request.args.get('entreprise_id', type=int)
+            extension = request.args.get('extension')
+            page = request.args.get('page', 1, type=int)
+            limit = request.args.get('limit', 25, type=int)
+
+            result = AdminService.list_global_documents(
+                search=search, statut=statut, entreprise_id=entreprise_id,
+                extension=extension, page=page, limit=limit,
+            )
+            return jsonify({"success": True, **result}), 200
         except Exception as e:
             logger.error(f"Erreur admin_global_all_documents: {e}")
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/documents/pending", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_pending_documents():
+        try:
+            docs = AdminService.list_pending_validation_documents(limit=200)
+            return jsonify({"success": True, "documents": docs}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/activity", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_activity():
+        try:
+            limit = request.args.get('limit', 100, type=int)
+            entreprise_id = request.args.get('entreprise_id', type=int)
+            report = AdminService.get_user_activity_report(limit=limit, entreprise_id=entreprise_id)
+            return jsonify({"success": True, "activity": report}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/settings", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_settings_get():
+        try:
+            settings = AdminService.get_platform_settings_view()
+            health = AdminService.get_platform_health()
+            return jsonify({"success": True, "settings": settings, "health": health}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/settings/maintenance", methods=["PUT"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_settings_maintenance():
+        try:
+            from utils.platform_settings import save_platform_settings
+            data = request.json or {}
+            updated = save_platform_settings({
+                'maintenance_mode': bool(data.get('maintenance_mode')),
+                'maintenance_message': data.get('maintenance_message') or 'Maintenance en cours.',
+            })
+            return jsonify({"success": True, "settings": updated}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/backups", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_list_backups():
+        try:
+            backups = AdminService.list_backups()
+            return jsonify({"success": True, "backups": backups}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+    @app.route("/api/admin-global/backups/<path:filename>", methods=["GET"])
+    @token_required
+    @role_required(['admin_global'])
+    def admin_global_download_backup(filename):
+        try:
+            if '..' in filename or '/' in filename or '\\' in filename:
+                return jsonify({"success": False, "message": "Nom de fichier invalide"}), 400
+            backup_dir = os.path.abspath("backups")
+            filepath = os.path.join(backup_dir, filename)
+            if not filepath.startswith(backup_dir) or not os.path.isfile(filepath):
+                return jsonify({"success": False, "message": "Fichier introuvable"}), 404
+            return send_file(filepath, as_attachment=True, download_name=filename)
+        except Exception as e:
             return jsonify({"success": False, "message": str(e)}), 500
 
     # ============================================
@@ -341,7 +610,7 @@ def register_admin_routes_orm(app):
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0 and os.path.exists(backup_file_abs) and os.path.getsize(backup_file_abs) > 0:
-                return jsonify({"success": True, "message": f"Sauvegarde effectuee: {backup_file}"}), 200
+                return jsonify({"success": True, "message": f"Sauvegarde effectuee: {backup_file}", "filename": os.path.basename(backup_file)}), 200
             else:
                 return jsonify({"success": False, "message": f"Erreur: {result.stderr}"}), 500
                 

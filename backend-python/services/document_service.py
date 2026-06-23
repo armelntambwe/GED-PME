@@ -10,6 +10,7 @@ from models.log import Log
 from models_sqlalchemy import Document as DocumentModel
 from services.indexation_service import IndexationService
 from services.version_service import VersionService
+from services.category_service import CategoryService
 from utils.file_upload import allowed_file, secure_filename_with_path
 from utils.ocr_helper import extract_text_from_file
 from config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH
@@ -36,13 +37,15 @@ class DocumentService:
             )
 
     @staticmethod
-    def upload_file(file, titre, description, auteur_id, categorie_id=None, entreprise_id=None):
+    def upload_file(file, titre, description, auteur_id, categorie_id=None, entreprise_id=None, auteur_role=None):
         if not file:
             return False, "Aucun fichier fourni", None
         if file.filename == '':
             return False, "Nom de fichier vide", None
         if not allowed_file(file.filename):
             return False, "Format non autorisé (PDF, DOCX, JPG, PNG, TXT)", None
+        if categorie_id and not CategoryService.belongs_to_entreprise(categorie_id, entreprise_id):
+            return False, "Catégorie invalide pour votre entreprise", None
 
         file.seek(0, os.SEEK_END)
         file_size = file.tell()
@@ -75,6 +78,17 @@ class DocumentService:
             pass
 
         IndexationService.index_document(doc_id, titre=titre, description=description)
+
+        if auteur_role == 'admin_pme':
+            Document.auto_publish_by_admin(doc_id, auteur_id)
+            Log.create(
+                'PUBLICATION',
+                f"Document '{titre}' validé et publié automatiquement (admin PME)",
+                auteur_id,
+                doc_id,
+            )
+            return True, "Document validé et publié avec succès", doc_id
+
         return True, "Document uploadé avec succès", doc_id
 
     @staticmethod
@@ -89,8 +103,9 @@ class DocumentService:
                 entreprise_id, search=search, statut=statut, ocr=ocr, page=page, limit=limit,
             )
         else:
-            docs = Document.get_all(limit=limit, search=search, statut=statut, ocr=ocr)
-            total = len(docs)
+            docs, total = Document.get_all_paginated(
+                limit=limit, search=search, statut=statut, ocr=ocr, page=page,
+            )
 
         limit = max(1, min(limit, 200))
         total_pages = max(1, (total + limit - 1) // limit)
@@ -138,7 +153,13 @@ class DocumentService:
         if 'description' in data:
             document.description = data['description']
         if 'categorie_id' in data:
-            document.categorie_id = data['categorie_id']
+            new_cat = data['categorie_id']
+            if new_cat in (None, '', 0, '0'):
+                document.categorie_id = None
+            elif not CategoryService.belongs_to_entreprise(new_cat, document.entreprise_id):
+                return False, "Catégorie invalide pour votre entreprise", None
+            else:
+                document.categorie_id = int(new_cat)
 
         document.version_actuelle = VersionService._next_version_numero(document.id)
         document.date_modification = datetime.utcnow()
@@ -207,6 +228,9 @@ class DocumentService:
         target_cat = categorie_id if categorie_id is not None else source.categorie_id
         if target_cat == '' or target_cat == 0:
             target_cat = None
+        ent_id = source.entreprise_id or entreprise_id
+        if target_cat and not CategoryService.belongs_to_entreprise(target_cat, ent_id):
+            return False, 'Catégorie invalide pour votre entreprise', None
 
         new_id = Document.create(
             titre=new_titre,

@@ -270,11 +270,11 @@ def send_alert_to_user(user, message, lien=None):
         return False, str(e)
 
 
-def check_callmebot_connectivity():
+def check_callmebot_connectivity(timeout=10):
     """Teste si le serveur peut joindre api.callmebot.com (diagnostic)."""
     try:
         req = urllib.request.Request('https://api.callmebot.com/', method='GET')
-        with _urlopen_with_retry(req, timeout=10, retries=1) as resp:
+        with _urlopen_with_retry(req, timeout=timeout, retries=1) as resp:
             return True, f'API CallMeBot joignable (HTTP {resp.status})'
     except Exception as e:
         return False, _friendly_network_error(e)

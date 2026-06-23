@@ -27,6 +27,7 @@ from routes.company_routes import register_company_routes
 # Services imports
 from services.admin_service_orm import AdminService
 from services.user_service import UserService
+from services.category_service import CategoryService
 
 import os
 from datetime import datetime
@@ -46,6 +47,30 @@ with app.app_context():
             print(f"Archivage automatique: {archived} document(s) traité(s)")
     except Exception as e:
         print(f"Archivage automatique ignoré: {e}")
+
+
+@app.before_request
+def check_maintenance_mode():
+    from utils.platform_settings import is_maintenance_mode, load_platform_settings
+    if not is_maintenance_mode():
+        return None
+    path = (request.path or '').rstrip('/') or '/'
+    allowed = (
+        '/static', '/sw.js', '/offline', '/dashboard-admin-global',
+        '/api/admin-global', '/api/user/profile', '/api/whatsapp',
+    )
+    if any(path.startswith(p) for p in allowed):
+        return None
+    if path in ('/login',):
+        return None
+    msg = load_platform_settings().get('maintenance_message', 'Maintenance en cours.')
+    if path.startswith('/api/'):
+        return jsonify({'success': False, 'message': msg, 'maintenance': True}), 503
+    return (
+        f'<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Maintenance</title></head>'
+        f'<body style="font-family:sans-serif;text-align:center;padding:4rem;">'
+        f'<h1>Maintenance</h1><p>{msg}</p><p><a href="/login">Connexion administrateur</a></p></body></html>'
+    ), 503
 
 # Test de connexion MySQL
 print("Verification MySQL...")
@@ -135,6 +160,11 @@ def dashboard_pme():
 @app.route('/dashboard-employee')
 def dashboard_employee():
     return render_template('dashboard-employee.html')
+
+@app.route('/guide')
+def guide_utilisateur():
+    role = request.args.get('role', '')
+    return render_template('guide-utilisateur.html', default_role=role)
 
 # ==============================
 # AUTHENTIFICATION (LOGIN)
@@ -266,10 +296,12 @@ def pme_documents():
         entreprise_id = request.user_entreprise_id
         search = request.args.get('search')
         statut = request.args.get('statut')
+        extension = request.args.get('extension')
         page = request.args.get('page', 1, type=int)
-        limit = request.args.get('limit', 15, type=int)
+        limit = request.args.get('limit', 25, type=int)
         result = AdminService.get_pme_documents(
-            entreprise_id, search=search, statut=statut, page=page, limit=limit
+            entreprise_id, search=search, statut=statut, extension=extension,
+            page=page, limit=limit,
         )
         documents = result['documents']
 
@@ -567,7 +599,13 @@ def update_document_by_id(doc_id):
         if 'description' in data:
             doc.description = data['description']
         if 'categorie_id' in data:
-            doc.categorie_id = data['categorie_id']
+            new_cat = data['categorie_id']
+            if new_cat in (None, '', 0, '0'):
+                doc.categorie_id = None
+            elif not CategoryService.belongs_to_entreprise(new_cat, doc.entreprise_id):
+                return jsonify({'error': 'Catégorie invalide pour votre entreprise'}), 400
+            else:
+                doc.categorie_id = int(new_cat)
         doc.version_actuelle = VersionService._next_version_numero(doc.id)
         doc.date_modification = datetime.utcnow()
         db.session.commit()
@@ -661,6 +699,10 @@ def get_documents_by_categorie(categorie_id):
     """Récupérer les documents d'une catégorie"""
     try:
         entreprise_id = request.user_entreprise_id
+        categorie = Categorie.query.get(categorie_id)
+        if not categorie or not CategoryService.belongs_to_entreprise(categorie_id, entreprise_id):
+            return jsonify({'success': False, 'error': 'Catégorie non trouvée'}), 404
+
         query = Document.query.filter(
             Document.categorie_id == categorie_id,
             Document.supprime_le.is_(None)
@@ -718,6 +760,8 @@ def deplacer_document_categorie(doc_id):
         if nouvelle_categorie_id in (None, '', 0, '0'):
             doc.categorie_id = None
         else:
+            if not CategoryService.belongs_to_entreprise(nouvelle_categorie_id, doc.entreprise_id):
+                return jsonify({'error': 'Catégorie invalide pour votre entreprise'}), 400
             doc.categorie_id = int(nouvelle_categorie_id)
         doc.date_modification = datetime.utcnow()
         db.session.commit()
@@ -825,8 +869,15 @@ def restaurer_version(doc_id, version_id):
             Document.id == doc_id,
             Document.supprime_le.is_(None)
         ).first()
-        if not doc or doc.auteur_id != request.user_id:
+        if not doc or not _can_access_document(doc, request.user_id, request.user_role, request.user_entreprise_id):
             return jsonify({'success': False, 'message': 'Document non trouvé'}), 404
+
+        can_restore = (
+            doc.auteur_id == request.user_id
+            or (request.user_role == 'admin_pme' and doc.entreprise_id == request.user_entreprise_id)
+        )
+        if not can_restore:
+            return jsonify({'success': False, 'message': 'Non autorisé'}), 403
 
         success, message = VersionService.restore_version(doc_id, version_id, request.user_id)
         if not success:
@@ -898,6 +949,12 @@ def partager_categorie(categorie_id):
         categorie = Categorie.query.get(categorie_id)
         if not categorie:
             return jsonify({'success': False, 'error': 'Catégorie non trouvée'}), 404
+
+        owner_entreprise_id = getattr(request, 'user_entreprise_id', None)
+        if not CategoryService.belongs_to_entreprise(categorie_id, owner_entreprise_id):
+            return jsonify({'success': False, 'error': 'Catégorie non autorisée'}), 403
+        if target.entreprise_id != owner_entreprise_id:
+            return jsonify({'success': False, 'error': 'Le destinataire doit appartenir à votre entreprise'}), 403
 
         notif = Notification(
             user_id=target.id,

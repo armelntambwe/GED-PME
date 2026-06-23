@@ -5,6 +5,7 @@ from flask import request, jsonify, send_file
 from middleware.auth import token_required, role_required
 from services.document_service import DocumentService
 from services.validation_service import ValidationService
+from services.category_service import CategoryService
 from models.document import Document
 from config import UPLOAD_FOLDER
 import os
@@ -69,9 +70,14 @@ def register_document_routes(app):
                 categorie_id = None
         user_id = request.user_id
         entreprise_id = getattr(request, 'user_entreprise_id', None)
+        user_role = getattr(request, 'user_role', None)
+
+        if categorie_id and not CategoryService.belongs_to_entreprise(categorie_id, entreprise_id):
+            return jsonify({"success": False, "message": "Catégorie invalide pour votre entreprise"}), 400
 
         success, message, doc_id = DocumentService.upload_file(
-            file, titre, description, user_id, categorie_id, entreprise_id
+            file, titre, description, user_id, categorie_id, entreprise_id,
+            auteur_role=user_role,
         )
 
         if not success:
@@ -218,9 +224,7 @@ def register_document_routes(app):
     def rejeter_document(doc_id):
         """Rejette un document soumis"""
         data = request.json or {}
-        commentaire = data.get("commentaire") or data.get("motif")
-        if not commentaire:
-            return jsonify({"success": False, "message": "Commentaire requis"}), 400
+        commentaire = data.get("commentaire") or data.get("motif") or "Rejeté par l'administrateur"
 
         user_id = request.user_id
         role = request.user_role

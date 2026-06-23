@@ -1,5 +1,4 @@
 ﻿from extensions import db
-from sqlalchemy import or_
 from models_sqlalchemy import Categorie as CategorieModel
 
 class Categorie:
@@ -25,7 +24,7 @@ class Categorie:
     def get_accessible_by_entreprise(entreprise_id):
         categories = (
             CategorieModel.query
-            .filter(or_(CategorieModel.entreprise_id == entreprise_id, CategorieModel.entreprise_id.is_(None)))
+            .filter(CategorieModel.entreprise_id == entreprise_id)
             .order_by(CategorieModel.nom.asc())
             .all()
         )

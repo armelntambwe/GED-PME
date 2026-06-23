@@ -3,6 +3,18 @@ from middleware.auth import token_required, role_required
 from services.category_service import CategoryService
 
 
+def _entreprise_scope():
+    """Retourne l'entreprise de l'utilisateur connecté (obligatoire pour les catégories)."""
+    entreprise_id = getattr(request, 'user_entreprise_id', None)
+    if entreprise_id is None:
+        return None, jsonify({
+            "success": False,
+            "message": "Catégories disponibles uniquement pour les utilisateurs rattachés à une entreprise",
+            "categories": [],
+        }), 403
+    return entreprise_id, None
+
+
 def register_category_routes(app):
 
     @app.route("/categories", methods=["GET"])
@@ -10,6 +22,8 @@ def register_category_routes(app):
     def get_categories():
         try:
             entreprise_id = getattr(request, 'user_entreprise_id', None)
+            if entreprise_id is None:
+                return jsonify({"success": True, "categories": []}), 200
             categories = CategoryService.get_categories(entreprise_id)
             return jsonify({"success": True, "categories": categories}), 200
         except Exception as e:
@@ -18,13 +32,16 @@ def register_category_routes(app):
 
     @app.route("/categories", methods=["POST"])
     @token_required
-    @role_required(['admin_pme', 'admin_global', 'employe'])
+    @role_required(['admin_pme', 'employe'])
     def create_category():
         try:
+            entreprise_id, err = _entreprise_scope()
+            if err:
+                return err
+
             data = request.json or {}
             nom = data.get('nom')
             description = data.get('description', '')
-            entreprise_id = getattr(request, 'user_entreprise_id', None)
 
             if not nom:
                 return jsonify({"success": False, "message": "Le nom de la catégorie est requis"}), 400
@@ -39,13 +56,16 @@ def register_category_routes(app):
 
     @app.route("/categories/<int:category_id>", methods=["PUT"])
     @token_required
-    @role_required(['admin_pme', 'admin_global', 'employe'])
+    @role_required(['admin_pme', 'employe'])
     def update_category(category_id):
         try:
+            entreprise_id, err = _entreprise_scope()
+            if err:
+                return err
+
             data = request.json or {}
             nom = data.get('nom')
             description = data.get('description', '')
-            entreprise_id = getattr(request, 'user_entreprise_id', None)
 
             if not nom:
                 return jsonify({"success": False, "message": "Le nom de la catégorie est requis"}), 400
@@ -61,10 +81,13 @@ def register_category_routes(app):
 
     @app.route("/categories/<int:category_id>", methods=["DELETE"])
     @token_required
-    @role_required(['admin_pme', 'admin_global', 'employe'])
+    @role_required(['admin_pme', 'employe'])
     def delete_category(category_id):
         try:
-            entreprise_id = getattr(request, 'user_entreprise_id', None)
+            entreprise_id, err = _entreprise_scope()
+            if err:
+                return err
+
             deleted = CategoryService.delete_category(category_id, entreprise_id)
             if not deleted:
                 return jsonify({"success": False, "message": "Catégorie non trouvée ou accès non autorisé"}), 404

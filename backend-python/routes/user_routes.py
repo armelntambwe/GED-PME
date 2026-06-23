@@ -12,6 +12,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+_whatsapp_network_cache = {'ts': 0, 'ok': True, 'detail': ''}
+_WHATSAPP_CACHE_TTL = 120
+
 
 def register_user_routes(app):
 
@@ -37,6 +40,12 @@ def register_user_routes(app):
             user = User.query.get(user_id)
             if not user:
                 return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 404
+            if user.role != 'employe':
+                return jsonify({"success": False, "message": "Seuls les comptes employés peuvent être désactivés ici"}), 403
+            if user.id == request.user_id:
+                return jsonify({"success": False, "message": "Vous ne pouvez pas désactiver votre propre compte"}), 403
+            if request.user_role == 'admin_pme' and user.entreprise_id != request.user_entreprise_id:
+                return jsonify({"success": False, "message": "Accès non autorisé"}), 403
 
             user.actif = False
             db.session.add(user)
@@ -64,6 +73,10 @@ def register_user_routes(app):
             user = User.query.get(user_id)
             if not user:
                 return jsonify({"success": False, "message": "Utilisateur non trouvé"}), 404
+            if user.role != 'employe':
+                return jsonify({"success": False, "message": "Seuls les comptes employés peuvent être activés ici"}), 403
+            if request.user_role == 'admin_pme' and user.entreprise_id != request.user_entreprise_id:
+                return jsonify({"success": False, "message": "Accès non autorisé"}), 403
 
             user.actif = True
             db.session.add(user)
@@ -350,7 +363,14 @@ def register_user_routes(app):
             provider = (WHATSAPP_PROVIDER or 'callmebot').lower()
             network_ok, network_detail = (True, '')
             if provider == 'callmebot':
-                network_ok, network_detail = check_callmebot_connectivity()
+                import time
+                now = time.time()
+                if now - _whatsapp_network_cache['ts'] < _WHATSAPP_CACHE_TTL:
+                    network_ok = _whatsapp_network_cache['ok']
+                    network_detail = _whatsapp_network_cache['detail']
+                else:
+                    network_ok, network_detail = check_callmebot_connectivity(timeout=4)
+                    _whatsapp_network_cache.update(ts=now, ok=network_ok, detail=network_detail)
             return jsonify({
                 "success": True,
                 "enabled": WHATSAPP_ENABLED,

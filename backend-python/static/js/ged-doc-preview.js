@@ -151,6 +151,28 @@
                 return `<div class="docx-preview border rounded p-3 bg-white" style="max-height:480px;overflow:auto;">${result.value || '<p class="text-muted">Document vide</p>'}</div>`;
             } catch (e) { /* fallthrough */ }
         }
+        if ((ext === 'xlsx' || ext === 'xls') && global.XLSX) {
+            try {
+                const arrayBuffer = await blob.arrayBuffer();
+                const wb = global.XLSX.read(arrayBuffer, { type: 'array' });
+                const sheetName = wb.SheetNames[0];
+                if (sheetName) {
+                    const html = global.XLSX.utils.sheet_to_html(wb.Sheets[sheetName], { id: 'ged-xlsx-preview' });
+                    return `<div class="xlsx-preview border rounded p-2 bg-white" style="max-height:480px;overflow:auto;">${html}</div>`;
+                }
+            } catch (e) { /* fallthrough */ }
+        }
+        if (ext === 'csv') {
+            try {
+                const text = await blob.text();
+                const rows = text.split(/\r?\n/).filter(Boolean).slice(0, 200);
+                const table = rows.map(row => {
+                    const cells = row.split(/[,;|\t]/).map(c => `<td>${escapeHtml(c.trim())}</td>`).join('');
+                    return `<tr>${cells}</tr>`;
+                }).join('');
+                return `<div class="border rounded bg-white" style="max-height:480px;overflow:auto;"><table class="table table-sm table-bordered mb-0">${table}</table></div>`;
+            } catch (e) { /* fallthrough */ }
+        }
         if (ext === 'svg' || ext === 'htm' || ext === 'html') {
             return `<iframe src="${blobUrl}" class="w-100 border rounded" style="height:480px"></iframe>`;
         }
@@ -168,7 +190,7 @@
             <i class="fas ${icon} fa-4x mb-3"></i>
             <p class="fw-semibold mb-1">${escapeHtml(filename)}</p>
             <p class="text-muted small">${escapeHtml(resolvedMime || ext.toUpperCase())} · ${formatSize(blob.size)}</p>
-            <p class="small text-muted">Prévisualisation limitée pour ce format.</p>
+            <p class="small text-muted">Aperçu non disponible pour ce format (${escapeHtml(ext.toUpperCase() || 'inconnu')}). Téléchargez le fichier pour l'ouvrir.</p>
             ${dlBtn}
             ${ocrBlock}
         </div>`;

@@ -34,7 +34,7 @@ class ValidationService:
 
     @staticmethod
     def valider(doc_id, validateur_id, role):
-        if role not in ['admin_pme', 'admin_global']:
+        if role != 'admin_pme':
             return False, "Vous n'avez pas les droits pour valider des documents"
 
         doc = Document.get_by_id(doc_id)
@@ -52,7 +52,7 @@ class ValidationService:
 
     @staticmethod
     def rejeter(doc_id, validateur_id, role, commentaire):
-        if role not in ['admin_pme', 'admin_global']:
+        if role != 'admin_pme':
             return False, "Vous n'avez pas les droits pour rejeter des documents"
         if not commentaire:
             return False, "Un commentaire de rejet est obligatoire"

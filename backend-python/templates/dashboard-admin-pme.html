@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Aperçu DOCX -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <meta name="theme-color" content="#0891b2">
     <link rel="stylesheet" href="/static/css/ged-theme.css">
@@ -41,13 +42,14 @@
                 <div class="user-avatar" id="userAvatar">U</div>
                 <div class="user-info">
                     <div class="name" id="userName">Chargement...</div>
-                    <div class="role">Administrateur PME</div>
+                    <div class="role" id="userRole">Administrateur PME</div>
                 </div>
                 <i class="fas fa-chevron-down" style="font-size: 12px; color: var(--gray);"></i>
             </div>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="#" onclick="openProfileTab(); return false;"><i class="fas fa-user me-2"></i>Mon profil</a></li>
                 <li><a class="dropdown-item" href="#" onclick="openProfileTab(); return false;"><i class="fas fa-key me-2"></i>Modifier mot de passe</a></li>
+                <li><a class="dropdown-item" href="/guide?role=admin_pme" target="_blank" rel="noopener"><i class="fas fa-book me-2"></i>Guide utilisateur</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item text-danger" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
             </ul>
@@ -175,13 +177,13 @@
             </div>
             <div class="doc-toolbar">
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-5">
-                        <label class="form-label small fw-semibold mb-1">Recherche</label>
-                        <input type="text" id="docSearch" class="form-control form-control-sm" placeholder="Titre, auteur, contenu…">
-                    </div>
                     <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Recherche</label>
+                        <input type="text" id="docSearch" class="form-control form-control-sm" placeholder="Titre, fichier, auteur, OCR…" onkeyup="debounceDocSearch()">
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label small fw-semibold mb-1">Statut</label>
-                        <select id="docStatutFilter" class="form-select form-select-sm">
+                        <select id="docStatutFilter" class="form-select form-select-sm" onchange="docPage=1;loadDocuments()">
                             <option value="">Tous les statuts</option>
                             <option value="brouillon">Brouillon</option>
                             <option value="soumis">En révision</option>
@@ -191,7 +193,17 @@
                             <option value="obsolete">Obsolète</option>
                         </select>
                     </div>
-                    <div class="col-md-3 d-flex gap-2">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold mb-1">Format</label>
+                        <select id="docFormatFilter" class="form-select form-select-sm" onchange="docPage=1;loadDocuments()">
+                            <option value="">Tous</option>
+                            <option value="pdf">PDF</option>
+                            <option value="docx">Word</option>
+                            <option value="xlsx">Excel</option>
+                            <option value="jpg">Image</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2 align-items-end">
                         <button class="btn btn-sm btn-primary flex-grow-1" onclick="loadDocuments()"><i class="fas fa-search me-1"></i>Filtrer</button>
                         <button class="btn btn-sm btn-outline-secondary" onclick="resetDocFilters()" title="Réinitialiser"><i class="fas fa-redo"></i></button>
                     </div>
@@ -204,6 +216,7 @@
                 </table>
             </div>
             <div id="documentsPagination" class="d-flex justify-content-center mt-3"></div>
+            <p class="small text-muted mb-0 text-center" id="documentsTotalInfo"></p>
         </div>
     </div>
     
@@ -405,6 +418,23 @@
                 <button type="button" class="btn btn-outline-primary" id="backupBtn" onclick="runBackup()"><i class="fas fa-download me-2"></i>Lancer la sauvegarde</button>
                 <div id="backupStatus" class="small text-muted mt-2"></div>
             </div>
+            <hr class="my-4">
+            <div class="form-section mb-0">
+                <div class="form-section-title"><i class="fas fa-project-diagram"></i>Configuration du workflow</div>
+                <p class="text-muted small mb-3">Définissez les étapes de validation pour les documents soumis par les employés (ordre, rôle responsable, délai en heures).</p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered align-middle mb-0" id="workflowConfigTable">
+                        <thead class="table-light"><tr><th style="width:40px">#</th><th>Nom de l'étape</th><th style="width:160px">Rôle requis</th><th style="width:120px">Délai (h)</th><th style="width:50px"></th></tr></thead>
+                        <tbody id="workflowConfigBody"></tbody>
+                    </table>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addWorkflowStep()"><i class="fas fa-plus me-1"></i>Ajouter une étape</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="saveWorkflowConfig()"><i class="fas fa-save me-1"></i>Enregistrer le workflow</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetWorkflowDefaults()"><i class="fas fa-undo me-1"></i>Réinitialiser</button>
+                </div>
+                <div id="workflowConfigStatus" class="small text-muted mt-2"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -415,8 +445,9 @@
 <div class="modal fade" id="addDocumentModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fas fa-file-upload me-2"></i>Nouveau document</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fas fa-file-upload me-2"></i>Publier un document</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
+                <p class="small text-muted mb-3"><i class="fas fa-info-circle me-1"></i>En tant qu'admin PME, le document sera <strong>validé et publié</strong> immédiatement (visible par les employés).</p>
                 <div class="form-section">
                     <div class="form-section-title"><i class="fas fa-info-circle"></i>Informations</div>
                     <div class="row g-3">
@@ -436,7 +467,7 @@
                     </label>
                 </div>
             </div>
-            <div class="modal-footer border-0"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" onclick="submitDocument()"><i class="fas fa-upload me-2"></i>Envoyer</button></div>
+            <div class="modal-footer border-0"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" onclick="submitDocument()"><i class="fas fa-upload me-2"></i>Publier</button></div>
         </div>
     </div>
 </div>
@@ -532,6 +563,8 @@
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="telechargerDocumentActuel()"><i class="fas fa-download me-1"></i>Télécharger</button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="imprimerDocument()"><i class="fas fa-print me-1"></i>Imprimer</button>
+                <button type="button" class="btn btn-outline-dark btn-sm" onclick="viewDocumentVersions()"><i class="fas fa-history me-1"></i>Versions</button>
+                <button type="button" class="btn btn-outline-info btn-sm" onclick="viewDocumentAuditLog()"><i class="fas fa-list me-1"></i>Journal</button>
             </div>
         </div>
     </div>
@@ -662,6 +695,29 @@
                         <button type="button" class="btn btn-sm btn-outline-success" onclick="testWhatsappAlert()"><i class="fab fa-whatsapp me-1"></i>Tester WhatsApp</button>
                     </div>
                 </form>
+                <div class="form-section mt-3 mb-0">
+                    <div class="form-section-title"><i class="fas fa-shield-alt"></i>Double authentification (2FA)</div>
+                    <p class="small text-muted mb-3">Protégez votre compte avec un code à 6 chiffres (Google Authenticator, Microsoft Authenticator…).</p>
+                    <div id="twofaStatus" class="mb-3"><span class="badge bg-secondary">Chargement…</span></div>
+                    <div id="twofaSetupPanel" class="d-none">
+                        <img id="twofaQrImg" class="d-none mb-3 rounded border" alt="QR code 2FA" width="180" height="180">
+                        <p class="small mb-2">Secret manuel (si besoin) :</p>
+                        <code id="twofaSecretDisplay" class="d-block p-2 bg-light rounded mb-2 user-select-all"></code>
+                        <div class="form-field mb-2">
+                            <label>Code de vérification</label>
+                            <input type="text" id="twofaEnableCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-success" onclick="confirmEnable2FA()"><i class="fas fa-check me-1"></i>Activer la 2FA</button>
+                    </div>
+                    <div id="twofaDisablePanel" class="d-none">
+                        <div class="row g-2">
+                            <div class="col-md-6"><input type="password" id="twofaDisablePassword" class="form-control form-control-sm" placeholder="Mot de passe" autocomplete="current-password"></div>
+                            <div class="col-md-6"><input type="text" id="twofaDisableCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" placeholder="Code 2FA" autocomplete="one-time-code"></div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="disable2FA()"><i class="fas fa-times me-1"></i>Désactiver la 2FA</button>
+                    </div>
+                    <button type="button" id="twofaSetupBtn" class="btn btn-sm btn-outline-primary d-none" onclick="start2FASetup()"><i class="fas fa-qrcode me-1"></i>Configurer la 2FA</button>
+                </div>
                 <button type="button" class="btn btn-sm btn-outline-secondary mt-3" onclick="openAdminPasswordModal()"><i class="fas fa-key me-1"></i>Changer le mot de passe</button>
             </div>
             <div class="modal-footer border-0 pt-0">
@@ -688,6 +744,32 @@
     </div>
 </div>
 
+<!-- Modal Historique Versions -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-history me-2"></i>Historique des versions</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="historyBody"><div class="text-center py-4">Chargement...</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Journal document -->
+<div class="modal fade" id="auditLogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-list me-2"></i>Journal d'activité du document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="auditLogBody"><div class="text-center py-4">Chargement...</div></div>
+        </div>
+    </div>
+</div>
+
 <!-- ========== TOAST ========== -->
 <div id="toastMessage" class="ged-toast"></div>
 
@@ -695,10 +777,44 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/ged-doc-preview.js"></script>
+<script src="/static/js/ged-2fa.js"></script>
 <script>
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login';
 GedDocPreview.init({ token, apiBase: window.location.origin });
+
+const DEFAULT_WORKFLOW_STEPS = [
+    { nom: 'Soumission', role: 'employe', delai: 24 },
+    { nom: 'Validation', role: 'admin_pme', delai: 48 },
+];
+let workflowSteps = [];
+
+function redirectByRole(role) {
+    if (role === 'employe') window.location.href = '/dashboard-employee';
+    else if (role === 'admin_global') window.location.href = '/dashboard-admin-global';
+    else if (role === 'admin_pme') window.location.href = '/dashboard-pme';
+    else window.location.href = '/login';
+}
+
+function applyUserHeader(data) {
+    $('#userName').text(data.nom || 'Utilisateur');
+    $('#userAvatar').text((data.nom || 'U').charAt(0).toUpperCase());
+    const roleLabels = {
+        admin_pme: 'Administrateur PME',
+        admin_global: 'Administrateur global',
+        employe: 'Employé'
+    };
+    $('#userRole').text(roleLabels[data.role] || data.role || 'Administrateur PME');
+    $('#profileNom').val(data.nom || '');
+    $('#profileEmail').val(data.email || '');
+    $('#profileTelephone').val(data.telephone || '');
+    $('#profileNotifyWhatsapp').prop('checked', !!data.notify_whatsapp);
+    profileWhatsappKeySet = !!data.whatsapp_api_key_set;
+    if (data.whatsapp_api_key_set) {
+        $('#profileWhatsappApiKey').attr('placeholder', 'Clé enregistrée — laissez vide pour conserver');
+    }
+    if (window.Ged2FA) Ged2FA.updateUI(data);
+}
 
 // Compat Bootstrap 5 : rétablit .modal() pour jQuery
 (function() {
@@ -726,6 +842,8 @@ function showToast(msg, isError = false) {
     toast.fadeIn(200);
     setTimeout(() => toast.fadeOut(300), 3000);
 }
+
+Ged2FA.init({ getToken: () => token, showToast, onProfileRefresh: loadUserInfo });
 
 function formatDate(dateStr) {
     if (!dateStr) return '-';
@@ -855,6 +973,37 @@ updateStatus();
 // ========== USER INFO ==========
 let profileWhatsappKeySet = false;
 
+async function ensureAdminAccess() {
+    try {
+        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        if (stored && stored.role && stored.role !== 'admin_pme') {
+            redirectByRole(stored.role);
+            return false;
+        }
+    } catch (e) { /* ignore */ }
+
+    try {
+        const res = await fetch('/api/user/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            localStorage.clear();
+            window.location.href = '/login';
+            return false;
+        }
+        if (data.role !== 'admin_pme') {
+            redirectByRole(data.role);
+            return false;
+        }
+        applyUserHeader(data);
+        loadEntrepriseInfo().catch(() => {});
+        return true;
+    } catch (e) {
+        console.error('ensureAdminAccess:', e);
+        window.location.href = '/login';
+        return false;
+    }
+}
+
 async function loadWhatsappNetworkStatus() {
     const hint = $('#adminWhatsappNetworkHint');
     if (!hint.length) return;
@@ -878,22 +1027,14 @@ async function loadUserInfo() {
     try {
         const res = await fetch('/api/user/profile', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
-        if (data.success) {
-            $('#userName').text(data.nom);
-            $('#userAvatar').text(data.nom.charAt(0).toUpperCase());
-            $('#profileNom').val(data.nom);
-            $('#profileEmail').val(data.email);
-            $('#profileTelephone').val(data.telephone || '');
-            $('#profileNotifyWhatsapp').prop('checked', !!data.notify_whatsapp);
-            profileWhatsappKeySet = !!data.whatsapp_api_key_set;
-            if (data.whatsapp_api_key_set) {
-                $('#profileWhatsappApiKey').attr('placeholder', 'Clé enregistrée — laissez vide pour conserver');
-            }
+        if (data.success && data.role === 'admin_pme') {
+            applyUserHeader(data);
             await loadEntrepriseInfo();
+        } else if (data.role) {
+            redirectByRole(data.role);
         }
     } catch(e) { console.error('User info error:', e); }
 }
-loadUserInfo();
 
 async function loadEntrepriseInfo() {
     try {
@@ -988,10 +1129,13 @@ async function saveAdminPassword() {
 // ========== DASHBOARD ==========
 let evolutionChart = null, statusChart = null, barChart = null;
 
-async function loadDashboard() {
+async function loadDashboard(silent) {
     try {
-        const res = await fetch('/api/pme/stats', { headers: { 'Authorization': 'Bearer ' + token } });
-        const data = await res.json();
+        const [statsRes, evoRes] = await Promise.all([
+            fetch('/api/pme/stats', { headers: { 'Authorization': 'Bearer ' + token } }),
+            fetch('/api/pme/evolution', { headers: { 'Authorization': 'Bearer ' + token } })
+        ]);
+        const data = await statsRes.json();
         const s = data.stats || {};
         
         const stats = {
@@ -1019,17 +1163,26 @@ async function loadDashboard() {
         $('#wfObsolète').text(stats.obsolete);
         $('#wfDetruit').text(stats.detruit);
         
-        if (evolutionChart) evolutionChart.destroy();
         let evoLabels = ['Jan','Fév','Mar','Avr','Mai','Juin'];
         let evoData = [0,0,0,0,0,total];
         try {
-            const evoRes = await fetch('/api/pme/evolution', { headers: { 'Authorization': 'Bearer ' + token } });
             const evoJson = await evoRes.json();
             if (evoJson.evolution && evoJson.evolution.length > 0) {
                 evoLabels = evoJson.evolution.map(e => e.date_jour);
                 evoData = evoJson.evolution.map(e => e.total);
             }
         } catch(e) {}
+
+        if (silent && evolutionChart && statusChart) {
+            evolutionChart.data.labels = evoLabels;
+            evolutionChart.data.datasets[0].data = evoData;
+            evolutionChart.update('none');
+            statusChart.data.datasets[0].data = [stats.brouillon, stats.soumis, stats.valide, stats.rejete, stats.publie];
+            statusChart.update('none');
+            return;
+        }
+
+        if (evolutionChart) evolutionChart.destroy();
         evolutionChart = new Chart(document.getElementById('evolutionChart'), {
             type: 'line',
             data: { labels: evoLabels, datasets: [{ label: 'Documents', data: evoData, borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', tension: 0.4, fill: true }] },
@@ -1049,14 +1202,20 @@ async function loadDashboard() {
 }
 
 // ========== DOCUMENTS ==========
-let docPage = 1, docTotalPages = 1;
+let docPage = 1, docTotalPages = 1, docSearchTimer = null;
+function debounceDocSearch() {
+    clearTimeout(docSearchTimer);
+    docSearchTimer = setTimeout(() => { docPage = 1; loadDocuments(); }, 400);
+}
 
 async function loadDocuments() {
     const search = $('#docSearch').val();
     const statut = $('#docStatutFilter').val();
-    let url = `/api/pme/documents?page=${docPage}&limit=15`;
+    const extension = $('#docFormatFilter').val();
+    let url = `/api/pme/documents?page=${docPage}&limit=25`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
-    if (statut) url += `&statut=${statut}`;
+    if (statut) url += `&statut=${encodeURIComponent(statut)}`;
+    if (extension) url += `&extension=${encodeURIComponent(extension)}`;
     
     $('#documentsList').html('<tr><td colspan="6" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
     
@@ -1065,6 +1224,7 @@ async function loadDocuments() {
         const data = await res.json();
         const docs = data.documents || [];
         docTotalPages = data.total_pages || 1;
+        $('#documentsTotalInfo').text(data.total != null ? `${data.total} document(s) trouvé(s)` : '');
         
         if (docs.length === 0) {
             $('#documentsList').html('<tr><td colspan="6" class="text-center py-4 text-muted">Aucun document trouvé</td></tr>');
@@ -1073,8 +1233,10 @@ async function loadDocuments() {
         
         let html = '';
         for (const doc of docs) {
+            const ext = (doc.fichier_nom || '').split('.').pop().toLowerCase();
+            const icon = GedDocPreview.getFileIcon(ext);
             html += `<tr>
-                <td class="fw-semibold">${doc.titre || '-'}</td>
+                <td><i class="fas ${icon} me-1"></i><span class="fw-semibold">${escapeHtml(doc.titre || '-')}</span>${doc.fichier_nom ? `<br><small class="text-muted">${escapeHtml(doc.fichier_nom)}</small>` : ''}</td>
                 <td>${doc.categorie_nom || '-'}</td>
                 <td>${doc.auteur_nom || '-'}</td>
                 <td>${formatDate(doc.date_creation)}</td>
@@ -1109,7 +1271,7 @@ function renderDocPagination() {
     $('#documentsPagination').html(html);
 }
 
-function resetDocFilters() { $('#docSearch').val(''); $('#docStatutFilter').val(''); docPage = 1; loadDocuments(); }
+function resetDocFilters() { $('#docSearch').val(''); $('#docStatutFilter').val(''); $('#docFormatFilter').val(''); docPage = 1; loadDocuments(); }
 
 function telechargerDocument(id) { window.open(`/documents/${id}/download?token=${token}`, '_blank'); }
 
@@ -1422,7 +1584,7 @@ async function loadEmployes() {
     try {
         const res = await fetch('/api/pme/employes', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
-        const employes = data.employes || [];
+        const employes = (data.employes || []).filter(e => e.role === 'employe');
         const actifs = employes.filter(e => e.actif !== false).length;
         $('#empTotalCount').text(employes.length);
         $('#empActifCount').text(actifs);
@@ -1636,7 +1798,97 @@ async function saveEntrepriseSettings() {
     } catch(e) { showToast('Erreur', true); }
 }
 
-function loadEntrepriseSettings() { loadEntrepriseInfo(); }
+function loadEntrepriseSettings() { loadEntrepriseInfo(); loadWorkflowConfig(); }
+
+function renderWorkflowRows() {
+    const tbody = $('#workflowConfigBody');
+    if (!workflowSteps.length) {
+        tbody.html('<tr><td colspan="5" class="text-muted text-center py-3">Aucune étape — ajoutez-en ou réinitialisez</td></tr>');
+        return;
+    }
+    tbody.html(workflowSteps.map((step, i) => `
+        <tr data-idx="${i}">
+            <td class="text-muted">${i + 1}</td>
+            <td><input type="text" class="form-control form-control-sm wf-nom" value="${escapeHtml(step.nom || '')}" placeholder="Nom de l'étape"></td>
+            <td><select class="form-select form-select-sm wf-role">
+                <option value="employe" ${step.role === 'employe' ? 'selected' : ''}>Employé</option>
+                <option value="admin_pme" ${step.role === 'admin_pme' ? 'selected' : ''}>Admin PME</option>
+            </select></td>
+            <td><input type="number" class="form-control form-control-sm wf-delai" min="1" max="720" value="${step.delai || 48}"></td>
+            <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWorkflowStep(${i})" title="Supprimer"><i class="fas fa-trash"></i></button></td>
+        </tr>`).join(''));
+}
+
+function collectWorkflowFromTable() {
+    const steps = [];
+    $('#workflowConfigBody tr[data-idx]').each(function () {
+        const nom = $(this).find('.wf-nom').val()?.trim();
+        const role = $(this).find('.wf-role').val();
+        const delai = parseInt($(this).find('.wf-delai').val(), 10) || 48;
+        if (nom) steps.push({ nom, role, delai });
+    });
+    return steps;
+}
+
+async function loadWorkflowConfig() {
+    $('#workflowConfigStatus').text('Chargement…');
+    try {
+        const res = await fetch('/api/workflow/config', { headers: { Authorization: 'Bearer ' + token } });
+        const data = await res.json();
+        const cfg = data.config || [];
+        if (cfg.length) {
+            workflowSteps = cfg.map(c => ({
+                nom: c.nom_etape || c.nom || '',
+                role: c.role_requis || c.role || 'admin_pme',
+                delai: c.delai_heures || c.delai || 48,
+            }));
+        } else {
+            workflowSteps = DEFAULT_WORKFLOW_STEPS.map(s => ({ ...s }));
+        }
+        renderWorkflowRows();
+        $('#workflowConfigStatus').text(workflowSteps.length ? `${workflowSteps.length} étape(s) configurée(s)` : '');
+    } catch (e) {
+        workflowSteps = DEFAULT_WORKFLOW_STEPS.map(s => ({ ...s }));
+        renderWorkflowRows();
+        $('#workflowConfigStatus').text('Erreur de chargement — valeurs par défaut affichées');
+    }
+}
+
+function addWorkflowStep() {
+    workflowSteps = collectWorkflowFromTable();
+    workflowSteps.push({ nom: 'Nouvelle étape', role: 'admin_pme', delai: 48 });
+    renderWorkflowRows();
+}
+
+function removeWorkflowStep(idx) {
+    workflowSteps = collectWorkflowFromTable();
+    workflowSteps.splice(idx, 1);
+    renderWorkflowRows();
+}
+
+function resetWorkflowDefaults() {
+    if (!confirm('Réinitialiser le workflow aux étapes par défaut (non enregistré) ?')) return;
+    workflowSteps = DEFAULT_WORKFLOW_STEPS.map(s => ({ ...s }));
+    renderWorkflowRows();
+}
+
+async function saveWorkflowConfig() {
+    const etapes = collectWorkflowFromTable();
+    if (!etapes.length) { showToast('Ajoutez au moins une étape', true); return; }
+    try {
+        const res = await fetch('/api/workflow/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+            body: JSON.stringify({ etapes }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Workflow enregistré');
+            workflowSteps = etapes;
+            $('#workflowConfigStatus').text(`${etapes.length} étape(s) enregistrée(s)`);
+        } else showToast(data.message || 'Erreur', true);
+    } catch (e) { showToast('Erreur réseau', true); }
+}
 
 // ========== NOUVELLES FONCTIONS DOCUMENTS ==========
 
@@ -1717,6 +1969,70 @@ async function voirDocument(docId) {
 function telechargerDocumentActuel() {
     if (currentViewDocId) {
         window.open(`/documents/${currentViewDocId}/download?token=${token}`, '_blank');
+    }
+}
+
+async function viewDocumentVersions() {
+    if (!currentViewDocId) return;
+    $('#historyBody').html('<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+    $('#historyModal').modal('show');
+    try {
+        const res = await fetch(`/documents/${currentViewDocId}/versions`, { headers: { Authorization: 'Bearer ' + token } });
+        const data = await res.json();
+        const versions = data.versions || [];
+        if (!versions.length) {
+            $('#historyBody').html('<div class="text-center py-4 text-muted">Aucune version</div>');
+            return;
+        }
+        let html = '<ul class="list-group list-group-flush">';
+        versions.forEach(v => {
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 flex-wrap gap-2">
+                <div><strong>V${v.version_numero}</strong> <span class="text-muted small">${escapeHtml(v.commentaire || '')}</span><br><small class="text-muted">${formatDate(v.date_creation)}</small></div>
+                <button class="btn btn-sm btn-outline-primary" onclick="restaurerVersionAdmin(${currentViewDocId}, ${v.id})"><i class="fas fa-undo me-1"></i>Restaurer</button>
+            </li>`;
+        });
+        html += '</ul>';
+        $('#historyBody').html(html);
+    } catch (e) {
+        $('#historyBody').html('<div class="alert alert-danger mb-0">Erreur de chargement</div>');
+    }
+}
+
+async function restaurerVersionAdmin(docId, versionId) {
+    if (!confirm('Restaurer cette version ? Le document actuel sera remplacé.')) return;
+    try {
+        const res = await fetch(`/documents/${docId}/versions/${versionId}/restaurer`, {
+            method: 'PUT', headers: { Authorization: 'Bearer ' + token },
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Version restaurée');
+            $('#historyModal').modal('hide');
+            voirDocument(docId);
+        } else showToast(data.message || 'Erreur', true);
+    } catch (e) { showToast('Erreur réseau', true); }
+}
+
+async function viewDocumentAuditLog() {
+    if (!currentViewDocId) return;
+    $('#auditLogBody').html('<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+    $('#auditLogModal').modal('show');
+    try {
+        const res = await fetch(`/api/pme/document/${currentViewDocId}/historique`, { headers: { Authorization: 'Bearer ' + token } });
+        const data = await res.json();
+        const logs = data.historique || [];
+        if (!logs.length) {
+            $('#auditLogBody').html('<div class="text-center py-4 text-muted">Aucune entrée dans le journal</div>');
+            return;
+        }
+        let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Description</th></tr></thead><tbody>';
+        logs.forEach(h => {
+            html += `<tr><td class="text-nowrap small">${formatDate(h.date_action)}</td><td><span class="badge bg-secondary">${escapeHtml(h.action || '-')}</span></td><td>${escapeHtml(h.utilisateur_nom || '-')}</td><td class="small">${escapeHtml(h.description || '-')}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
+        $('#auditLogBody').html(html);
+    } catch (e) {
+        $('#auditLogBody').html('<div class="alert alert-danger mb-0">Erreur de chargement</div>');
     }
 }
 
@@ -1887,7 +2203,7 @@ function submitDocument() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) { showToast('Document uploadé'); $('#addDocumentModal').modal('hide'); loadDocuments(); loadDashboard(); loadNotifications(); } 
+        if (data.success) { showToast(data.message || 'Document publié'); $('#addDocumentModal').modal('hide'); loadDocuments(); loadDashboard(); loadNotifications(); } 
         else { showToast(data.message || 'Erreur', true); }
     })
     .catch(() => showToast('Erreur', true));
@@ -1949,18 +2265,21 @@ function openTabFromUrl() {
     $('#tabDashboard').show();
     loadDashboard();
 }
-openTabFromUrl();
-loadNotifications();
 
-setInterval(() => {
-    if ($('#tabDashboard').is(':visible')) loadDashboard();
-    if ($('#tabDocuments').is(':visible')) loadDocuments();
-    if ($('#tabValidation').is(':visible')) loadValidation();
-    if ($('#tabCategories').is(':visible')) loadCategories();
-    if ($('#tabEmployes').is(':visible')) loadEmployes();
-    if ($('#tabStatistiques').is(':visible')) loadStatsPage();
+ensureAdminAccess().then(function(ok) {
+    if (!ok) return;
+    openTabFromUrl();
     loadNotifications();
-}, 30000);
+    setInterval(() => {
+        if ($('#tabDashboard').is(':visible')) loadDashboard(true);
+        if ($('#tabDocuments').is(':visible')) loadDocuments();
+        if ($('#tabValidation').is(':visible')) loadValidation();
+        if ($('#tabCategories').is(':visible')) loadCategories();
+        if ($('#tabEmployes').is(':visible')) loadEmployes();
+        if ($('#tabStatistiques').is(':visible')) loadStatsPage();
+        loadNotifications();
+    }, 30000);
+});
 </script>
 </body>
 </html>

@@ -14,14 +14,19 @@ class Document:
     @staticmethod
     def _apply_search(query, search=None, ocr=None):
         if search:
-            like = f'%{search}%'
-            query = query.filter(
+            from models_sqlalchemy import User as UserModel
+            like = f'%{search.strip()}%'
+            query = query.outerjoin(UserModel, DocumentModel.auteur_id == UserModel.id).filter(
                 or_(
                     DocumentModel.titre.ilike(like),
                     DocumentModel.description.ilike(like),
                     DocumentModel.contenu_ocr.ilike(like),
+                    DocumentModel.fichier_nom.ilike(like),
+                    DocumentModel.type_mime.ilike(like),
+                    UserModel.nom.ilike(like),
+                    UserModel.email.ilike(like),
                 )
-            )
+            ).distinct()
         if ocr:
             ocr_like = f'%{ocr}%'
             query = query.filter(
@@ -54,6 +59,22 @@ class Document:
         db.session.add(document)
         db.session.commit()
         return document.id
+
+    @staticmethod
+    def auto_publish_by_admin(doc_id, admin_id):
+        """Admin PME : publication directe (validé + publié) sans workflow employé."""
+        document = DocumentModel.query.get(doc_id)
+        if not document:
+            return False
+        now = datetime.utcnow()
+        document.statut = 'publie'
+        document.validateur_id = admin_id
+        document.date_validation = now
+        document.date_publication = now
+        document.workflow_termine = True
+        document.date_modification = now
+        db.session.commit()
+        return True
 
     @staticmethod
     def get_by_id(doc_id):
@@ -140,6 +161,28 @@ class Document:
         query = Document._apply_search(query, search, ocr)
         documents = query.order_by(DocumentModel.date_creation.desc()).limit(limit).all()
         return [doc.to_dict() for doc in documents]
+
+    @staticmethod
+    def get_all_paginated(limit=100, search=None, statut=None, ocr=None, entreprise_id=None, page=1):
+        query = DocumentModel.query.filter(
+            DocumentModel.supprime_le.is_(None),
+            Document.ACTIVE_STATUSES_FILTER,
+        )
+        if entreprise_id is not None:
+            query = query.filter_by(entreprise_id=entreprise_id)
+        if statut:
+            query = query.filter_by(statut=statut)
+        query = Document._apply_search(query, search, ocr)
+        total = query.count()
+        page = max(1, page)
+        limit = max(1, min(limit, 200))
+        documents = (
+            query.order_by(DocumentModel.date_creation.desc())
+            .offset((page - 1) * limit)
+            .limit(limit)
+            .all()
+        )
+        return [doc.to_dict() for doc in documents], total
 
     @staticmethod
     def get_by_status(status, entreprise_id=None):
