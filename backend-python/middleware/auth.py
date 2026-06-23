@@ -28,6 +28,9 @@ def token_required(f):
                 }), 401
 
         if not token:
+            token = request.args.get('token')
+
+        if not token:
             return jsonify({
                 "success": False,
                 "message": "Token d'authentification manquant"
@@ -35,6 +38,14 @@ def token_required(f):
 
         try:
             payload = verifier_token(token)
+            if not payload:
+                raise ValueError('invalid')
+
+            if payload.get('scope') == '2fa_pending':
+                return jsonify({
+                    "success": False,
+                    "message": "Authentification 2FA requise. Veuillez vous reconnecter."
+                }), 401
 
             # ✅ Les 3 attributs disponibles dans toutes les routes
             request.user_id            = payload['user_id']

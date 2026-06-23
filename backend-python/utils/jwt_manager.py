@@ -31,6 +31,30 @@ def generer_token(user_id, role, entreprise_id=None):
     return token
 
 
+def generer_token_2fa_pending(user_id):
+    """Token court pour l'étape de vérification 2FA après mot de passe."""
+    secret_key = current_app.config['JWT_SECRET_KEY']
+    payload = {
+        'user_id': user_id,
+        'scope': '2fa_pending',
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=5),
+        'iat': datetime.datetime.utcnow(),
+    }
+    return jwt.encode(payload, secret_key, algorithm='HS256')
+
+
+def verifier_token_2fa_pending(token):
+    """Vérifie un token temporaire 2FA. Retourne user_id ou None."""
+    secret_key = current_app.config['JWT_SECRET_KEY']
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+        if payload.get('scope') != '2fa_pending':
+            return None
+        return payload.get('user_id')
+    except jwt.InvalidTokenError:
+        return None
+
+
 def verifier_token(token):
     """
     Vérifie la validité d'un token JWT.

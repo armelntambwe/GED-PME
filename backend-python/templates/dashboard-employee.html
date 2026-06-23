@@ -2,8 +2,10 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>GED-PME | Mon espace employé</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0891b2">
+    <link rel="manifest" href="/static/manifest.json">
+    <title>GED-PME | Espace Employé</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,155 +13,74 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Aperçu DOCX -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
     
+    <link rel="stylesheet" href="/static/css/ged-theme.css">
     <style>
         :root {
-            --primary: #0ea5e9;
-            --primary-dark: #0284c7;
-            --primary-light: #e0f2fe;
+            --primary: #0891b2;
+            --primary-dark: #0e7490;
+            --primary-light: #ecfeff;
             --success: #10b981;
             --success-light: #d1fae5;
             --warning: #f59e0b;
             --warning-light: #fef3c7;
             --danger: #ef4444;
             --danger-light: #fee2e2;
-            --dark: #0f172a;
             --gray: #64748b;
             --gray-light: #f1f5f9;
+            --dark: #0f172a;
             --white: #ffffff;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: #f0f2f5;
             min-height: 100vh;
         }
-
-        /* ========== SIDEBAR ========== */
-        .sidebar {
-            width: 280px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
+        
+        .header {
             background: var(--white);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            padding: 12px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
             z-index: 100;
-            transition: all 0.3s;
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid #e2e8f0;
         }
-
-        .sidebar-header h3 {
-            font-size: 22px;
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-left .logo {
+            font-size: 20px;
             font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin: 0;
         }
-
-        .sidebar-header p {
-            font-size: 12px;
-            color: var(--gray);
-            margin-top: 8px;
-            margin-bottom: 0;
-        }
-
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-
-        .sidebar-nav .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            color: var(--gray);
-            text-decoration: none;
-            transition: all 0.2s;
-            margin: 4px 12px;
-            border-radius: 12px;
-        }
-
-        .sidebar-nav .nav-link i {
-            width: 22px;
-            font-size: 18px;
-        }
-
-        .sidebar-nav .nav-link:hover {
-            background: var(--gray-light);
-            color: var(--primary);
-        }
-
-        .sidebar-nav .nav-link.active {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        /* ========== MAIN CONTENT ========== */
-        .main-content {
-            margin-left: 280px;
-            padding: 24px 32px;
-        }
-
-        /* ========== TOP BAR ========== */
-        .top-bar {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 12px 24px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .search-global {
-            flex: 1;
-            max-width: 400px;
-            position: relative;
-        }
-
-        .search-global input {
-            width: 100%;
-            padding: 10px 18px 10px 42px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-            background: var(--gray-light);
-            font-size: 14px;
-        }
-
-        .search-global i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-
-        .user-area {
+        
+        .header-right {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-
+        
         .notif-icon {
             position: relative;
             cursor: pointer;
         }
-
+        
         .notif-badge {
             position: absolute;
             top: -8px;
@@ -169,1236 +90,1225 @@
             border-radius: 50%;
             padding: 2px 6px;
             font-size: 10px;
-            display: none;
+            min-width: 18px;
+            text-align: center;
         }
-
-        .user-avatar {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 50%;
+        
+        .status-online {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--success);
         }
-
-        /* ========== STAT CARDS ========== */
+        .status-online .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; }
+        .status-offline .dot { background: var(--warning); }
+        .status-offline { color: var(--warning); }
+        
+        .sidebar {
+            width: 260px;
+            position: fixed;
+            left: 0;
+            top: 62px;
+            bottom: 0;
+            background: var(--white);
+            border-right: 1px solid #e2e8f0;
+            padding: 16px 0;
+            overflow-y: auto;
+            z-index: 90;
+            transition: all 0.3s;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.2s;
+            margin: 2px 12px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .sidebar a i { width: 20px; font-size: 16px; }
+        .sidebar a:hover { background: var(--gray-light); color: var(--primary); }
+        .sidebar a.active { background: var(--primary-light); color: var(--primary); }
+        .sidebar a .badge-sidebar { margin-left: auto; }
+        
+        .sidebar .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--gray);
+            padding: 16px 24px 8px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 24px 32px;
+            min-height: calc(100vh - 62px);
+        }
+        
         .stat-card {
             background: var(--white);
-            border-radius: 20px;
-            padding: 20px;
-            transition: all 0.2s;
-            border: 1px solid #e2e8f0;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
             border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+            text-align: center;
         }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--dark);
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: var(--gray);
-            margin-top: 4px;
-        }
-
-        /* ========== CARDS ========== */
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .stat-card .number { font-size: 28px; font-weight: 800; color: var(--dark); }
+        .stat-card .label { font-size: 13px; color: var(--gray); }
+        .stat-card .icon { font-size: 28px; opacity: 0.7; }
+        
         .card-custom {
             background: var(--white);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 24px;
-            margin-bottom: 24px;
             border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
         }
-
-        .card-header-custom {
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 16px;
-            margin-bottom: 20px;
+        .card-custom .card-title {
             font-weight: 700;
             font-size: 18px;
+            margin-bottom: 16px;
         }
-
-        /* ========== FORMULAIRE UPLOAD ========== */
-        .upload-area {
-            border: 2px dashed #e2e8f0;
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .upload-area:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        /* ========== TABLEAU ========== */
-        .table-custom {
-            width: 100%;
-        }
-
+        
+        .table-custom { width: 100%; }
         .table-custom thead th {
             background: var(--gray-light);
-            padding: 14px 16px;
+            padding: 12px 16px;
             font-weight: 600;
             font-size: 13px;
             color: var(--gray);
         }
-
         .table-custom tbody td {
-            padding: 14px 16px;
+            padding: 12px 16px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
         }
-
-        /* ========== BADGES ========== */
-        .badge-custom {
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
+        
+        .badge-custom { padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 600; }
         .badge-brouillon { background: var(--gray-light); color: var(--gray); }
-        .badge-soumis { background: var(--warning-light); color: #d97706; }
+        .badge-revision { background: var(--warning-light); color: #d97706; }
         .badge-valide { background: var(--success-light); color: #059669; }
         .badge-rejete { background: var(--danger-light); color: #dc2626; }
-
-        /* ========== BOUTONS ========== */
+        .badge-publie { background: #dbeafe; color: #2563eb; }
+        .badge-obsolete { background: #e5e7eb; color: #6b7280; }
+        .badge-detruit { background: #f3f4f6; color: #9ca3af; }
+        
+        .btn-action-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .btn-action-sm {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--gray);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-action-sm:hover { background: var(--gray-light); color: var(--primary); }
+        .btn-action-sm.text-success:hover { color: var(--success); }
+        .btn-action-sm.text-danger:hover { color: var(--danger); }
+        .btn-action-sm.text-info:hover { color: var(--primary); }
+        
         .btn-primary-custom {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border: none;
-            padding: 10px 24px;
-            border-radius: 12px;
-            font-weight: 600;
             color: white;
-            transition: all 0.2s;
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(14,165,233,0.4);
-        }
-
-        .btn-outline-custom {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
             padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(14,165,233,0.4); }
+        
+        .workflow-visuel {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 12px;
+            background: var(--gray-light);
             border-radius: 12px;
-            transition: all 0.2s;
         }
-
-        .btn-outline-custom:hover {
-            background: var(--primary);
-            color: white;
+        .workflow-step {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--white);
+            border: 2px solid #e2e8f0;
         }
-
-        .btn-action {
-            background: transparent;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 8px;
-            transition: all 0.2s;
+        .workflow-step.active { border-color: var(--primary); background: var(--primary-light); }
+        .workflow-step.done { border-color: var(--success); background: var(--success-light); }
+        .workflow-step.rejected { border-color: var(--danger); background: var(--danger-light); }
+        .workflow-arrow { color: var(--gray); font-size: 14px; }
+        
+        .notif-dropdown {
+            position: absolute;
+            right: 0;
+            top: 45px;
+            width: 380px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border: 1px solid #e2e8f0;
+            display: none;
+            z-index: 200;
+            max-height: 400px;
+            overflow-y: auto;
         }
-
-        .btn-action:hover {
+        .notif-dropdown .notif-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+        }
+        .notif-dropdown .notif-item:hover { background: var(--gray-light); }
+        .notif-dropdown-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #notificationsList .list-group-item {
+            padding: 14px 18px;
+            border-left: 3px solid transparent;
+        }
+        #notificationsList .list-group-item:not(.list-group-item-primary) {
+            border-left-color: transparent;
+        }
+        #notificationsList .list-group-item-primary {
+            border-left-color: var(--primary);
+            background: var(--primary-light);
+        }
+        
+        .offline-banner {
+            background: var(--warning-light);
+            color: #d97706;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .offline-banner .count { font-weight: 700; }
+        
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .menu-toggle { display: block !important; }
+        }
+        .menu-toggle { display: none; }
+        .cursor-pointer { cursor: pointer; }
+        .loading { text-align: center; padding: 30px; color: var(--gray); }
+        
+        /* Modal aperçu PDF */
+        .pdf-preview { width: 100%; height: 500px; border: none; border-radius: 8px; }
+        .ocr-text { max-height: 200px; overflow-y: auto; background: var(--gray-light); padding: 16px; border-radius: 8px; font-size: 14px; }
+        
+        /* QR Code */
+        .qr-code { width: 150px; height: 150px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .profile-photo-wrap {
+            width: 120px; height: 120px; border-radius: 50%; overflow: hidden;
+            border: 3px solid var(--primary-light); margin: 0 auto 16px;
             background: var(--gray-light);
         }
-
-        /* ========== MODAL ========== */
-        .modal-modern .modal-content {
-            border-radius: 20px;
-            border: none;
-        }
-
-        .modal-modern .modal-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
-
-        .modal-modern .modal-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-
-        /* ========== PAGINATION ========== */
-        .pagination-custom .page-link {
-            border-radius: 10px;
-            margin: 0 3px;
-            color: var(--primary);
-            border: none;
-            padding: 8px 14px;
-        }
-
-        .pagination-custom .page-item.active .page-link {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* ========== TOAST ========== */
-        .toast-custom {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: var(--success);
-            color: white;
-            padding: 14px 24px;
+        .profile-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        #tabDashboard.tab-pane { display: block; }
+        .page-intro { margin-bottom: 20px; }
+        .page-intro h4 { font-weight: 700; margin-bottom: 4px; color: var(--dark); }
+        .page-intro p { color: var(--gray); font-size: 14px; margin: 0; }
+        .table-doc-wrap {
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            display: none;
-            z-index: 1100;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table-doc-wrap .table-custom { margin-bottom: 0; min-width: 640px; }
+        .table-doc-wrap thead th.col-actions,
+        .table-doc-wrap tbody td.col-actions {
+            position: sticky;
+            right: 0;
+            z-index: 3;
+            min-width: 118px;
+            text-align: center;
+            background: var(--white);
+            box-shadow: -6px 0 12px rgba(15, 23, 42, 0.06);
+        }
+        .table-doc-wrap thead th.col-actions { background: var(--gray-light); z-index: 4; }
+        tr.doc-pinned td.col-actions { background: #fffbeb; }
+        tr.doc-pinned { background: #fffbeb !important; }
+        .pin-icon { color: #f59e0b; margin-right: 6px; }
+        .docx-preview { font-size: 14px; line-height: 1.6; }
+        .docx-preview table { width: 100%; border-collapse: collapse; }
+        .doc-actions-cell {
+            display: inline-flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+        .btn-action-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+        }
+        .btn-action-icon:hover { background: var(--primary-light); border-color: var(--primary); }
+        .btn-action-more { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-action-more:hover { background: var(--primary-dark); color: #fff; }
+
+        /* Catégories sidebar */
+        .category-panel .card-title { font-size: 16px; }
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 4px 4px 0;
+            border-radius: 10px;
+            margin-bottom: 4px;
+        }
+        .category-item.active { background: var(--primary-light); }
+        .category-item .category-link {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            min-width: 0;
+        }
+        .category-item.active .category-link { color: var(--primary-dark); font-weight: 600; }
+        .category-item .category-link:hover { color: var(--primary); }
+        .category-item .category-btns {
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .category-item:hover .category-btns,
+        .category-item.active .category-btns { opacity: 1; }
+        .category-item .category-btns button {
+            width: 28px; height: 28px; border: none; background: transparent;
+            color: var(--gray); border-radius: 6px; cursor: pointer;
+        }
+        .category-item .category-btns button:hover { background: rgba(0,0,0,0.06); color: var(--primary); }
+        .category-item .category-btns .btn-del:hover { color: var(--danger); }
+        .category-new-box {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
         }
 
-        .toast-custom.error {
-            background: var(--danger);
+        /* Modal actions document */
+        .actions-modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        .actions-modal-grid .action-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .actions-modal-grid .action-tile:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        .actions-modal-grid .action-tile i { font-size: 20px; }
+
+        .doc-toolbar {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
         }
 
-        /* ========== RESPONSIVE ========== */
         @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .menu-toggle {
-                display: block !important;
-            }
+            .main-content { margin-left: 0; padding: 16px; }
+            .category-item .category-btns { opacity: 1; }
+        }
+        @media (max-width: 576px) {
+            .header { padding: 10px 14px; }
+            .header-right { gap: 10px; }
+            .card-custom { padding: 16px; }
+            .actions-modal-grid { grid-template-columns: repeat(2, 1fr); }
+            .workflow-visuel { flex-wrap: wrap; justify-content: center; gap: 8px; }
+            .workflow-arrow { display: none; }
         }
 
-        .cursor-pointer { cursor: pointer; }
-        .loading { text-align: center; padding: 50px; color: var(--gray); }
-        .text-muted-custom { color: var(--gray); }
+        /* Dashboard pro */
+        .stat-card-pro {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 100%;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .stat-card-pro:hover { box-shadow: 0 8px 24px rgba(15,23,42,0.08); transform: translateY(-2px); }
+        .stat-card-pro .stat-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .stat-card-pro .stat-icon.primary { background: var(--primary-light); color: var(--primary); }
+        .stat-card-pro .stat-icon.success { background: var(--success-light); color: var(--success); }
+        .stat-card-pro .stat-icon.warning { background: var(--warning-light); color: var(--warning); }
+        .stat-card-pro .stat-icon.danger { background: var(--danger-light); color: var(--danger); }
+        .stat-card-pro .stat-body .number { font-size: 26px; font-weight: 800; line-height: 1.1; color: var(--dark); }
+        .stat-card-pro .stat-body .label { font-size: 13px; color: var(--gray); margin-top: 2px; }
+
+        .quick-actions {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            padding: 16px; background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+            border: 1px solid #99f6e4; border-radius: 14px; margin-bottom: 24px;
+        }
+        .quick-actions .btn-quick {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; border-radius: 10px; border: 1px solid #e2e8f0;
+            background: #fff; color: var(--dark); font-size: 13px; font-weight: 600;
+            text-decoration: none; cursor: pointer; transition: all 0.15s;
+        }
+        .quick-actions .btn-quick:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+        .quick-actions .btn-quick.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .quick-actions .btn-quick.primary:hover { background: var(--primary-dark); }
+
+        .chart-card { margin-bottom: 0; }
+        .chart-card .card-title { font-size: 15px; margin-bottom: 12px; }
+
+        /* Formulaires structurés */
+        .form-section {
+            margin-bottom: 24px; padding-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .form-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .form-section-title {
+            font-size: 14px; font-weight: 700; color: var(--dark);
+            margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+        }
+        .form-section-title i { color: var(--primary); width: 18px; }
+        .form-field { margin-bottom: 0; }
+        .form-field label {
+            font-size: 12px; font-weight: 600; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .form-field label i { color: var(--primary); font-size: 11px; }
+        .form-actions-bar {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            padding-top: 16px; margin-top: 8px; border-top: 1px solid #f1f5f9;
+        }
+
+        /* Upload zone */
+        .upload-dropzone {
+            border: 2px dashed #cbd5e1; border-radius: 14px;
+            padding: 32px 20px; text-align: center; background: #f8fafc;
+            transition: border-color 0.2s, background 0.2s; cursor: pointer;
+        }
+        .upload-dropzone:hover, .upload-dropzone.dragover {
+            border-color: var(--primary); background: var(--primary-light);
+        }
+        .upload-dropzone i.main-icon { font-size: 40px; color: var(--primary); margin-bottom: 12px; }
+        .upload-dropzone .file-name { font-size: 13px; color: var(--primary-dark); font-weight: 600; margin-top: 8px; }
+        .upload-dropzone input[type=file] { display: none; }
+
+        /* Profil */
+        .profile-card-side {
+            text-align: center; padding: 28px 20px !important;
+        }
+        .profile-card-side .profile-name {
+            font-size: 18px; font-weight: 700; color: var(--dark); margin: 12px 0 4px;
+        }
+        .profile-card-side .profile-meta {
+            font-size: 13px; color: var(--gray); margin-bottom: 12px;
+        }
+        .profile-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; background: var(--primary-light); color: var(--primary-dark);
+        }
+        .profile-photo-btn {
+            margin-top: 12px;
+        }
+        .pref-card {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 16px; display: flex; align-items: center; gap: 12px;
+        }
     </style>
 </head>
 <body>
 
+<!-- ========== HEADER ========== -->
+<div class="header">
+    <div class="header-left">
+        <i class="fas fa-bars menu-toggle" id="menuToggle" style="cursor: pointer; font-size: 20px;"></i>
+        <div class="logo"><i class="fas fa-folder-open me-2"></i>GED-PME</div>
+    </div>
+    <div class="header-right">
+        <div class="status-online" id="connectionStatus">
+            <span class="dot"></span> Connecté
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="syncBtn" style="display:none;" onclick="syncOfflineActions()" title="Synchroniser">
+            <i class="fas fa-sync-alt me-1"></i> Sync
+        </button>
+        <div class="notif-icon" id="notifIcon">
+            <i class="fas fa-bell fs-5" style="color: var(--gray);"></i>
+            <span class="notif-badge" id="notifBadge">0</span>
+            <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <div class="dropdown">
+            <div class="user-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="user-avatar" id="userAvatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;color:white;font-weight:600;">U</div>
+                <span id="userName" style="font-weight:600;font-size:14px;">Chargement...</span>
+                <i class="fas fa-chevron-down" style="font-size:12px;color:var(--gray);"></i>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="$('.sidebar a[data-tab=profil]').click(); return false;"><i class="fas fa-user me-2"></i>Mon profil</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <!-- ========== SIDEBAR ========== -->
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h3><i class="fas fa-folder-open me-2"></i>GED-PME</h3>
-        <p>Espace employé</p>
-    </div>
-    <div class="sidebar-nav">
-        <a href="#" class="nav-link active" data-tab="dashboard">
-            <i class="fas fa-tachometer-alt"></i> Dashboard
-        </a>
-        <a href="#" class="nav-link" data-tab="mes-documents">
-            <i class="fas fa-folder"></i> Mes documents
-        </a>
-        <a href="#" class="nav-link" data-tab="ajouter">
-            <i class="fas fa-plus-circle"></i> Ajouter un document
-        </a>
-        <a href="#" class="nav-link" data-tab="recherche">
-            <i class="fas fa-search"></i> Recherche
-        </a>
-        <a href="#" class="nav-link" data-tab="partages">
-            <i class="fas fa-share-alt"></i> Documents partagés
-        </a>
-        <a href="#" class="nav-link" data-tab="notifications">
-            <i class="fas fa-bell"></i> Notifications
-            <span class="badge bg-danger rounded-pill ms-auto" id="notifSidebarBadge">0</span>
-        </a>
-        <a href="#" class="nav-link" data-tab="profil">
-            <i class="fas fa-user"></i> Mon profil
-        </a>
-        <hr class="mx-3 my-2">
-        <a href="#" class="nav-link" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Déconnexion
-        </a>
-    </div>
+    <div class="section-title">Navigation</div>
+    <a href="#" class="active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+    <a href="#" data-tab="documents"><i class="fas fa-folder"></i> Mes documents</a>
+    <a href="#" data-tab="upload"><i class="fas fa-upload"></i> Nouveau document</a>
+    <a href="#" data-tab="recherche"><i class="fas fa-search"></i> Recherche avancée</a>
+    <a href="#" data-tab="historique"><i class="fas fa-history"></i> Historique</a>
+    <a href="#" data-tab="favoris"><i class="fas fa-star"></i> Favoris</a>
+    <a href="#" data-tab="notifications"><i class="fas fa-bell"></i> Notifications <span class="badge bg-danger rounded-pill badge-sidebar" id="notifSidebarBadge">0</span></a>
+    <a href="#" data-tab="profil"><i class="fas fa-user"></i> Mon profil</a>
 </div>
 
 <!-- ========== MAIN CONTENT ========== -->
-<div class="main-content">
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div class="d-flex align-items-center gap-3">
-            <i class="fas fa-bars fs-4 menu-toggle" id="menuToggle" style="cursor: pointer; display: none;"></i>
-            <div class="search-global">
-                <i class="fas fa-search"></i>
-                <input type="text" id="globalSearch" placeholder="Rechercher un document..." onkeyup="if(event.key === 'Enter') loadDocuments()">
-            </div>
-        </div>
-        <div class="user-area">
-            <div class="notif-icon" id="notifIcon">
-                <i class="fas fa-bell fs-5" style="color: var(--gray);"></i>
-                <span class="notif-badge" id="notifBadge">0</span>
-            </div>
-            <div class="user-avatar" id="userAvatar" data-bs-toggle="modal" data-bs-target="#profileModal">
-                <span id="userInitial">U</span>
-            </div>
-        </div>
+<div class="main-content" id="mainContent">
+
+    <div class="offline-banner" id="offlineBanner">
+        <i class="fas fa-cloud-upload-alt me-2"></i>
+        <span><span class="count" id="offlineCount">0</span> action(s) en attente — synchronisation au retour en ligne ou via Sync</span>
     </div>
 
-    <!-- ========== TAB DASHBOARD ========== -->
+    <!-- ===== TAB DASHBOARD ===== -->
     <div id="tabDashboard" class="tab-pane">
-        <div class="mb-4">
-            <h4 class="fw-bold">Bonjour, <span id="welcomeName">Utilisateur</span></h4>
-            <p class="text-muted">Bienvenue sur votre espace documentaire</p>
+        <div class="page-intro">
+            <h4><i class="fas fa-tachometer-alt me-2 text-primary"></i>Tableau de bord</h4>
+            <p>Vue d'ensemble de votre activité documentaire.</p>
         </div>
 
-        <!-- Statistiques -->
-        <div class="row g-4 mb-4" id="statsGrid">
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon bg-primary-light text-primary"><i class="fas fa-file-alt fs-3"></i></div>
-                    <div class="stat-value" id="statTotal">0</div>
-                    <div class="stat-label">Mes documents</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock fs-3"></i></div>
-                    <div class="stat-value" id="statEnAttente">0</div>
-                    <div class="stat-label">En attente</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle fs-3"></i></div>
-                    <div class="stat-value" id="statValides">0</div>
-                    <div class="stat-label">Validés</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-share-alt fs-3"></i></div>
-                    <div class="stat-value" id="statPartages">0</div>
-                    <div class="stat-label">Documents partagés</div>
-                </div>
-            </div>
+        <div class="quick-actions">
+            <button type="button" class="btn-quick primary" onclick="openUpload()"><i class="fas fa-plus"></i>Nouveau document</button>
+            <button type="button" class="btn-quick" onclick="$('.sidebar a[data-tab=documents]').click()"><i class="fas fa-folder"></i>Mes documents</button>
+            <button type="button" class="btn-quick" onclick="$('.sidebar a[data-tab=recherche]').click()"><i class="fas fa-search"></i>Rechercher</button>
+            <button type="button" class="btn-quick" onclick="$('.sidebar a[data-tab=notifications]').click()"><i class="fas fa-bell"></i>Notifications</button>
         </div>
-
-        <!-- Graphiques -->
-        <div class="row g-4">
-            <div class="col-md-7">
-                <div class="card-custom">
-                    <div class="card-header-custom">
-                        <i class="fas fa-chart-line me-2 text-primary"></i> Évolution des documents
+        
+        <div class="row g-3 mb-4" id="statsGrid">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon primary"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statTotal">0</div>
+                        <div class="label">Documents</div>
                     </div>
-                    <canvas id="evolutionChart" height="100"></canvas>
                 </div>
             </div>
-            <div class="col-md-5">
-                <div class="card-custom">
-                    <div class="card-header-custom">
-                        <i class="fas fa-chart-pie me-2 text-primary"></i> Répartition par statut
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statValides">0</div>
+                        <div class="label">Validés</div>
                     </div>
-                    <canvas id="statusChart" height="180"></canvas>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statRevision">0</div>
+                        <div class="label">En révision</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon danger"><i class="fas fa-times-circle"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statRejetes">0</div>
+                        <div class="label">Rejetés</div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Derniers documents -->
-        <div class="card-custom mt-4">
-            <div class="card-header-custom">
-                <i class="fas fa-history me-2 text-primary"></i> Derniers documents
+        
+        <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+                <div class="card-custom chart-card mb-0">
+                    <div class="card-title"><i class="fas fa-chart-line me-2 text-primary"></i>Évolution par statut</div>
+                    <div style="position:relative;height:260px;"><canvas id="evolutionChart"></canvas></div>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="recentDocumentsBody">
-                        <tr><td colspan="5" class="loading">Chargement...<\/td><\/tr>
-                    </tbody>
-                </table>
+            <div class="col-lg-4">
+                <div class="card-custom chart-card mb-0">
+                    <div class="card-title"><i class="fas fa-chart-pie me-2 text-primary"></i>Répartition</div>
+                    <div style="position:relative;height:260px;"><canvas id="statusChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-custom mb-0">
+            <div class="card-title"><i class="fas fa-project-diagram me-2 text-primary"></i>Workflow documentaire</div>
+            <p class="text-muted small mb-3">Parcours standard d'un document dans GED-PME.</p>
+            <div class="workflow-visuel" id="workflowVisual">
+                <span class="workflow-step active" id="wfBrouillon">Brouillon</span>
+                <span class="workflow-arrow">→</span>
+                <span class="workflow-step" id="wfRevision">Révision</span>
+                <span class="workflow-arrow">→</span>
+                <span class="workflow-step" id="wfValide">Validé</span>
+                <span class="workflow-arrow">→</span>
+                <span class="workflow-step" id="wfPublie">Publié</span>
+                <span class="workflow-arrow" id="wfRejectArrow">→</span>
+                <span class="workflow-step rejected" id="wfRejete">Rejeté</span>
             </div>
         </div>
     </div>
 
-    <!-- ========== TAB MES DOCUMENTS ========== -->
-    <div id="tabMesDocuments" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                <h5 class="fw-bold"><i class="fas fa-folder me-2 text-primary"></i> Mes documents</h5>
-                <div class="d-flex gap-2">
-                    <select id="statusFilter" class="form-select form-select-sm" style="width: 150px;">
-                        <option value="">Tous les statuts</option>
-                        <option value="brouillon">Brouillon</option>
-                        <option value="soumis">En attente</option>
-                        <option value="valide">Validé</option>
-                        <option value="rejete">Rejeté</option>
-                    </select>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr>
-                            <th><i class="fas fa-file-alt"></i> Titre</th>
-                            <th><i class="fas fa-tag"></i> Catégorie</th>
-                            <th><i class="fas fa-calendar"></i> Date</th>
-                            <th><i class="fas fa-chart-simple"></i> Statut</th>
-                            <th><i class="fas fa-cog"></i> Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="documentsBody">
-                        <tr><td colspan="5" class="loading"><div class="spinner-border text-primary"></div> Chargement...<\/td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+    <!-- ===== TAB MES DOCUMENTS ===== -->
+    <div id="tabDocuments" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-folder me-2 text-primary"></i>Mes documents</h4>
+            <p>Organisez, filtrez et gérez vos fichiers par catégorie.</p>
         </div>
-    </div>
-
-    <!-- ========== TAB AJOUTER DOCUMENT ========== -->
-    <div id="tabAjouter" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <h5 class="fw-bold mb-4"><i class="fas fa-cloud-upload-alt me-2 text-primary"></i> Ajouter un document</h5>
-            
-            <form id="uploadForm">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Titre du document <span class="text-danger">*</span></label>
-                        <input type="text" id="docTitle" class="form-control" placeholder="Ex: Contrat de travail, Facture 2024...">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Catégorie</label>
-                        <select id="categorieId" class="form-select">
-                            <option value="">Sélectionner une catégorie</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Description</label>
-                        <textarea id="docDesc" class="form-control" rows="3" placeholder="Description optionnelle du document..."></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Fichier <span class="text-danger">*</span></label>
-                        <div class="upload-area" id="uploadArea">
-                            <i class="fas fa-cloud-upload-alt fs-1 text-primary mb-2"></i>
-                            <p class="mb-0">Cliquez ou glissez-déposez votre fichier ici</p>
-                            <small class="text-muted">PDF, DOCX, JPG, PNG, TXT (Max 16 Mo)</small>
-                            <input type="file" id="fileInput" class="d-none" accept=".pdf,.docx,.jpg,.png,.txt">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-4">
+                <div class="card-custom category-panel h-100 mb-0">
+                    <div class="card-title mb-3"><i class="fas fa-tags me-2 text-primary"></i>Catégories</div>
+                    <div id="categorySidebar"></div>
+                    <div class="category-new-box">
+                        <label class="form-label small fw-semibold mb-1">Nouvelle catégorie</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="sidebarNewCategorie" class="form-control" placeholder="Nom..." autocomplete="off">
+                            <button type="button" class="btn btn-primary" onclick="createCategoryFromSidebar()"><i class="fas fa-plus"></i></button>
                         </div>
-                        <div id="fileNameDisplay" class="mt-2 small text-muted"></div>
-                    </div>
-                    <div class="col-12">
-                        <button type="button" class="btn-primary-custom" onclick="uploadDocument()">
-                            <i class="fas fa-upload me-2"></i> Importer le document
-                        </button>
                     </div>
                 </div>
-            </form>
+            </div>
+            <div class="col-lg-9 col-md-8">
+                <div class="card-custom mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <span class="text-muted small" id="docListSubtitle">Tous les documents</span>
+                        <button type="button" class="btn-primary-custom btn-sm" onclick="openUpload()"><i class="fas fa-plus me-1"></i>Nouveau</button>
+                    </div>
+
+                    <div class="doc-toolbar d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="pasteBtn" onclick="pasteDocument()" disabled><i class="fas fa-paste me-1"></i>Coller</button>
+                        <span class="text-muted small flex-grow-1" id="clipboardHint">Copiez ou coupez un document pour le coller</span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-5 col-lg-4">
+                            <input type="text" id="docSearch" class="form-control form-control-sm" placeholder="Rechercher un titre..." autocomplete="off">
+                        </div>
+                        <div class="col-sm-4 col-lg-3">
+                            <select id="docCategorieFilter" class="form-select form-select-sm"><option value="">Toutes catégories</option></select>
+                        </div>
+                        <div class="col-sm-3 col-lg-3">
+                            <select id="docStatutFilter" class="form-select form-select-sm">
+                                <option value="">Tous statuts</option>
+                                <option value="brouillon">Brouillon</option>
+                                <option value="soumis">En révision</option>
+                                <option value="valide">Validé</option>
+                                <option value="rejete">Rejeté</option>
+                                <option value="publie">Publié</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-12 col-lg-2 d-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-primary flex-grow-1" onclick="loadDocuments()"><i class="fas fa-filter me-1"></i>Filtrer</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetDocFilters()" title="Réinitialiser"><i class="fas fa-redo"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="table-doc-wrap">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th class="hide-mobile d-none d-md-table-cell">Catégorie</th>
+                                    <th class="d-none d-lg-table-cell">Version</th>
+                                    <th class="d-none d-sm-table-cell">Date</th>
+                                    <th>Statut</th>
+                                    <th class="col-actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsList">
+                                <tr><td colspan="6" class="loading"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="documentsPagination" class="d-flex justify-content-center mt-3"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ========== TAB RECHERCHE ========== -->
+    <!-- ===== TAB UPLOAD ===== -->
+    <div id="tabUpload" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-cloud-upload-alt me-2 text-primary"></i>Nouveau document</h4>
+            <p>Déposez un fichier, renseignez les métadonnées et assignez une catégorie.</p>
+        </div>
+        <div class="card-custom">
+                    <form id="uploadForm" autocomplete="off" onsubmit="submitDocumentUpload(); return false;">
+                        <div class="form-section">
+                            <div class="form-section-title"><i class="fas fa-file-alt"></i>Informations du document</div>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-heading"></i>Titre <span class="text-danger">*</span></label>
+                                        <input type="text" id="docTitre" name="ged_document_titre" class="form-control" placeholder="Ex: Rapport mensuel, Facture client..." autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-align-left"></i>Description</label>
+                                        <textarea id="docDesc" name="ged_document_desc" class="form-control" rows="3" placeholder="Description optionnelle..." autocomplete="off"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="form-section-title"><i class="fas fa-folder"></i>Catégorisation</div>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-tag"></i>Catégorie</label>
+                                        <select id="docCategorie" name="ged_document_categorie" class="form-select" autocomplete="off"><option value="">Sans catégorie</option></select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="p-3 border rounded bg-light">
+                                        <label class="form-label small fw-semibold mb-2"><i class="fas fa-plus-circle me-1 text-primary"></i>Créer une catégorie</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="newCategorieNom" name="ged_categorie_nom" class="form-control" placeholder="Ex: Factures, RH, Contrats..." autocomplete="off">
+                                            <button type="button" class="btn btn-outline-primary" onclick="createCategory()">Créer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="form-section-title"><i class="fas fa-paperclip"></i>Fichier <span class="text-danger">*</span></div>
+                            <label class="upload-dropzone d-block mb-0" id="uploadDropzone" for="docFile">
+                                <i class="fas fa-cloud-upload-alt main-icon"></i>
+                                <div class="fw-semibold">Glissez-déposez ou cliquez pour choisir un fichier</div>
+                                <div class="file-name" id="uploadFileName"></div>
+                            </label>
+                            <input type="file" id="docFile" name="ged_document_file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv,.json,.xml,.html,.jpg,.jpeg,.png,.gif,.webp,.mp4,.mp3,.wav,.zip">
+                        </div>
+                        <div class="form-actions-bar">
+                            <button type="submit" class="btn-primary-custom" id="uploadBtn"><i class="fas fa-upload me-2"></i>Uploader le document</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="$('#uploadForm')[0].reset(); $('#uploadFileName').text('');"><i class="fas fa-undo me-1"></i>Réinitialiser</button>
+                        </div>
+                    </form>
+                </div>
+    </div>
+
+    <!-- ===== TAB RECHERCHE ===== -->
     <div id="tabRecherche" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <h5 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i> Recherche avancée</h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" id="searchTitle" class="form-control" placeholder="Nom du document">
+        <div class="page-intro">
+            <h4><i class="fas fa-search me-2 text-primary"></i>Recherche avancée</h4>
+            <p>Combinez plusieurs critères pour retrouver rapidement vos documents.</p>
+        </div>
+        <div class="card-custom mb-4">
+            <div class="form-section mb-0 pb-0 border-0">
+                <div class="form-section-title"><i class="fas fa-filter"></i>Critères de recherche</div>
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="form-field">
+                            <label><i class="fas fa-heading"></i>Titre</label>
+                            <input type="text" id="searchTitre" class="form-control" placeholder="Mot-clé dans le titre" autocomplete="off" name="ged_search_titre">
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="form-field">
+                            <label><i class="fas fa-folder"></i>Catégorie</label>
+                            <select id="searchCategorie" class="form-select"><option value="">Toutes catégories</option></select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="form-field">
+                            <label><i class="fas fa-flag"></i>Statut</label>
+                            <select id="searchStatut" class="form-select">
+                                <option value="">Tous statuts</option>
+                                <option value="brouillon">Brouillon</option>
+                                <option value="soumis">En révision</option>
+                                <option value="valide">Validé</option>
+                                <option value="rejete">Rejeté</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="form-field">
+                            <label><i class="fas fa-file-image"></i>Contenu OCR</label>
+                            <input type="text" id="searchOCR" class="form-control" placeholder="Texte extrait du document" autocomplete="off" name="ged_search_ocr">
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <select id="searchCategorie" class="form-select">
-                        <option value="">Toutes les catégories</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <select id="searchStatus" class="form-select">
-                        <option value="">Tous les statuts</option>
-                        <option value="brouillon">Brouillon</option>
-                        <option value="soumis">En attente</option>
-                        <option value="valide">Validé</option>
-                        <option value="rejete">Rejeté</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <button class="btn-primary-custom" onclick="advancedSearch()">
-                        <i class="fas fa-search me-2"></i> Rechercher
-                    </button>
-                    <button class="btn-outline-custom ms-2" onclick="resetAdvancedSearch()">
-                        <i class="fas fa-undo me-2"></i> Réinitialiser
-                    </button>
+                <div class="form-actions-bar">
+                    <button type="button" class="btn-primary-custom" onclick="advancedSearch()"><i class="fas fa-search me-2"></i>Lancer la recherche</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="resetAdvancedSearch()"><i class="fas fa-redo me-1"></i>Réinitialiser</button>
                 </div>
             </div>
         </div>
-
-        <div class="card-custom mt-4">
-            <h5 class="fw-bold mb-3"><i class="fas fa-list me-2 text-primary"></i> Résultats</h5>
-            <div class="table-responsive">
+        <div class="card-custom mb-0">
+            <div class="card-title"><i class="fas fa-list me-2 text-primary"></i>Résultats</div>
+            <div class="table-doc-wrap">
                 <table class="table-custom">
-                    <thead>
-                        <tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="searchResultsBody">
-                        <tr><td colspan="5" class="text-center py-4 text-muted">Utilisez les filtres ci-dessus pour rechercher<\/td><\/tr>
-                    </tbody>
+                    <thead><tr><th>Titre</th><th class="d-none d-md-table-cell">Catégorie</th><th class="d-none d-sm-table-cell">Date</th><th>Statut</th><th class="col-actions">Actions</th></tr></thead>
+                    <tbody id="searchResults"><tr><td colspan="5" class="text-center py-4 text-muted">Utilisez les filtres ci-dessus pour lancer une recherche</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ========== TAB DOCUMENTS PARTAGÉS ========== -->
-    <div id="tabPartages" class="tab-pane" style="display: none;">
+    <!-- ===== TAB HISTORIQUE ===== -->
+    <div id="tabHistorique" class="tab-pane" style="display: none;">
         <div class="card-custom">
-            <h5 class="fw-bold mb-3"><i class="fas fa-share-alt me-2 text-primary"></i> Documents partagés avec moi</h5>
+            <div class="card-title"><i class="fas fa-history me-2 text-primary"></i> Historique des actions</div>
             <div class="table-responsive">
                 <table class="table-custom">
-                    <thead>
-                        <tr><th>Titre</th><th>Partagé par</th><th>Date</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="sharedDocumentsBody">
-                        <tr><td colspan="4" class="text-center py-4 text-muted">Aucun document partagé<\/td><\/tr>
-                    </tbody>
+                    <thead><tr><th>Document</th><th>Action</th><th>Date</th></tr></thead>
+                    <tbody id="historiqueList"><tr><td colspan="3" class="loading">Chargement...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ========== TAB NOTIFICATIONS ========== -->
+    <!-- ===== TAB FAVORIS ===== -->
+    <div id="tabFavoris" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-star me-2 text-warning"></i>Favoris</h4>
+            <p>Vos documents marqués comme favoris.</p>
+        </div>
+        <div class="card-custom">
+            <div class="table-doc-wrap">
+                <table class="table-custom">
+                    <thead><tr><th>Titre</th><th class="d-none d-md-table-cell">Catégorie</th><th>Statut</th><th class="col-actions">Actions</th></tr></thead>
+                    <tbody id="favorisList"><tr><td colspan="4" class="text-center py-4 text-muted">Aucun favori</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TAB NOTIFICATIONS ===== -->
     <div id="tabNotifications" class="tab-pane" style="display: none;">
         <div class="card-custom">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold"><i class="fas fa-bell me-2 text-primary"></i> Notifications</h5>
-                <button class="btn btn-sm btn-outline-secondary" onclick="marquerToutLu()">
-                    <i class="fas fa-check-double"></i> Tout marquer comme lu
-                </button>
+                <div class="card-title mb-0"><i class="fas fa-bell me-2 text-primary"></i> Notifications</div>
+                <button class="btn btn-sm btn-outline-secondary" onclick="markAllNotifsRead()"><i class="fas fa-check-double me-1"></i>Tout marquer lu</button>
             </div>
-            <div id="notificationsList">
-                <div class="text-center py-4 text-muted">Chargement...</div>
-            </div>
+            <div id="notificationsList"><div class="text-center py-4 text-muted">Chargement...</div></div>
         </div>
     </div>
 
-    <!-- ========== TAB PROFIL ========== -->
+    <!-- ===== TAB PROFIL ===== -->
     <div id="tabProfil" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <h5 class="fw-bold mb-4"><i class="fas fa-user-circle me-2 text-primary"></i> Mon profil</h5>
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Nom complet</label>
-                    <input type="text" id="profileNom" class="form-control" readonly>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Email</label>
-                    <input type="email" id="profileEmail" class="form-control" readonly>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Téléphone</label>
-                    <input type="tel" id="profileTelephone" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Service</label>
-                    <input type="text" id="profileService" class="form-control" placeholder="Votre service">
-                </div>
-                <div class="col-12">
-                    <label class="form-label fw-semibold">Nouveau mot de passe</label>
-                    <input type="password" id="profilePassword" class="form-control" placeholder="Laisser vide pour ne pas changer">
-                </div>
-                <div class="col-12">
-                    <button class="btn-primary-custom" onclick="updateProfile()">
-                        <i class="fas fa-save me-2"></i> Enregistrer les modifications
-                    </button>
-                </div>
-            </div>
+        <div class="page-intro">
+            <h4><i class="fas fa-user-circle me-2 text-primary"></i>Mon profil</h4>
+            <p>Gérez vos informations personnelles et vos préférences de notification.</p>
         </div>
-    </div>
-</div>
-
-<!-- ========== MODAL PROFIL ========== -->
-<div class="modal fade modal-modern" id="profileModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-user-circle me-2"></i> Mon profil</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center mb-3">
-                    <div class="user-avatar mx-auto" style="width: 80px; height: 80px; font-size: 32px;">
-                        <span id="modalUserInitial">U</span>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card-custom profile-card-side">
+                    <div class="profile-photo-wrap mx-auto">
+                        <img id="profilePhotoPreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ecfeff'/%3E%3Ctext x='50' y='58' text-anchor='middle' fill='%230891b2' font-size='40' font-family='Arial'%3EU%3C/text%3E%3C/svg%3E" alt="Photo">
                     </div>
+                    <div class="profile-name" id="profileDisplayName">—</div>
+                    <div class="profile-meta" id="profileDisplayRole">—</div>
+                    <span class="profile-badge" id="profileDisplayBadge">Employé</span>
+                    <div class="profile-photo-btn">
+                        <label class="btn btn-sm btn-outline-primary mb-0" for="profilePhotoInput"><i class="fas fa-camera me-1"></i>Changer la photo</label>
+                        <input type="file" id="profilePhotoInput" class="d-none" accept="image/*" onchange="uploadProfilePhoto()">
+                    </div>
+                    <small class="text-muted d-block mt-2">JPG ou PNG, max 2 Mo</small>
                 </div>
-                <p><strong>Nom:</strong> <span id="modalUserName">-</span></p>
-                <p><strong>Email:</strong> <span id="modalUserEmail">-</span></p>
-                <p><strong>Rôle:</strong> Employé</p>
+            </div>
+            <div class="col-lg-8">
+                <div class="card-custom">
+                    <form id="profileForm" autocomplete="on" onsubmit="saveProfile(); return false;">
+                        <div class="form-section">
+                            <div class="form-section-title"><i class="fas fa-id-card"></i>Identité</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-user"></i>Nom complet</label>
+                                        <input type="text" id="profileNom" name="ged_profile_nom" class="form-control" readonly autocomplete="name">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-envelope"></i>Email</label>
+                                        <input type="email" id="profileEmail" name="ged_profile_email" class="form-control" readonly autocomplete="email">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="form-section-title"><i class="fas fa-briefcase"></i>Informations professionnelles</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-phone"></i>Téléphone</label>
+                                        <input type="tel" id="profileTelephone" name="ged_profile_tel" class="form-control" placeholder="+243..." autocomplete="tel">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-user-tie"></i>Poste / Fonction</label>
+                                        <input type="text" id="profilePoste" name="ged_profile_poste" class="form-control" placeholder="Ex: Comptable" autocomplete="organization-title">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-building"></i>Service / Département</label>
+                                        <input type="text" id="profileService" name="ged_profile_service" class="form-control" placeholder="Ex: Finance" autocomplete="organization">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section mb-0 pb-0 border-0">
+                            <div class="form-section-title"><i class="fas fa-bell"></i>Préférences</div>
+                            <div class="pref-card flex-column align-items-stretch">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="profileNotifyWhatsapp" name="ged_profile_whatsapp">
+                                    <label class="form-check-label" for="profileNotifyWhatsapp"><i class="fab fa-whatsapp me-1 text-success"></i>Recevoir les alertes importantes via WhatsApp</label>
+                                </div>
+                                <p class="small text-muted mb-2">Validation, rejet, publication ou soumission de vos documents — message automatique sur votre WhatsApp.</p>
+                                <div id="whatsappSetupHint" class="small border rounded p-2 bg-white mb-2 d-none"></div>
+                                <div id="whatsappStatusBadge" class="mb-2"></div>
+                                <div class="form-field mb-2" id="whatsappApiKeyField">
+                                    <label class="small fw-semibold"><i class="fas fa-key me-1"></i>Clé API CallMeBot <span class="text-muted fw-normal">(gratuit, personnel)</span></label>
+                                    <input type="text" id="profileWhatsappApiKey" name="ged_whatsapp_api_key" class="form-control form-control-sm" placeholder="Ex: 12345678" autocomplete="off">
+                                    <small class="text-muted d-block mt-1">
+                                        1. Ajoutez le contact CallMeBot (<strong>+34 684 72 39 62</strong>)<br>
+                                        2. Envoyez : <em>I allow callmebot to send me messages</em>
+                                        <a href="https://wa.me/34684723962?text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" rel="noopener" class="ms-1"><i class="fab fa-whatsapp text-success"></i>Ouvrir WhatsApp</a><br>
+                                        3. Copiez la clé reçue et collez-la ici, puis <strong>Enregistrer le profil</strong>
+                                    </small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-success align-self-start" onclick="testWhatsappAlert()"><i class="fab fa-whatsapp me-1"></i>Tester l'envoi WhatsApp</button>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="form-section-title"><i class="fas fa-shield-alt"></i>Double authentification (2FA)</div>
+                            <p class="small text-muted mb-3">Protégez votre compte avec un code à 6 chiffres (Google Authenticator, Microsoft Authenticator…).</p>
+                            <div id="twofaStatus" class="mb-3"><span class="badge bg-secondary">Chargement…</span></div>
+                            <div id="twofaSetupPanel" class="d-none">
+                                <img id="twofaQrImg" class="d-none mb-3 rounded border" alt="QR code 2FA" width="180" height="180">
+                                <p class="small mb-2">Secret manuel (si besoin) :</p>
+                                <code id="twofaSecretDisplay" class="d-block p-2 bg-light rounded mb-2 user-select-all"></code>
+                                <div class="form-field mb-2">
+                                    <label>Code de vérification</label>
+                                    <input type="text" id="twofaEnableCode" class="form-control" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success" onclick="confirmEnable2FA()"><i class="fas fa-check me-1"></i>Activer la 2FA</button>
+                            </div>
+                            <div id="twofaDisablePanel" class="d-none">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <input type="password" id="twofaDisablePassword" class="form-control form-control-sm" placeholder="Mot de passe" autocomplete="current-password">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" id="twofaDisableCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" placeholder="Code 2FA" autocomplete="one-time-code">
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="disable2FA()"><i class="fas fa-times me-1"></i>Désactiver la 2FA</button>
+                            </div>
+                            <button type="button" id="twofaSetupBtn" class="btn btn-sm btn-outline-primary d-none" onclick="start2FASetup()"><i class="fas fa-qrcode me-1"></i>Configurer la 2FA</button>
+                        </div>
+                        <div class="form-actions-bar">
+                            <button type="submit" class="btn-primary-custom"><i class="fas fa-save me-2"></i>Enregistrer le profil</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="openPasswordModal()"><i class="fas fa-key me-2"></i>Changer le mot de passe</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ========== MODAL MOTIF REJET ========== -->
-<div class="modal fade modal-modern" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- ========== MODALS ========== -->
+
+<!-- Modal Voir Document -->
+<div class="modal fade" id="viewDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i> Motif du rejet</h5>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-file-alt me-2"></i><span id="viewDocTitle">Document</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewDocBody">
+                <div class="text-center py-4"><div class="spinner-border text-primary"></div> Chargement...</div>
+            </div>
+            <div class="modal-footer flex-wrap gap-2">
+                <button type="button" class="btn btn-primary btn-sm" onclick="downloadCurrentDoc()"><i class="fas fa-download me-1"></i>Télécharger</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="printCurrentDoc()"><i class="fas fa-print me-1"></i>Imprimer</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="shareWhatsApp()"><i class="fab fa-whatsapp me-1"></i>WhatsApp</button>
+                <button type="button" class="btn btn-info btn-sm text-white" onclick="openEmailModal()"><i class="fas fa-envelope me-1"></i>Envoyer par email</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="shareCurrentDoc()"><i class="fas fa-share-alt me-1"></i>Partager</button>
+                <button type="button" class="btn btn-outline-dark btn-sm" onclick="viewHistory()"><i class="fas fa-history me-1"></i>Versions</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="runOCR()"><i class="fas fa-font me-1"></i>OCR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal OCR -->
+<div class="modal fade" id="ocrModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-robot me-2"></i>OCR - Reconnaissance de texte</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p id="rejectMotifText" class="text-muted">Chargement...</p>
+                <div class="ocr-text" id="ocrResult">Lancement de l'OCR...</div>
+                <div class="mt-2">
+                    <input type="text" id="ocrSearch" class="form-control form-control-sm" placeholder="Rechercher dans le texte OCR">
+                    <button class="btn btn-sm btn-primary mt-1" onclick="searchOCR()"><i class="fas fa-search"></i> Rechercher</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal QR Code -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="fas fa-qrcode me-2"></i>QR Code</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="qrCodeImage" alt="QR Code" class="img-fluid mb-2" style="max-width:200px;">
+                <p class="mt-2 small text-muted text-break" id="qrShareUrl"></p>
+                <p class="small">Scannez pour ouvrir ce document</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Actions document -->
+<div class="modal fade" id="docActionsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fs-6"><i class="fas fa-bolt me-2"></i>Actions — <span id="docActionsTitle">Document</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="docActionsBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modifier catégorie -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fs-6"><i class="fas fa-edit me-2"></i>Modifier la catégorie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form autocomplete="off" onsubmit="saveCategoryEdit(); return false;">
+            <div class="modal-body">
+                <input type="hidden" id="editCategoryId">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Nom</label>
+                    <input type="text" id="editCategoryNom" class="form-control" required autocomplete="off">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label fw-semibold small">Description</label>
+                    <textarea id="editCategoryDesc" class="form-control" rows="2" autocomplete="off"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Enregistrer</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Déplacer document -->
+<div class="modal fade" id="deplacerModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-folder me-2"></i>Déplacer vers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-semibold">Catégorie destination</label>
+                <select id="selectCategorieDeplacement" class="form-select"></select>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-warning" onclick="confirmerDeplacement()"><i class="fas fa-check me-1"></i>Déplacer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Email -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-envelope me-2"></i>Envoyer le document par email</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form autocomplete="off" onsubmit="sendDocumentEmail(); return false;">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email du destinataire</label>
+                    <input type="email" id="emailDest" name="ged_email_dest" class="form-control" placeholder="exemple@entreprise.cd" autocomplete="email">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea id="emailMessage" name="ged_email_message" class="form-control" rows="3" autocomplete="off"></textarea>
+                </div>
+                <p class="small text-muted mb-0"><i class="fas fa-info-circle me-1"></i>Le fichier sera joint automatiquement si le serveur SMTP est configuré, sinon il sera téléchargé pour pièce jointe manuelle.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i>Envoyer</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Mot de passe -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-key me-2"></i>Changer le mot de passe</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="passwordForm" autocomplete="off" onsubmit="savePassword(); return false;">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nouveau mot de passe</label>
+                    <input type="password" id="profilePasswordNew" name="ged_new_password" class="form-control" autocomplete="new-password" minlength="6" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Confirmer le mot de passe</label>
+                    <input type="password" id="profilePasswordConfirm" name="ged_confirm_password" class="form-control" autocomplete="new-password" minlength="6" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Enregistrer</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Historique Versions -->
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-history me-2"></i>Historique des versions</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="historyBody">
+                <div class="text-center py-4">Chargement...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Workflow -->
+<div class="modal fade" id="workflowModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-project-diagram me-2"></i>Workflow du document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="workflowBody">
+                <div class="workflow-visuel">
+                    <span class="workflow-step">Brouillon</span>
+                    <span class="workflow-arrow">→</span>
+                    <span class="workflow-step">Révision</span>
+                    <span class="workflow-arrow">→</span>
+                    <span class="workflow-step">Validé</span>
+                    <span class="workflow-arrow">→</span>
+                    <span class="workflow-step">Publié</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- ========== TOAST ========== -->
-<div id="customToast" class="toast-custom">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage"></span>
-</div>
+<div id="toastMessage" style="position:fixed;bottom:24px;right:24px;background:#10b981;color:white;padding:14px 24px;border-radius:12px;display:none;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);"></div>
 
+<!-- ========== SCRIPTS ========== -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-// ============================================
-// VARIABLES GLOBALES
-// ============================================
-const token = localStorage.getItem('token');
-if (!token) window.location.href = '/login';
-
-let currentPage = 1;
-let totalPages = 1;
-let currentTab = 'dashboard';
-let evolutionChart = null;
-let statusChart = null;
-const itemsPerPage = 10;
-
-// ============================================
-// UTILITAIRES
-// ============================================
-function showToast(msg, isError = false) {
-    const toast = $('#customToast');
-    $('#toastMessage').text(msg);
-    if (isError) {
-        toast.css('background', '#ef4444');
-    } else {
-        toast.css('background', '#10b981');
-    }
-    toast.css('display', 'flex');
-    setTimeout(() => toast.fadeOut(300), 3000);
-}
-
-function formatDate(dateStr) {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-function logout() {
-    localStorage.clear();
-    window.location.href = '/login';
-}
-
-// ============================================
-// NAVIGATION
-// ============================================
-$('.sidebar-nav .nav-link').click(function(e) {
-    e.preventDefault();
-    $('.sidebar-nav .nav-link').removeClass('active');
-    $(this).addClass('active');
-    
-    const tab = $(this).data('tab');
-    currentTab = tab;
-    
-    $('.tab-pane').hide();
-    if (tab === 'dashboard') {
-        $('#tabDashboard').show();
-        loadStats();
-        loadRecentDocuments();
-    } else if (tab === 'mes-documents') {
-        $('#tabMesDocuments').show();
-        loadDocuments();
-    } else if (tab === 'ajouter') {
-        $('#tabAjouter').show();
-    } else if (tab === 'recherche') {
-        $('#tabRecherche').show();
-        loadCategoriesForSearch();
-    } else if (tab === 'partages') {
-        $('#tabPartages').show();
-        loadSharedDocuments();
-    } else if (tab === 'notifications') {
-        $('#tabNotifications').show();
-        loadNotifications();
-    } else if (tab === 'profil') {
-        $('#tabProfil').show();
-        loadProfile();
-    }
-    
-    if (window.innerWidth <= 992) $('#sidebar').removeClass('open');
-});
-
-$('#menuToggle').click(() => $('#sidebar').toggleClass('open'));
-
-// ============================================
-// USER INFO
-// ============================================
-async function loadUserInfo() {
-    try {
-        const res = await fetch('/api/user/profile', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.success) {
-            $('#userInitial').text(data.nom.charAt(0).toUpperCase());
-            $('#welcomeName').text(data.nom);
-            $('#profileNom').val(data.nom);
-            $('#profileEmail').val(data.email);
-            $('#profileTelephone').val(data.telephone || '');
-            $('#modalUserName').text(data.nom);
-            $('#modalUserEmail').text(data.email);
-            $('#modalUserInitial').text(data.nom.charAt(0).toUpperCase());
-        }
-    } catch(e) { console.error('Erreur chargement profil:', e); }
-}
-loadUserInfo();
-
-// ============================================
-// STATISTIQUES
-// ============================================
-async function loadStats() {
-    try {
-        const res = await fetch('/documents/stats', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const stats = data.stats || { total: 0, en_attente: 0, valides: 0, rejetes: 0 };
-        
-        $('#statTotal').text(stats.total || 0);
-        $('#statEnAttente').text(stats.en_attente || 0);
-        $('#statValides').text(stats.valides || 0);
-        
-        // Graphique évolution
-        if (evolutionChart) evolutionChart.destroy();
-        const ctx = document.getElementById('evolutionChart').getContext('2d');
-        evolutionChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
-                datasets: [{ label: 'Documents', data: [0, 0, 0, 0, 0, stats.total || 0], borderColor: '#0ea5e9', tension: 0.3 }]
-            },
-            options: { responsive: true }
-        });
-        
-        // Graphique statuts
-        if (statusChart) statusChart.destroy();
-        const ctx2 = document.getElementById('statusChart').getContext('2d');
-        statusChart = new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-                labels: ['En attente', 'Validés', 'Rejetés'],
-                datasets: [{ data: [stats.en_attente || 0, stats.valides || 0, stats.rejetes || 0], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'] }]
-            },
-            options: { responsive: true }
-        });
-        
-        // Badge notifications
-        $('#notifSidebarBadge').text(stats.en_attente || 0);
-        if (stats.en_attente > 0) {
-            $('#notifBadge').css('display', 'inline-block').text(stats.en_attente);
-        } else {
-            $('#notifBadge').css('display', 'none');
-        }
-    } catch(e) { console.error('Stats error:', e); }
-}
-
-// ============================================
-// DERNIERS DOCUMENTS
-// ============================================
-async function loadRecentDocuments() {
-    try {
-        const res = await fetch('/documents?page=1&limit=5', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const docs = data.documents || [];
-        
-        if (docs.length === 0) {
-            $('#recentDocumentsBody').html('<td><td colspan="5" class="text-center py-4 text-muted">Aucun document<\/td><\/tr>');
-            return;
-        }
-        
-        let html = '';
-        for (let doc of docs.slice(0, 5)) {
-            let badge = '';
-            if (doc.statut === 'brouillon') badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
-            else if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
-            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
-            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
-            
-            html += `<tr>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_creation)}<\/td>
-                <td>${badge}<\/td>
-                <td>
-                    <button class="btn-action" onclick="visualiserDocument(${doc.id})" title="Consulter"><i class="fas fa-eye text-primary"></i><\/button>
-                    <button class="btn-action" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download text-success"></i><\/button>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#recentDocumentsBody').html(html);
-    } catch(e) { console.error(e); }
-}
-
-// ============================================
-// MES DOCUMENTS
-// ============================================
-async function loadDocuments() {
-    const status = $('#statusFilter').val();
-    let url = `/documents?page=${currentPage}&limit=${itemsPerPage}`;
-    if (status) url += `&statut=${status}`;
-    
-    $('#documentsBody').html('<tr><td colspan="5" class="loading"><div class="spinner-border text-primary"></div> Chargement...<\/td><\/tr>');
-    
-    try {
-        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-        const data = await res.json();
-        const documents = data.documents || [];
-        totalPages = data.total_pages || 1;
-        
-        if (documents.length === 0) {
-            $('#documentsBody').html('<td><td colspan="5" class="text-center py-4 text-muted">Aucun document trouvé<\/td><\/tr>');
-            return;
-        }
-        
-        let html = '';
-        for (let doc of documents) {
-            let badge = '';
-            if (doc.statut === 'brouillon') badge = '<span class="badge-custom badge-brouillon"><i class="fas fa-pencil-alt"></i> Brouillon</span>';
-            else if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis"><i class="fas fa-clock"></i> En attente</span>';
-            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide"><i class="fas fa-check-circle"></i> Validé</span>';
-            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete"><i class="fas fa-times-circle"></i> Rejeté</span>';
-            
-            html += `<tr>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_creation)}<\/td>
-                <td>${badge}<\/td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn-action" onclick="visualiserDocument(${doc.id})" title="Consulter"><i class="fas fa-eye text-primary"></i><\/button>
-                        <button class="btn-action" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download text-success"></i><\/button>
-                        ${doc.statut === 'brouillon' ? `<button class="btn-action" onclick="modifierDocument(${doc.id})" title="Modifier"><i class="fas fa-edit text-warning"></i><\/button>
-                        <button class="btn-action" onclick="soumettreDocument(${doc.id})" title="Soumettre"><i class="fas fa-paper-plane text-info"></i><\/button>` : ''}
-                        ${doc.statut === 'rejete' ? `<button class="btn-action" onclick="voirMotifRejet(${doc.id})" title="Motif"><i class="fas fa-comment-dots text-danger"></i><\/button>` : ''}
-                        <button class="btn-action" onclick="supprimerDocument(${doc.id})" title="Supprimer"><i class="fas fa-trash text-secondary"></i><\/button>
-                        <button class="btn-action" onclick="partagerDocument(${doc.id}, '${escapeHtml(doc.titre)}')" title="Partager"><i class="fas fa-share-alt text-success"></i><\/button>
-                    </div>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#documentsBody').html(html);
-        renderPagination();
-    } catch(e) { console.error('Load error:', e); }
-}
-
-function renderPagination() {
-    if (totalPages <= 1) { $('#pagination').empty(); return; }
-    let html = '<nav><ul class="pagination pagination-custom">';
-    for (let i = 1; i <= totalPages; i++) {
-        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
-    }
-    html += '</ul></nav>';
-    $('#pagination').html(html);
-}
-
-function changePage(page) { currentPage = page; loadDocuments(); }
-function resetFilters() { $('#statusFilter').val(''); currentPage = 1; loadDocuments(); }
-
-// ============================================
-// ACTIONS DOCUMENTS
-// ============================================
-function visualiserDocument(id) {
-    window.open(`/documents/${id}/download?token=${token}`, '_blank');
-}
-
-function telechargerDocument(id) {
-    window.open(`/documents/${id}/download?token=${token}`, '_blank');
-}
-
-async function soumettreDocument(id) {
-    try {
-        const res = await fetch(`/documents/${id}/soumettre`, {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        if (res.ok) {
-            showToast('Document soumis avec succès');
-            loadDocuments();
-            loadStats();
-        } else {
-            showToast('Erreur lors de la soumission', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-async function modifierDocument(id) {
-    const nouveauTitre = prompt("Nouveau titre du document :");
-    if (!nouveauTitre) return;
-    
-    try {
-        const res = await fetch(`/documents/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ titre: nouveauTitre })
-        });
-        if (res.ok) {
-            showToast('Document modifié');
-            loadDocuments();
-        } else {
-            showToast('Erreur', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-async function supprimerDocument(id) {
-    if (!confirm('Voulez-vous vraiment supprimer ce document ?')) return;
-    try {
-        const res = await fetch(`/documents/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        if (res.ok) {
-            showToast('Document supprimé');
-            loadDocuments();
-            loadStats();
-        } else {
-            showToast('Erreur', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-async function voirMotifRejet(id) {
-    try {
-        const res = await fetch(`/documents/${id}`, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const doc = data.document;
-        $('#rejectMotifText').text(doc.commentaire_rejet || 'Aucun motif fourni');
-        $('#rejectModal').modal('show');
-    } catch(e) { showToast('Erreur', true); }
-}
-
-function partagerDocument(id, titre) {
-    const shareUrl = `${window.location.origin}/documents/${id}/download?token=${token}`;
-    const modalHtml = `
-        <div class="modal fade modal-modern" id="shareModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="fas fa-share-alt me-2"></i> Partager: ${escapeHtml(titre)}</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="shareLink" value="${shareUrl}" readonly>
-                            <button class="btn btn-primary" onclick="copierLien()"><i class="fas fa-copy"></i> Copier</button>
-                        </div>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Ce lien permet de télécharger le document.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    $('body').append(modalHtml);
-    new bootstrap.Modal(document.getElementById('shareModal')).show();
-    $('#shareModal').on('hidden.bs.modal', function() { $('#shareModal').remove(); });
-}
-
-function copierLien() {
-    const link = document.getElementById('shareLink');
-    link.select();
-    document.execCommand('copy');
-    showToast('Lien copié dans le presse-papier');
-}
-
-// ============================================
-// UPLOAD DOCUMENT
-// ============================================
-$('#uploadArea').click(function() {
-    $('#fileInput').click();
-});
-
-$('#fileInput').change(function(e) {
-    if (e.target.files.length > 0) {
-        $('#fileNameDisplay').text(`Fichier sélectionné: ${e.target.files[0].name}`);
-    }
-});
-
-async function uploadDocument() {
-    const file = $('#fileInput')[0].files[0];
-    const titre = $('#docTitle').val();
-    
-    if (!file) { showToast('Veuillez sélectionner un fichier', true); return; }
-    if (!titre) { showToast('Veuillez saisir un titre', true); return; }
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('titre', titre);
-    formData.append('description', $('#docDesc').val());
-    formData.append('categorie_id', $('#categorieId').val());
-    
-    try {
-        const res = await fetch('/documents/upload', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token },
-            body: formData
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast('Document importé avec succès');
-            $('#fileInput').val('');
-            $('#docTitle').val('');
-            $('#docDesc').val('');
-            $('#fileNameDisplay').text('');
-            loadDocuments();
-            loadStats();
-            loadRecentDocuments();
-        } else {
-            showToast(data.message || 'Erreur import', true);
-        }
-    } catch(e) { showToast('Erreur de connexion', true); }
-}
-
-// ============================================
-// CATÉGORIES
-// ============================================
-async function loadCategories() {
-    try {
-        const res = await fetch('/categories', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.categories && data.categories.length > 0) {
-            let options = '<option value="">Sélectionner une catégorie</option>';
-            data.categories.forEach(c => {
-                options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`;
-            });
-            $('#categorieId').html(options);
-        }
-    } catch(e) { console.error(e); }
-}
-loadCategories();
-
-async function loadCategoriesForSearch() {
-    try {
-        const res = await fetch('/categories', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.categories && data.categories.length > 0) {
-            let options = '<option value="">Toutes les catégories</option>';
-            data.categories.forEach(c => {
-                options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`;
-            });
-            $('#searchCategorie').html(options);
-        }
-    } catch(e) { console.error(e); }
-}
-
-// ============================================
-// RECHERCHE AVANCÉE
-// ============================================
-async function advancedSearch() {
-    const titre = $('#searchTitle').val();
-    const categorie = $('#searchCategorie').val();
-    const statut = $('#searchStatus').val();
-    
-    let url = `/documents?limit=50`;
-    if (titre) url += `&search=${encodeURIComponent(titre)}`;
-    if (statut) url += `&statut=${statut}`;
-    
-    try {
-        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-        const data = await res.json();
-        const docs = data.documents || [];
-        
-        if (docs.length === 0) {
-            $('#searchResultsBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Aucun résultat<\/td><\/tr>');
-            return;
-        }
-        
-        let html = '';
-        for (let doc of docs) {
-            let badge = '';
-            if (doc.statut === 'brouillon') badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
-            else if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
-            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
-            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
-            
-            html += `<tr>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_creation)}<\/td>
-                <td>${badge}<\/td>
-                <td>
-                    <button class="btn-action" onclick="visualiserDocument(${doc.id})"><i class="fas fa-eye text-primary"></i><\/button>
-                    <button class="btn-action" onclick="telechargerDocument(${doc.id})"><i class="fas fa-download text-success"></i><\/button>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#searchResultsBody').html(html);
-    } catch(e) { console.error(e); }
-}
-
-function resetAdvancedSearch() {
-    $('#searchTitle').val('');
-    $('#searchCategorie').val('');
-    $('#searchStatus').val('');
-    $('#searchResultsBody').html('<tr><td colspan="5" class="text-center text-muted py-4">Utilisez les filtres ci-dessus pour rechercher<\/td><\/tr>');
-}
-
-// ============================================
-// DOCUMENTS PARTAGÉS
-// ============================================
-async function loadSharedDocuments() {
-    // À implémenter avec votre API de partage
-    $('#sharedDocumentsBody').html('<tr><td colspan="4" class="text-center py-4 text-muted">Fonctionnalité à venir<\/td><\/tr>');
-}
-
-// ============================================
-// NOTIFICATIONS
-// ============================================
-async function loadNotifications() {
-    try {
-        const res = await fetch('/notifications/all', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const notifs = data.notifications || [];
-        
-        if (notifs.length === 0) {
-            $('#notificationsList').html('<div class="text-center py-4 text-muted">Aucune notification</div>');
-            return;
-        }
-        
-        let html = '';
-        for (let n of notifs) {
-            html += `<div class="list-group-item ${!n.lue ? 'bg-light' : ''}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <i class="fas ${n.type === 'validation' ? 'fa-check-circle text-success' : n.type === 'rejet' ? 'fa-times-circle text-danger' : 'fa-info-circle text-primary'} me-2"></i>
-                                ${escapeHtml(n.message)}
-                            </div>
-                            <small class="text-muted">${formatDate(n.created_at)}</small>
-                        </div>
-                    </div>`;
-        }
-        $('#notificationsList').html(html);
-    } catch(e) { console.error(e); }
-}
-
-async function marquerToutLu() {
-    try {
-        await fetch('/notifications/lire-tout', {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        loadNotifications();
-        showToast('Toutes les notifications ont été marquées comme lues');
-    } catch(e) { console.error(e); }
-}
-
-// ============================================
-// PROFIL
-// ============================================
-async function loadProfile() {
-    try {
-        const res = await fetch('/api/user/profile', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.success) {
-            $('#profileNom').val(data.nom);
-            $('#profileEmail').val(data.email);
-            $('#profileTelephone').val(data.telephone || '');
-        }
-    } catch(e) { console.error(e); }
-}
-
-async function updateProfile() {
-    const telephone = $('#profileTelephone').val();
-    const password = $('#profilePassword').val();
-    
-    const data = { telephone: telephone };
-    if (password) data.password = password;
-    
-    try {
-        const res = await fetch('/api/user/profile', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify(data)
-        });
-        if (res.ok) {
-            showToast('Profil mis à jour');
-            $('#profilePassword').val('');
-        } else {
-            showToast('Erreur', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-// ============================================
-// INITIALISATION
-// ============================================
-$('#tabDashboard').show();
-loadStats();
-loadRecentDocuments();
-loadNotifications();
-
-// Rafraîchissement périodique
-setInterval(() => {
-    if (currentTab === 'dashboard') {
-        loadStats();
-        loadRecentDocuments();
-    } else if (currentTab === 'mes-documents') {
-        loadDocuments();
-    }
-    loadNotifications();
-}, 30000);
-</script>
+<script src="/static/js/ged-offline-store.js"></script>
+<script src="/offline-queue.js"></script>
+<script src="/static/js/ged-employee-app.js"></script>
 </body>
 </html>

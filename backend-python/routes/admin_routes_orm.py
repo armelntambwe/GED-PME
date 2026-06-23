@@ -312,25 +312,31 @@ def register_admin_routes_orm(app):
             import os
             from datetime import datetime
             
+            from config import Config
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_dir = "backups"
-            
+
             if not os.path.exists(backup_dir):
                 os.makedirs(backup_dir)
-            
+
             backup_file = os.path.join(backup_dir, f"backup_{timestamp}.sql")
             backup_file_abs = os.path.abspath(backup_file)
-            
-            # Chemin exact de mysqldump
-            mysqldump_path = r"C:\xampp\mysql\bin\mysqldump.exe"
-            
-            # Commande avec result-file
+
+            mysqldump_paths = [
+                r"C:\xampp\mysql\bin\mysqldump.exe",
+                r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe",
+                "mysqldump",
+            ]
+            mysqldump_path = next((p for p in mysqldump_paths if p == "mysqldump" or os.path.isfile(p)), "mysqldump")
+
             cmd = [
                 mysqldump_path,
-                "-u", "root",
-                "ged_pme",
-                f"--result-file={backup_file_abs}"
+                "-h", Config.MYSQL_HOST,
+                "-u", Config.MYSQL_USER,
             ]
+            if Config.MYSQL_PASSWORD:
+                cmd.extend(["-p" + Config.MYSQL_PASSWORD])
+            cmd.extend([Config.MYSQL_DB, f"--result-file={backup_file_abs}"])
             
             result = subprocess.run(cmd, capture_output=True, text=True)
             

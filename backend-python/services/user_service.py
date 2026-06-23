@@ -19,7 +19,7 @@ class UserService:
         try:
             user = User.query.filter_by(email=email).first()
             if user:
-                return user.to_dict()
+                return user.to_dict(include_password=True)
             return None
         except Exception as e:
             logger.error(f"Erreur get_user_by_email: {e}")

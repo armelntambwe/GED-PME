@@ -3,12 +3,19 @@ Service administrateur - ORM SQLAlchemy pur (sans SQL brut)
 Gère les opérations administrateur avec ORM SQLAlchemy
 """
 
+from sqlalchemy import or_
 from extensions import db
 from models_sqlalchemy import User, Entreprise, Document, WorkflowConfig, Log, Categorie
 from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _categorie_for_doc(doc):
+    if not doc.categorie_id:
+        return None
+    return Categorie.query.get(doc.categorie_id)
 
 
 class AdminService:
@@ -26,8 +33,7 @@ class AdminService:
                 'active_users': User.query.filter_by(actif=True).count(),
                 'inactive_users': User.query.filter_by(actif=False).count(),
                 'total_documents': Document.query.filter(
-                    (Document.supprime_le == None) | 
-                    (Document.supprime_le == '')
+                    Document.supprime_le.is_(None)
                 ).count(),
             }
             return stats
@@ -47,7 +53,7 @@ class AdminService:
                 ).count(),
                 'total_documents': Document.query.filter(
                     Document.entreprise_id == entreprise_id,
-                    (Document.supprime_le == None) | (Document.supprime_le == '')
+                    Document.supprime_le.is_(None)
                 ).count(),
                 'company': None
             }
@@ -158,6 +164,9 @@ class AdminService:
 
             company = Entreprise(
                 nom=entreprise_data.get('nom'),
+                nif=(entreprise_data.get('nif') or '').strip(),
+                rccm=(entreprise_data.get('rccm') or '').strip(),
+                secteur_activite=(entreprise_data.get('secteur_activite') or '').strip(),
                 email=entreprise_data.get('email'),
                 telephone=entreprise_data.get('telephone') or '',
                 adresse=entreprise_data.get('adresse') or '',
@@ -269,23 +278,23 @@ class AdminService:
     def get_pme_stats(entreprise_id: int) -> dict:
         """Retourne les statistiques PME pour une entreprise."""
         try:
+            base = Document.query.filter(
+                Document.entreprise_id == entreprise_id,
+                Document.supprime_le.is_(None)
+            )
             stats = {
-                'total_documents': Document.query.filter(
-                    Document.entreprise_id == entreprise_id,
-                    (Document.supprime_le == None) | (Document.supprime_le == '')
-                ).count(),
+                'total_documents': base.count(),
                 'total_employes': User.query.filter_by(
                     entreprise_id=entreprise_id,
                     role='employe'
                 ).count(),
-                'en_attente': Document.query.filter_by(
-                    entreprise_id=entreprise_id,
-                    statut='soumis'
-                ).count(),
-                'valides': Document.query.filter_by(
-                    entreprise_id=entreprise_id,
-                    statut='valide'
-                ).count()
+                'en_attente': base.filter(Document.statut == 'soumis').count(),
+                'valides': base.filter(Document.statut == 'valide').count(),
+                'brouillons': base.filter(Document.statut == 'brouillon').count(),
+                'rejetes': base.filter(Document.statut == 'rejete').count(),
+                'publies': base.filter(Document.statut == 'publie').count(),
+                'obsoletes': base.filter(Document.statut == 'obsolete').count(),
+                'detruits': base.filter(Document.statut == 'detruit').count(),
             }
             return stats
         except Exception as e:
@@ -293,25 +302,56 @@ class AdminService:
             raise
     
     @staticmethod
-    def get_pme_documents(entreprise_id: int) -> list:
-        """Retourne la liste des documents PME avec auteurs et catégories."""
+    def get_pme_documents(entreprise_id: int, search: str = None, statut: str = None,
+                          page: int = 1, limit: int = 15) -> dict:
+        """Retourne la liste paginée des documents PME avec auteurs et catégories."""
         try:
-            documents = Document.query.filter(
+            if entreprise_id is None:
+                return {'documents': [], 'total': 0, 'total_pages': 1, 'page': page}
+
+            query = Document.query.filter(
                 Document.entreprise_id == entreprise_id,
-                (Document.supprime_le == None) | (Document.supprime_le == '')
-            ).join(User, Document.auteur_id == User.id, isouter=True)\
-             .join(Categorie, Document.categorie_id == Categorie.id, isouter=True)\
-             .order_by(Document.date_creation.desc())\
-             .all()
-            
+                Document.supprime_le.is_(None),
+                Document.statut != 'detruit',
+            )
+            if statut:
+                query = query.filter(Document.statut == statut)
+            if search:
+                like = f'%{search}%'
+                query = query.filter(
+                    or_(
+                        Document.titre.ilike(like),
+                        Document.description.ilike(like),
+                        Document.contenu_ocr.ilike(like),
+                    )
+                )
+
+            total = query.count()
+            page = max(1, page)
+            limit = max(1, min(limit, 200))
+            documents = (
+                query.order_by(Document.date_creation.desc())
+                .offset((page - 1) * limit)
+                .limit(limit)
+                .all()
+            )
+
             result = []
             for doc in documents:
+                auteur = User.query.get(doc.auteur_id)
+                categorie = _categorie_for_doc(doc)
                 doc_dict = doc.to_dict()
-                doc_dict['auteur_nom'] = doc.auteur.nom if doc.auteur else None
-                doc_dict['categorie_nom'] = doc.categorie.nom if doc.categorie else None
+                doc_dict['auteur_nom'] = auteur.nom if auteur else None
+                doc_dict['categorie_nom'] = categorie.nom if categorie else None
                 result.append(doc_dict)
-            
-            return result
+
+            total_pages = max(1, (total + limit - 1) // limit)
+            return {
+                'documents': result,
+                'total': total,
+                'total_pages': total_pages,
+                'page': page,
+            }
         except Exception as e:
             logger.error(f"Erreur get_pme_documents: {e}")
             raise
@@ -337,15 +377,16 @@ class AdminService:
             documents = Document.query.filter(
                 Document.entreprise_id == entreprise_id,
                 Document.statut == 'soumis',
-                (Document.supprime_le == None) | (Document.supprime_le == '')
-            ).join(User, Document.auteur_id == User.id, isouter=True)\
-             .order_by(Document.date_creation.desc())\
-             .all()
+                Document.supprime_le.is_(None)
+            ).order_by(Document.date_creation.desc()).all()
             
             result = []
             for doc in documents:
+                auteur = User.query.get(doc.auteur_id)
+                categorie = _categorie_for_doc(doc)
                 doc_dict = doc.to_dict()
-                doc_dict['auteur_nom'] = doc.auteur.nom if doc.auteur else None
+                doc_dict['auteur_nom'] = auteur.nom if auteur else None
+                doc_dict['categorie_nom'] = categorie.nom if categorie else None
                 result.append(doc_dict)
             
             return result
@@ -359,10 +400,8 @@ class AdminService:
         try:
             documents = Document.query.filter(
                 Document.entreprise_id == entreprise_id,
-                Document.supprime_le != None,
-                Document.supprime_le != ''
-            ).order_by(Document.supprime_le.desc())\
-             .all()
+                Document.supprime_le.isnot(None)
+            ).order_by(Document.supprime_le.desc()).all()
             
             result = []
             for doc in documents:
@@ -382,17 +421,18 @@ class AdminService:
         """Exporte les documents PME pour CSV."""
         try:
             documents = Document.query.filter_by(entreprise_id=entreprise_id)\
-                .join(User, Document.auteur_id == User.id, isouter=True)\
+                .filter(Document.supprime_le.is_(None))\
                 .order_by(Document.date_creation.desc())\
                 .all()
             
             result = []
             for doc in documents:
+                auteur = User.query.get(doc.auteur_id)
                 result.append({
                     'titre': doc.titre,
                     'statut': doc.statut,
                     'date_creation': doc.date_creation.isoformat() if doc.date_creation else None,
-                    'auteur': doc.auteur.nom if doc.auteur else None
+                    'auteur': auteur.nom if auteur else None
                 })
             
             return result
@@ -405,17 +445,17 @@ class AdminService:
         """Retourne l'historique d'un document."""
         try:
             logs = Log.query.filter_by(document_id=document_id)\
-                .join(User, Log.user_id == User.id, isouter=True)\
                 .order_by(Log.date_action.desc())\
                 .all()
             
             result = []
             for log in logs:
+                user = User.query.get(log.user_id)
                 result.append({
                     'action': log.action,
                     'description': log.description,
                     'date_action': log.date_action.isoformat() if log.date_action else None,
-                    'utilisateur_nom': log.user.nom if log.user else None
+                    'utilisateur_nom': user.nom if user else None
                 })
             
             return result

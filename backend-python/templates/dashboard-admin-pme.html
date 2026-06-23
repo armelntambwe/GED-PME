@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GED-PME | Administration PME</title>
     
     <!-- Bootstrap 5 CSS -->
@@ -11,981 +11,661 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Aperçu DOCX -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
     
-    <style>
-        :root {
-            --primary: #0ea5e9;
-            --primary-dark: #0284c7;
-            --primary-light: #e0f2fe;
-            --success: #10b981;
-            --success-light: #d1fae5;
-            --warning: #f59e0b;
-            --warning-light: #fef3c7;
-            --danger: #ef4444;
-            --danger-light: #fee2e2;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --gray-light: #f1f5f9;
-            --white: #ffffff;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #f8fafc;
-            min-height: 100vh;
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            background: var(--white);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 100;
-            transition: all 0.3s;
-            overflow-y: auto;
-        }
-        
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .sidebar-header h3 {
-            font-size: 22px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin: 0;
-        }
-        
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-        
-        .sidebar-nav .nav-item {
-            list-style: none;
-        }
-        
-        .sidebar-nav .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            color: var(--gray);
-            text-decoration: none;
-            transition: all 0.2s;
-            margin: 4px 12px;
-            border-radius: 12px;
-        }
-        
-        .sidebar-nav .nav-link i {
-            width: 22px;
-            font-size: 18px;
-        }
-        
-        .sidebar-nav .nav-link:hover {
-            background: var(--gray-light);
-            color: var(--primary);
-        }
-        
-        .sidebar-nav .nav-link.active {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-        
-        /* Main Content */
-        .main-content {
-            margin-left: 280px;
-            padding: 24px 32px;
-        }
-        
-        /* Top Bar */
-        .top-bar {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 16px 24px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-        
-        /* Stat Cards */
-        .stat-card {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 20px;
-            transition: all 0.2s;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-        }
-        
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-        
-        .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--dark);
-        }
-        
-        .stat-label {
-            font-size: 13px;
-            color: var(--gray);
-            margin-top: 4px;
-        }
-        
-        /* Cards */
-        .card-custom {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .card-header-custom {
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 16px;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        /* Tables */
-        .table-custom {
-            width: 100%;
-        }
-        
-        .table-custom thead th {
-            background: var(--gray-light);
-            padding: 14px 16px;
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--gray);
-        }
-        
-        .table-custom tbody td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-        }
-        
-        /* Badges */
-        .badge-custom {
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .badge-soumis { background: var(--warning-light); color: #d97706; }
-        .badge-valide { background: var(--success-light); color: #059669; }
-        .badge-rejete { background: var(--danger-light); color: #dc2626; }
-        .badge-actif { background: var(--success-light); color: #059669; }
-        .badge-inactif { background: var(--danger-light); color: #dc2626; }
-        
-        /* Buttons */
-        .btn-primary-custom {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border: none;
-            padding: 10px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            color: white;
-        }
-        
-        .btn-outline-custom {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 8px 20px;
-            border-radius: 12px;
-        }
-        
-        .btn-sm-custom {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-        
-        /* Modal */
-        .modal-modern .modal-content {
-            border-radius: 20px;
-            border: none;
-        }
-        
-        .modal-modern .modal-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
-        
-        /* Toast */
-        .toast-custom {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: var(--success);
-            color: white;
-            padding: 14px 24px;
-            border-radius: 12px;
-            display: none;
-            z-index: 1100;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .toast-custom.error { background: var(--danger); }
-        
-        /* Pagination */
-        .pagination-custom .page-link {
-            border-radius: 10px;
-            margin: 0 3px;
-            color: var(--primary);
-            border: none;
-            padding: 8px 14px;
-        }
-        
-        .pagination-custom .page-item.active .page-link {
-            background: var(--primary);
-            color: white;
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .menu-toggle {
-                display: block !important;
-            }
-        }
-        
-        .cursor-pointer { cursor: pointer; }
-        .loading { text-align: center; padding: 50px; color: var(--gray); }
-    </style>
+    <meta name="theme-color" content="#0891b2">
+    <link rel="stylesheet" href="/static/css/ged-theme.css">
+    <link rel="stylesheet" href="/static/css/ged-dashboard.css">
 </head>
-<body>
+<body class="ged-app ged-dashboard">
 
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h3><i class="fas fa-building me-2"></i>GED-PME</h3>
-        <small class="text-muted" id="entrepriseNom">Administration</small>
+<!-- ========== HEADER ========== -->
+<div class="header">
+    <div class="header-left">
+        <i class="fas fa-bars menu-toggle" id="menuToggle" style="cursor: pointer; font-size: 20px;"></i>
+        <div class="logo"><i class="fas fa-folder-open me-2"></i>GED-PME</div>
+        <div class="entreprise-name" id="entrepriseName"><i class="fas fa-building me-1"></i> Chargement...</div>
     </div>
-    <ul class="sidebar-nav">
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="dashboard">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="documents">
-                <i class="fas fa-folder"></i> Documents
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="categories">
-                <i class="fas fa-tags"></i> Catégories
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="utilisateurs">
-                <i class="fas fa-users"></i> Utilisateurs
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="workflow">
-                <i class="fas fa-check-double"></i> Workflow
-                <span class="badge bg-warning rounded-pill ms-auto" id="pendingBadge">0</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="archives">
-                <i class="fas fa-archive"></i> Archives
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="recherche">
-                <i class="fas fa-search"></i> Recherche
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="audit">
-                <i class="fas fa-history"></i> Audit
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="notifications">
-                <i class="fas fa-bell"></i> Notifications
-                <span class="badge bg-danger rounded-pill ms-auto" id="notifBadge">0</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="sauvegardes">
-                <i class="fas fa-database"></i> Sauvegardes
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tab="parametres">
-                <i class="fas fa-cog"></i> Paramètres
-            </a>
-        </li>
-        <hr class="mx-3 my-2">
-        <li class="nav-item">
-            <a href="#" class="nav-link" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Déconnexion
-            </a>
-        </li>
-    </ul>
+    <div class="header-right">
+        <div class="status-online" id="connectionStatus">
+            <span class="dot"></span> Connecté
+        </div>
+        <div class="notif-icon" id="notifIcon">
+            <i class="fas fa-bell fs-5" style="color: var(--gray);"></i>
+            <span class="notif-badge" id="notifBadge">0</span>
+            <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <div class="dropdown">
+            <div class="user-profile" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-info">
+                    <div class="name" id="userName">Chargement...</div>
+                    <div class="role">Administrateur PME</div>
+                </div>
+                <i class="fas fa-chevron-down" style="font-size: 12px; color: var(--gray);"></i>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="openProfileTab(); return false;"><i class="fas fa-user me-2"></i>Mon profil</a></li>
+                <li><a class="dropdown-item" href="#" onclick="openProfileTab(); return false;"><i class="fas fa-key me-2"></i>Modifier mot de passe</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="main-content">
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="d-flex align-items-center gap-3">
-            <i class="fas fa-bars fs-4 menu-toggle" id="menuToggle" style="cursor: pointer; display: none;"></i>
-        </div>
-        <div class="user-info">
-            <div class="position-relative me-3" id="notifIcon" style="cursor: pointer;">
-                <i class="fas fa-bell fs-5" style="color: var(--gray);"></i>
-                <span id="notifTopBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; display: none;">0</span>
-            </div>
-            <div class="user-avatar" id="userAvatar">
-                <span id="userInitial">A</span>
-            </div>
-            <div>
-                <div class="fw-semibold" id="userName">Administrateur</div>
-                <small class="text-muted">Admin PME</small>
-            </div>
-        </div>
-    </div>
+<!-- ========== SIDEBAR ========== -->
+<div class="sidebar" id="sidebar">
+    <div class="section-title">Navigation</div>
+    <a href="#" class="active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+    <a href="#" data-tab="documents"><i class="fas fa-file-alt"></i> Documents</a>
+    <a href="#" data-tab="validation"><i class="fas fa-check-double"></i> Validation <span class="badge bg-warning text-dark rounded-pill badge-sidebar" id="pendingBadge">0</span></a>
+    <div class="section-title">Gestion</div>
+    <a href="#" data-tab="employes"><i class="fas fa-users"></i> Employés</a>
+    <a href="#" data-tab="categories"><i class="fas fa-tags"></i> Catégories</a>
+    <a href="#" data-tab="statistiques"><i class="fas fa-chart-bar"></i> Statistiques</a>
+    <div class="section-title">Système</div>
+    <a href="#" data-tab="corbeille"><i class="fas fa-trash"></i> Corbeille</a>
+    <a href="#" data-tab="parametres" id="parametresTab"><i class="fas fa-cog"></i> Paramètres</a>
+</div>
 
-    <!-- ============================================ -->
-    <!-- TAB DASHBOARD -->
-    <!-- ============================================ -->
+<!-- ========== MAIN CONTENT ========== -->
+<div class="main-content" id="mainContent">
+    
+    <!-- ===== TAB DASHBOARD ===== -->
     <div id="tabDashboard" class="tab-pane">
-        <div class="mb-4">
-            <h4 class="fw-bold">Tableau de bord</h4>
-            <p class="text-muted">Vue globale de l'activité documentaire</p>
+        <div class="page-intro">
+            <h4><i class="fas fa-tachometer-alt me-2 text-primary"></i>Tableau de bord</h4>
+            <p>Vue globale de l'activité documentaire de votre entreprise.</p>
         </div>
-        
-        <!-- Statistiques -->
-        <div class="row g-4 mb-4" id="statsGrid">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon bg-primary-light text-primary"><i class="fas fa-file-alt fs-3"></i></div>
-                    <div class="stat-value" id="statTotal">0</div>
-                    <div class="stat-label">Documents</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock fs-3"></i></div>
-                    <div class="stat-value" id="statEnAttente">0</div>
-                    <div class="stat-label">En attente</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle fs-3"></i></div>
-                    <div class="stat-value" id="statValides">0</div>
-                    <div class="stat-label">Validés</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-times-circle fs-3"></i></div>
-                    <div class="stat-value" id="statRejetes">0</div>
-                    <div class="stat-label">Rejetés</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card-custom">
-                    <div class="card-header-custom">
-                        <i class="fas fa-users me-2 text-primary"></i> Employés
-                        <span class="float-end" id="statEmployes">0</span>
-                    </div>
-                    <div class="card-header-custom">
-                        <i class="fas fa-tags me-2 text-primary"></i> Catégories
-                        <span class="float-end" id="statCategories">0</span>
-                    </div>
-                    <div class="card-header-custom">
-                        <i class="fas fa-archive me-2 text-primary"></i> Archives
-                        <span class="float-end" id="statArchives">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card-custom">
-                    <div class="card-header-custom">
-                        <i class="fas fa-chart-line me-2 text-primary"></i> Évolution des documents
-                    </div>
-                    <canvas id="evolutionChart" height="100"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row g-4 mt-2">
-            <div class="col-md-6">
-                <div class="card-custom">
-                    <div class="card-header-custom">
-                        <i class="fas fa-chart-pie me-2 text-primary"></i> Répartition par statut
-                    </div>
-                    <canvas id="statusChart" height="200"></canvas>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card-custom">
-                    <div class="card-header-custom">
-                        <i class="fas fa-chart-bar me-2 text-primary"></i> Top 5 documents récents
-                    </div>
-                    <div id="recentDocuments">
-                        <div class="text-center py-4 text-muted">Chargement...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- ============================================ -->
-    <!-- TAB DOCUMENTS -->
-    <!-- ============================================ -->
-    <div id="tabDocuments" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                <h5 class="fw-bold"><i class="fas fa-folder me-2 text-primary"></i>Gestion des documents</h5>
-                <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
-                    <i class="fas fa-plus me-1"></i> Ajouter document
+        <div class="quick-actions">
+            <button type="button" class="btn-quick primary" onclick="$('.sidebar a[data-tab=validation]').click()"><i class="fas fa-check-double"></i>Valider les documents</button>
+            <button type="button" class="btn-quick" onclick="$('.sidebar a[data-tab=documents]').click()"><i class="fas fa-file-alt"></i>Tous les documents</button>
+            <button type="button" class="btn-quick" onclick="openAddDocument()"><i class="fas fa-plus"></i>Nouveau document</button>
+            <button type="button" class="btn-quick" onclick="$('.sidebar a[data-tab=employes]').click()"><i class="fas fa-users"></i>Employés</button>
+            <button type="button" class="btn-quick" onclick="$('.sidebar a[data-tab=parametres]').click()"><i class="fas fa-cog"></i>Paramètres</button>
+        </div>
+
+        <div class="row g-3 mb-4" id="statsGrid">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statEmployes">0</div>
+                        <div class="label">Employés</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon info"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statDocuments">0</div>
+                        <div class="label">Documents</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statEnAttente">0</div>
+                        <div class="label">En révision</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-body">
+                        <div class="number" id="statPublies">0</div>
+                        <div class="label">Publiés</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <div class="card-custom chart-card mb-0">
+                    <div class="card-title"><i class="fas fa-chart-line me-2 text-primary"></i>Évolution des documents</div>
+                    <div style="position:relative;height:260px;"><canvas id="evolutionChart"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card-custom chart-card mb-0">
+                    <div class="card-title"><i class="fas fa-chart-pie me-2 text-primary"></i>Répartition par statut</div>
+                    <div style="position:relative;height:260px;"><canvas id="statusChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="card-custom mt-4">
+            <div class="card-title"><i class="fas fa-project-diagram me-2 text-primary"></i> Workflow documentaire</div>
+            <div class="workflow-stats" id="workflowStats">
+                <div class="workflow-item"><div class="count" id="wfBrouillon">0</div><div class="label">Brouillon</div></div>
+                <div class="workflow-item"><div class="count" id="wfEnRevision">0</div><div class="label">En révision</div></div>
+                <div class="workflow-item"><div class="count" id="wfValide">0</div><div class="label">Validé</div></div>
+                <div class="workflow-item"><div class="count" id="wfRejete">0</div><div class="label">Rejeté</div></div>
+                <div class="workflow-item"><div class="count" id="wfPublie">0</div><div class="label">Publié</div></div>
+                <div class="workflow-item"><div class="count" id="wfObsolète">0</div><div class="label">Obsolète</div></div>
+                <div class="workflow-item"><div class="count" id="wfDetruit">0</div><div class="label">Détruit</div></div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary" onclick="runArchivageAuto()">
+                    <i class="fas fa-archive me-1"></i> Lancer l'archivage automatique
                 </button>
             </div>
-            
-            <!-- Filtres -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <input type="text" id="docSearch" class="form-control" placeholder="Rechercher...">
-                </div>
-                <div class="col-md-3">
-                    <select id="docStatut" class="form-select">
-                        <option value="">Tous les statuts</option>
-                        <option value="brouillon">Brouillon</option>
-                        <option value="soumis">En attente</option>
-                        <option value="valide">Validé</option>
-                        <option value="rejete">Rejeté</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select id="docCategorie" class="form-select">
-                        <option value="">Toutes catégories</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary w-100" onclick="rechercherDocuments()">
-                        <i class="fas fa-search me-1"></i> Filtrer
-                    </button>
+        </div>
+    </div>
+    
+    <!-- ===== TAB DOCUMENTS ===== -->
+    <div id="tabDocuments" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-file-alt me-2 text-primary"></i>Gestion des documents</h4>
+            <p>Consultez, filtrez et administrez tous les documents de l'entreprise.</p>
+        </div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="card-title mb-0"><i class="fas fa-folder-open me-2 text-primary"></i>Liste des documents</div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm btn-outline-success" onclick="exportDocuments()" title="Exporter CSV"><i class="fas fa-file-csv me-1"></i>Exporter</button>
+                    <button class="btn-primary-custom" onclick="openAddDocument()"><i class="fas fa-plus me-2"></i>Nouveau document</button>
                 </div>
             </div>
-            
-            <div class="table-responsive">
+            <div class="doc-toolbar">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold mb-1">Recherche</label>
+                        <input type="text" id="docSearch" class="form-control form-control-sm" placeholder="Titre, auteur, contenu…">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Statut</label>
+                        <select id="docStatutFilter" class="form-select form-select-sm">
+                            <option value="">Tous les statuts</option>
+                            <option value="brouillon">Brouillon</option>
+                            <option value="soumis">En révision</option>
+                            <option value="valide">Validé</option>
+                            <option value="rejete">Rejeté</option>
+                            <option value="publie">Publié</option>
+                            <option value="obsolete">Obsolète</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button class="btn btn-sm btn-primary flex-grow-1" onclick="loadDocuments()"><i class="fas fa-search me-1"></i>Filtrer</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="resetDocFilters()" title="Réinitialiser"><i class="fas fa-redo"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom">
+                    <thead><tr><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Date</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody id="documentsList"><tr><td colspan="6" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="documentsPagination" class="d-flex justify-content-center mt-3"></div>
+        </div>
+    </div>
+    
+    <!-- ===== TAB VALIDATION ===== -->
+    <div id="tabValidation" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-check-double me-2 text-primary"></i>Validation</h4>
+            <p>Documents soumis par les employés, en attente de votre approbation.</p>
+        </div>
+        <div class="card-custom">
+            <div class="card-title"><i class="fas fa-inbox me-2 text-warning"></i>Documents en révision</div>
+            <div class="table-doc-wrap">
+                <table class="table-custom">
+                    <thead><tr><th>Titre</th><th>Auteur</th><th>Date</th><th class="text-end">Action</th></tr></thead>
+                    <tbody id="validationList"><tr><td colspan="4" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== TAB EMPLOYÉS ===== -->
+    <div id="tabEmployes" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-users me-2 text-primary"></i>Employés</h4>
+            <p>Gérez les comptes et accès de votre équipe.</p>
+        </div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="card-title mb-0"><i class="fas fa-user-friends me-2 text-primary"></i>Liste des employés</div>
+                <button class="btn-primary-custom" onclick="openAddEmploye()"><i class="fas fa-user-plus me-2"></i>Ajouter</button>
+            </div>
+            <div class="table-doc-wrap">
+                <table class="table-custom">
+                    <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody id="employesList"><tr><td colspan="5" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== TAB CATÉGORIES ===== -->
+    <div id="tabCategories" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-tags me-2 text-primary"></i>Catégories</h4>
+            <p>Organisez vos documents par thématiques.</p>
+        </div>
+        <div class="card-custom">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="card-title mb-0"><i class="fas fa-folder-tree me-2 text-primary"></i>Catégories documentaires</div>
+                <button class="btn-primary-custom" onclick="openAddCategorie()"><i class="fas fa-plus me-2"></i>Nouvelle catégorie</button>
+            </div>
+            <div class="table-doc-wrap">
                 <table class="table-custom">
                     <thead>
                         <tr>
-                            <th><i class="fas fa-hashtag"></i> ID</th>
-                            <th><i class="fas fa-file-alt"></i> Titre</th>
-                            <th><i class="fas fa-tag"></i> Catégorie</th>
-                            <th><i class="fas fa-user"></i> Auteur</th>
-                            <th><i class="fas fa-calendar"></i> Date</th>
-                            <th><i class="fas fa-chart-simple"></i> Statut</th>
-                            <th><i class="fas fa-cog"></i> Actions</th>
+                            <th>Nom</th>
+                            <th>Description</th>
+                            <th>Documents</th>
+                            <th class="text-end">Actions</th>
                         </tr>
-                    </thead>
-                    <tbody id="documentsList">
-                        <tr><td colspan="7" class="loading"><div class="spinner-border text-primary"></div> Chargement...<\/td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="documentsPagination" class="d-flex justify-content-center mt-4"></div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB CATÉGORIES -->
-    <!-- ============================================ -->
-    <div id="tabCategories" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold"><i class="fas fa-tags me-2 text-primary"></i>Gestion des catégories</h5>
-                <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addCategorieModal">
-                    <i class="fas fa-plus me-1"></i> Nouvelle catégorie
-                </button>
-            </div>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr><th>ID</th><th>Nom</th><th>Description</th><th>Documents</th><th>Actions</th></tr>
                     </thead>
                     <tbody id="categoriesList">
-                        <tr><td colspan="5" class="loading">Chargement...<\/td><\/tr>
+                        <tr><td colspan="4" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- TAB UTILISATEURS -->
-    <!-- ============================================ -->
-    <div id="tabUtilisateurs" class="tab-pane" style="display: none;">
+    
+    <!-- ===== TAB STATISTIQUES ===== -->
+    <div id="tabStatistiques" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-chart-bar me-2 text-primary"></i>Statistiques</h4>
+            <p>Analyses et répartition des documents par catégorie.</p>
+        </div>
         <div class="card-custom">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold"><i class="fas fa-users me-2 text-primary"></i>Gestion des employés</h5>
-                <button class="btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addEmployeModal">
-                    <i class="fas fa-user-plus me-1"></i> Nouvel employé
-                </button>
+            <div class="card-title"><i class="fas fa-chart-column me-2 text-primary"></i>Vue analytique</div>
+            <div class="row g-4">
+                <div class="col-md-6"><div style="position:relative;height:280px;"><canvas id="statsBarChart"></canvas></div></div>
+                <div class="col-md-6">
+                    <div id="statDetails" class="text-muted text-center py-4">Chargement des données...</div>
+                </div>
             </div>
-            <div class="table-responsive">
+        </div>
+    </div>
+    
+    <!-- ===== TAB CORBEILLE ===== -->
+    <div id="tabCorbeille" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-trash me-2 text-danger"></i>Corbeille</h4>
+            <p>Documents supprimés — restauration possible.</p>
+        </div>
+        <div class="card-custom">
+            <div class="card-title"><i class="fas fa-trash-restore me-2 text-danger"></i>Documents supprimés</div>
+            <div class="table-doc-wrap">
                 <table class="table-custom">
-                    <thead>
-                        <tr>
-                            <th>ID</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Date</th><th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="employesList">
-                        <tr><td colspan="8" class="loading">Chargement...<\/td><\/tr>
-                    </tbody>
+                    <thead><tr><th>Document</th><th>Supprimé le</th><th class="text-end">Action</th></tr></thead>
+                    <tbody id="corbeilleList"><tr><td colspan="3" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- TAB WORKFLOW (VALIDATION) -->
-    <!-- ============================================ -->
-    <div id="tabWorkflow" class="tab-pane" style="display: none;">
-        <div class="row g-4">
-            <div class="col-md-12">
-                <div class="card-custom">
-                    <h5 class="fw-bold mb-3"><i class="fas fa-check-double me-2 text-primary"></i>Documents en attente de validation</h5>
-                    <div class="table-responsive">
-                        <table class="table-custom">
-                            <thead>
-                                <tr><th>ID</th><th>Titre</th><th>Auteur</th><th>Date soumission</th><th>Catégorie</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="validationList">
-                                <tr><td colspan="6" class="loading">Chargement...<\/td><\/tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB ARCHIVES -->
-    <!-- ============================================ -->
-    <div id="tabArchives" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <h5 class="fw-bold mb-3"><i class="fas fa-archive me-2 text-primary"></i>Documents archivés</h5>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr><th>ID</th><th>Titre</th><th>Auteur</th><th>Date archivage</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="archivesList">
-                        <tr><td colspan="5" class="loading">Chargement...<\/td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB RECHERCHE AVANCÉE -->
-    <!-- ============================================ -->
-    <div id="tabRecherche" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <h5 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i>Recherche avancée</h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" id="searchTitre" class="form-control" placeholder="Titre">
-                </div>
-                <div class="col-md-4">
-                    <select id="searchCategorieFilter" class="form-select">
-                        <option value="">Toutes catégories</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <select id="searchStatutFilter" class="form-select">
-                        <option value="">Tous statuts</option>
-                        <option value="brouillon">Brouillon</option>
-                        <option value="soumis">En attente</option>
-                        <option value="valide">Validé</option>
-                        <option value="rejete">Rejeté</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="date" id="searchDateDebut" class="form-control" placeholder="Date début">
-                </div>
-                <div class="col-md-4">
-                    <input type="date" id="searchDateFin" class="form-control" placeholder="Date fin">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" id="searchAuteur" class="form-control" placeholder="Auteur">
-                </div>
-                <div class="col-12">
-                    <button class="btn-primary-custom" onclick="rechercheAvancee()">
-                        <i class="fas fa-search me-2"></i> Rechercher
-                    </button>
-                    <button class="btn-outline-custom ms-2" onclick="resetRecherche()">
-                        <i class="fas fa-undo me-2"></i> Réinitialiser
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card-custom mt-4">
-            <h5 class="fw-bold mb-3"><i class="fas fa-list me-2 text-primary"></i>Résultats</h5>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="searchResultsList">
-                        <tr><td colspan="6" class="text-center text-muted py-4">Utilisez les filtres ci-dessus</td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB AUDIT -->
-    <!-- ============================================ -->
-    <div id="tabAudit" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <h5 class="fw-bold mb-3"><i class="fas fa-history me-2 text-primary"></i>Journal d'activité</h5>
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <select id="auditAction" class="form-select">
-                        <option value="">Toutes actions</option>
-                        <option value="upload">Upload document</option>
-                        <option value="validation">Validation</option>
-                        <option value="rejet">Rejet</option>
-                        <option value="suppression">Suppression</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="date" id="auditDate" class="form-control" placeholder="Date">
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-primary w-100" onclick="chargerAudit()">
-                        <i class="fas fa-filter me-1"></i> Filtrer
-                    </button>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr><th>Utilisateur</th><th>Action</th><th>Détails</th><th>Date</th></tr>
-                    </thead>
-                    <tbody id="auditList">
-                        <tr><td colspan="4" class="loading">Chargement...<\/td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="auditPagination" class="d-flex justify-content-center mt-4"></div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB NOTIFICATIONS -->
-    <!-- ============================================ -->
-    <div id="tabNotifications" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold"><i class="fas fa-bell me-2 text-primary"></i>Notifications</h5>
-                <button class="btn btn-sm btn-outline-secondary" onclick="marquerToutLu()">
-                    <i class="fas fa-check-double"></i> Tout marquer lu
-                </button>
-            </div>
-            <div id="notificationsList">
-                <div class="text-center py-4 text-muted">Chargement...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB SAUVEGARDES -->
-    <!-- ============================================ -->
-    <div id="tabSauvegardes" class="tab-pane" style="display: none;">
-        <div class="card-custom">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold"><i class="fas fa-database me-2 text-primary"></i>Sauvegardes</h5>
-                <button class="btn-primary-custom btn-sm" onclick="creerSauvegarde()">
-                    <i class="fas fa-plus me-1"></i> Créer sauvegarde
-                </button>
-            </div>
-            <div class="table-responsive">
-                <table class="table-custom">
-                    <thead>
-                        <tr><th>Nom fichier</th><th>Date</th><th>Taille</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="backupsList">
-                        <tr><td colspan="4" class="loading">Chargement...<\/td><\/tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB PARAMÈTRES -->
-    <!-- ============================================ -->
+    
+    <!-- ===== TAB PARAMÈTRES ===== -->
     <div id="tabParametres" class="tab-pane" style="display: none;">
+        <div class="page-intro">
+            <h4><i class="fas fa-cog me-2 text-primary"></i>Paramètres</h4>
+            <p>Informations légales et préférences de l'entreprise.</p>
+        </div>
         <div class="card-custom">
-            <h5 class="fw-bold mb-4"><i class="fas fa-cog me-2 text-primary"></i>Paramètres de l'entreprise</h5>
             <form id="entrepriseForm">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Nom entreprise</label>
-                        <input type="text" id="entrepriseNomInput" class="form-control">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Email</label>
-                        <input type="email" id="entrepriseEmail" class="form-control">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Téléphone</label>
-                        <input type="tel" id="entrepriseTelephone" class="form-control">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Adresse</label>
-                        <input type="text" id="entrepriseAdresse" class="form-control">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold">Secteur d'activité</label>
-                        <input type="text" id="entrepriseSecteur" class="form-control" placeholder="ex: Comptabilité, Communication, Informatique...">
-                    </div>
-                    <div class="col-12">
-                        <button type="button" class="btn-primary-custom" onclick="saveEntrepriseSettings()">
-                            <i class="fas fa-save me-2"></i> Enregistrer
-                        </button>
+                <div class="form-section">
+                    <div class="form-section-title"><i class="fas fa-building"></i>Identité de l'entreprise</div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><div class="form-field"><label>Nom entreprise</label><input type="text" id="entrepriseNom" class="form-control"></div></div>
+                        <div class="col-md-6"><div class="form-field"><label>Email</label><input type="email" id="entrepriseEmail" class="form-control"></div></div>
+                        <div class="col-md-6"><div class="form-field"><label>NIF</label><input type="text" id="entrepriseNif" class="form-control" placeholder="Numéro d'identification fiscale"></div></div>
+                        <div class="col-md-6"><div class="form-field"><label>RCCM</label><input type="text" id="entrepriseRccm" class="form-control" placeholder="Registre du commerce"></div></div>
                     </div>
                 </div>
+                <div class="form-section">
+                    <div class="form-section-title"><i class="fas fa-map-marker-alt"></i>Contact & activité</div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><div class="form-field"><label>Téléphone</label><input type="tel" id="entrepriseTelephone" class="form-control"></div></div>
+                        <div class="col-md-6"><div class="form-field"><label>Adresse</label><input type="text" id="entrepriseAdresse" class="form-control"></div></div>
+                        <div class="col-md-6">
+                            <div class="form-field"><label>Secteur d'activité</label>
+                            <select id="entrepriseSecteur" class="form-select">
+                                <option value="">— Sélectionner —</option>
+                                <option value="Commerce">Commerce</option>
+                                <option value="Industrie">Industrie</option>
+                                <option value="Services">Services</option>
+                                <option value="Santé">Santé</option>
+                                <option value="Éducation">Éducation</option>
+                                <option value="BTP / Construction">BTP / Construction</option>
+                                <option value="Transport & Logistique">Transport & Logistique</option>
+                                <option value="Agriculture">Agriculture</option>
+                                <option value="Finance & Assurance">Finance & Assurance</option>
+                                <option value="Technologie & IT">Technologie & IT</option>
+                                <option value="Autre">Autre</option>
+                            </select></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-field"><label>Logo</label>
+                            <div class="d-flex align-items-center gap-3 mb-2" id="entrepriseLogoWrap" style="display:none;">
+                                <img id="entrepriseLogoPreview" src="" alt="Logo" style="max-height:48px;max-width:120px;object-fit:contain;border:1px solid #dee2e6;border-radius:6px;padding:4px;background:#fff;">
+                            </div>
+                            <input type="file" id="entrepriseLogo" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif">
+                            <small class="text-muted">JPG, PNG ou WEBP</small></div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-primary-custom" onclick="saveEntrepriseSettings()"><i class="fas fa-save me-2"></i>Enregistrer</button>
             </form>
+            <hr class="my-4">
+            <div class="form-section mb-0">
+                <div class="form-section-title"><i class="fas fa-database"></i>Sauvegarde</div>
+                <p class="text-muted small mb-3">Crée une copie SQL de la base de données dans le dossier <code>backups/</code>.</p>
+                <button type="button" class="btn btn-outline-primary" id="backupBtn" onclick="runBackup()"><i class="fas fa-download me-2"></i>Lancer la sauvegarde</button>
+                <div id="backupStatus" class="small text-muted mt-2"></div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- MODALS -->
-<!-- ============================================ -->
+<!-- ========== MODALS ========== -->
 
 <!-- Modal Ajouter Document -->
-<div class="modal fade modal-modern" id="addDocumentModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="addDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Ajouter un document</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title"><i class="fas fa-file-upload me-2"></i>Nouveau document</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Fichier</label>
-                    <input type="file" id="modalFileInput" class="form-control">
+                <div class="form-section">
+                    <div class="form-section-title"><i class="fas fa-info-circle"></i>Informations</div>
+                    <div class="row g-3">
+                        <div class="col-12"><div class="form-field"><label>Titre</label><input type="text" id="docTitre" class="form-control" placeholder="Titre du document"></div></div>
+                        <div class="col-md-8"><div class="form-field"><label>Description</label><textarea id="docDesc" class="form-control" rows="2" placeholder="Description optionnelle"></textarea></div></div>
+                        <div class="col-md-4"><div class="form-field"><label>Catégorie</label><select id="docCategorie" class="form-select"></select></div></div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Titre</label>
-                    <input type="text" id="modalTitre" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Catégorie</label>
-                    <select id="modalCategorie" class="form-select"></select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Description</label>
-                    <textarea id="modalDescription" class="form-control" rows="3"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary" onclick="ajouterDocumentModal()">Ajouter</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Ajouter Catégorie -->
-<div class="modal fade modal-modern" id="addCategorieModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Nouvelle catégorie</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Nom</label>
-                    <input type="text" id="newCategorieNom" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Description</label>
-                    <textarea id="newCategorieDesc" class="form-control" rows="2"></textarea>
+                <div class="form-section mb-0">
+                    <div class="form-section-title"><i class="fas fa-paperclip"></i>Fichier</div>
+                    <label class="upload-dropzone d-block mb-0" id="adminUploadZone">
+                        <i class="fas fa-cloud-upload-alt main-icon d-block"></i>
+                        <div class="fw-semibold">Glissez un fichier ou cliquez pour parcourir</div>
+                        <div class="text-muted small mt-1">PDF, Word, Excel, images…</div>
+                        <div class="file-name text-primary" id="adminUploadFileName"></div>
+                        <input type="file" id="docFile">
+                    </label>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary" onclick="ajouterCategorie()">Créer</button>
-            </div>
+            <div class="modal-footer border-0"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-primary" onclick="submitDocument()"><i class="fas fa-upload me-2"></i>Envoyer</button></div>
         </div>
     </div>
 </div>
 
 <!-- Modal Ajouter Employé -->
-<div class="modal fade modal-modern" id="addEmployeModal" tabindex="-1">
+<div class="modal fade" id="addEmployeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nouvel employé</h5>
+            <div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nouvel employé</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <form autocomplete="off" onsubmit="submitEmploye(); return false;">
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label fw-semibold">Nom</label><input type="text" id="empNom" name="ged_emp_nom" class="form-control" autocomplete="off"></div>
+                <div class="mb-3"><label class="form-label fw-semibold">Email</label><input type="email" id="empEmail" name="ged_emp_email" class="form-control" autocomplete="off"></div>
+                <div class="mb-3"><label class="form-label fw-semibold">Mot de passe</label><input type="password" id="empPassword" name="ged_emp_password" class="form-control" autocomplete="new-password"></div>
+                <div class="mb-3"><label class="form-label fw-semibold">Téléphone</label><input type="tel" id="empTelephone" name="ged_emp_tel" class="form-control" autocomplete="off"></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-success"><i class="fas fa-user-plus me-2"></i>Créer</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Catégorie -->
+<div class="modal fade" id="addCategorieModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white"><h5 class="modal-title"><i class="fas fa-tag me-2"></i>Nouvelle catégorie</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label fw-semibold">Nom</label><input type="text" id="catNom" class="form-control"></div>
+                <div class="mb-3"><label class="form-label fw-semibold">Description</label><textarea id="catDesc" class="form-control" rows="3"></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-info" onclick="submitCategorie()"><i class="fas fa-plus me-2"></i>Créer</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== NOUVEAUX MODALS ===== -->
+
+<!-- Modal Modifier Catégorie -->
+<div class="modal fade" id="editCategorieModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Modifier la catégorie</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="editCatId">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Nom complet</label>
-                    <input type="text" id="newEmployeNom" class="form-control">
+                    <label class="form-label fw-semibold">Nom</label>
+                    <input type="text" id="editCatNom" class="form-control">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Email</label>
-                    <input type="email" id="newEmployeEmail" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Mot de passe</label>
-                    <input type="password" id="newEmployePassword" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Téléphone</label>
-                    <input type="tel" id="newEmployeTelephone" class="form-control">
+                    <label class="form-label fw-semibold">Description</label>
+                    <textarea id="editCatDesc" class="form-control" rows="3"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary" onclick="ajouterEmploye()">Créer</button>
+                <button class="btn btn-primary" onclick="saveCategorieEdit()"><i class="fas fa-save me-2"></i>Enregistrer</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Rejet -->
-<div class="modal fade modal-modern" id="rejectModal" tabindex="-1">
+<!-- Modal Voir Documents d'une Catégorie -->
+<div class="modal fade" id="modalCategorie" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-folder me-2"></i><span id="modalCategorieTitre">Documents</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalCategorieBody">
+                <div class="text-center py-4"><div class="spinner-border text-primary"></div> Chargement...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Visualisation Document -->
+<div class="modal fade" id="viewDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-file-alt me-2"></i><span id="viewDocTitle">Document</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewDocBody" style="max-height:75vh;overflow-y:auto;">
+                <div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted small">Chargement de l'aperçu…</p></div>
+            </div>
+            <div class="modal-footer flex-wrap gap-2 border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="telechargerDocumentActuel()"><i class="fas fa-download me-1"></i>Télécharger</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="imprimerDocument()"><i class="fas fa-print me-1"></i>Imprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Déplacer Document -->
+<div class="modal fade" id="deplacerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-folder me-2"></i>Déplacer le document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nouvelle catégorie</label>
+                    <select id="selectCategorieDeplacement" class="form-select"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-warning" onclick="confirmerDeplacement()"><i class="fas fa-check"></i> Déplacer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Partager Document -->
+<div class="modal fade" id="partagerDocumentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-share-alt me-2"></i>Partager un document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="partagerDocId">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email du destinataire</label>
+                    <input type="email" id="partagerEmail" class="form-control" placeholder="exemple@email.com">
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Le document sera partagé avec l'utilisateur.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-success" onclick="confirmerPartageDocument()"><i class="fas fa-share-alt me-2"></i>Partager</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Motif Rejet -->
+<div class="modal fade" id="rejectMotifModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Rejeter le document</h5>
+                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Motif du rejet</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Motif du rejet</label>
-                    <textarea id="rejectMotif" class="form-control" rows="3" placeholder="Expliquez la raison du rejet..."></textarea>
-                </div>
+                <p id="rejectMotifText" class="text-muted">Chargement...</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-danger" onclick="confirmerRejet()">Rejeter</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- TOAST -->
-<div id="customToast" class="toast-custom">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage"></span>
+<!-- Modal Partager Catégorie -->
+<div class="modal fade" id="partagerCategorieModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-share-alt me-2"></i>Partager une catégorie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="partagerCatId">
+                <p class="text-muted">Catégorie : <strong id="partagerCatNom"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email du destinataire</label>
+                    <input type="email" id="partagerCatEmail" class="form-control" placeholder="exemple@email.com">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-success" onclick="confirmerPartageCategorie()"><i class="fas fa-share-alt me-2"></i>Partager</button>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Modal Profil -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-user me-2"></i>Mon profil</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="profileFormAdmin" autocomplete="on" onsubmit="return false;">
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-id-card"></i>Informations personnelles</div>
+                        <div class="row g-3">
+                            <div class="col-md-6"><div class="form-field"><label>Nom</label><input type="text" id="profileNom" name="ged_admin_nom" class="form-control" autocomplete="name"></div></div>
+                            <div class="col-md-6"><div class="form-field"><label>Email</label><input type="email" id="profileEmail" name="ged_admin_email" class="form-control" readonly autocomplete="email"></div></div>
+                            <div class="col-md-6"><div class="form-field"><label>Téléphone</label><input type="tel" id="profileTelephone" name="ged_admin_tel" class="form-control" placeholder="+243..." autocomplete="tel"></div></div>
+                        </div>
+                    </div>
+                    <div class="form-section mb-0">
+                        <div class="form-section-title"><i class="fab fa-whatsapp"></i>Alertes WhatsApp</div>
+                        <div class="pref-card mb-3">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="profileNotifyWhatsapp">
+                                <label class="form-check-label" for="profileNotifyWhatsapp">Recevoir les alertes importantes (soumissions, validations…)</label>
+                            </div>
+                        </div>
+                        <div class="mb-2" id="adminWhatsappApiKeyField">
+                            <div class="form-field"><label>Clé API CallMeBot</label>
+                            <input type="text" id="profileWhatsappApiKey" class="form-control form-control-sm" placeholder="Clé reçue de CallMeBot" autocomplete="off">
+                            <small class="text-muted">Activez via <a href="https://wa.me/34684723962?text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" rel="noopener">WhatsApp CallMeBot</a></small></div>
+                        </div>
+                        <div id="adminWhatsappNetworkHint" class="small text-muted mb-2"></div>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="testWhatsappAlert()"><i class="fab fa-whatsapp me-1"></i>Tester WhatsApp</button>
+                    </div>
+                </form>
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-3" onclick="openAdminPasswordModal()"><i class="fas fa-key me-1"></i>Changer le mot de passe</button>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary" onclick="saveProfile()"><i class="fas fa-save me-2"></i>Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Mot de passe Admin -->
+<div class="modal fade" id="adminPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white"><h5 class="modal-title"><i class="fas fa-key me-2"></i>Mot de passe</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <form autocomplete="off" onsubmit="saveAdminPassword(); return false;">
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label fw-semibold">Nouveau mot de passe</label><input type="password" id="adminPasswordNew" class="form-control" autocomplete="new-password" minlength="6" required></div>
+                <div class="mb-3"><label class="form-label fw-semibold">Confirmer</label><input type="password" id="adminPasswordConfirm" class="form-control" autocomplete="new-password" minlength="6" required></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary">Enregistrer</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div id="toastMessage" class="ged-toast"></div>
+
+<!-- ========== SCRIPTS ========== -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="/static/js/ged-doc-preview.js"></script>
 <script>
-// ============================================
-// VARIABLES GLOBALES
-// ============================================
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login';
+GedDocPreview.init({ token, apiBase: window.location.origin });
 
-let currentPage = 1;
-let totalPages = 1;
-let auditPage = 1;
-let auditTotalPages = 1;
-let evolutionChart = null;
-let statusChart = null;
-let currentRejectDocId = null;
-
-// ============================================
-// UTILITAIRES
-// ============================================
+// ========== UTILITIES ==========
 function showToast(msg, isError = false) {
-    const toast = $('#customToast');
-    $('#toastMessage').text(msg);
-    if (isError) {
-        toast.css('background', '#ef4444');
-    } else {
-        toast.css('background', '#10b981');
-    }
-    toast.css('display', 'flex');
+    const toast = $('#toastMessage');
+    toast.text(msg);
+    toast.css('background', isError ? '#ef4444' : '#10b981');
+    toast.fadeIn(200);
     setTimeout(() => toast.fadeOut(300), 3000);
 }
 
@@ -1011,698 +691,1187 @@ function escapeHtml(str) {
     });
 }
 
-function logout() {
-    localStorage.clear();
-    window.location.href = '/login';
+function getBadge(statut) {
+    const map = {
+        'brouillon': 'badge-brouillon',
+        'soumis': 'badge-revision',
+        'valide': 'badge-valide',
+        'rejete': 'badge-rejete',
+        'publie': 'badge-publie',
+        'obsolete': 'badge-obsolete',
+        'archive': 'badge-obsolete'
+    };
+    const label = {
+        'brouillon': 'Brouillon',
+        'soumis': 'En révision',
+        'valide': 'Validé',
+        'rejete': 'Rejeté',
+        'publie': 'Publié',
+        'obsolete': 'Obsolète',
+        'archive': 'Archivé',
+        'detruit': 'Détruit'
+    };
+    return `<span class="badge-custom ${map[statut] || 'badge-brouillon'}">${label[statut] || statut}</span>`;
 }
 
-// ============================================
-// NAVIGATION
-// ============================================
-$('.sidebar-nav .nav-link').click(function(e) {
+function logout() { localStorage.clear(); window.location.href = '/login'; }
+
+// ========== NAVIGATION ==========
+$('.sidebar a').click(function(e) {
     e.preventDefault();
-    $('.sidebar-nav .nav-link').removeClass('active');
+    $('.sidebar a').removeClass('active');
     $(this).addClass('active');
-    
     const tab = $(this).data('tab');
     $('.tab-pane').hide();
-    
-    if (tab === 'dashboard') {
-        $('#tabDashboard').show();
-        loadStats();
-    } else if (tab === 'documents') {
-        $('#tabDocuments').show();
-        chargerDocuments();
-    } else if (tab === 'categories') {
-        $('#tabCategories').show();
-        chargerCategories();
-    } else if (tab === 'utilisateurs') {
-        $('#tabUtilisateurs').show();
-        chargerEmployes();
-    } else if (tab === 'workflow') {
-        $('#tabWorkflow').show();
-        chargerValidation();
-    } else if (tab === 'archives') {
-        $('#tabArchives').show();
-        chargerArchives();
-    } else if (tab === 'recherche') {
-        $('#tabRecherche').show();
-        chargerCategoriesFiltres();
-    } else if (tab === 'audit') {
-        $('#tabAudit').show();
-        chargerAudit();
-    } else if (tab === 'notifications') {
-        $('#tabNotifications').show();
-        chargerNotifications();
-    } else if (tab === 'sauvegardes') {
-        $('#tabSauvegardes').show();
-        chargerSauvegardes();
-    } else if (tab === 'parametres') {
-        $('#tabParametres').show();
-        chargerEntrepriseInfos();
-    }
-    
+    if (tab === 'dashboard') { $('#tabDashboard').show(); loadDashboard(); }
+    else if (tab === 'documents') { $('#tabDocuments').show(); loadDocuments(); }
+    else if (tab === 'validation') { $('#tabValidation').show(); loadValidation(); }
+    else if (tab === 'employes') { $('#tabEmployes').show(); loadEmployes(); }
+    else if (tab === 'categories') { $('#tabCategories').show(); loadCategories(); }
+    else if (tab === 'statistiques') { $('#tabStatistiques').show(); loadStatsPage(); }
+    else if (tab === 'corbeille') { $('#tabCorbeille').show(); loadCorbeille(); }
+    else if (tab === 'parametres') { $('#tabParametres').show(); loadEntrepriseSettings(); }
     if (window.innerWidth <= 992) $('#sidebar').removeClass('open');
 });
 
 $('#menuToggle').click(() => $('#sidebar').toggleClass('open'));
+$('#notifIcon').click(function(e) { e.stopPropagation(); $('#notifDropdown').toggle(); });
+$(document).click(function() { $('#notifDropdown').hide(); });
 
-// ============================================
-// USER INFO
-// ============================================
-async function loadUserInfo() {
+// ========== NOTIFICATIONS ==========
+async function loadNotifications() {
     try {
-        const res = await fetch('/api/user/profile', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.success) {
-            $('#userName').text(data.nom);
-            $('#userInitial').text(data.nom.charAt(0).toUpperCase());
-        }
-    } catch(e) { console.error(e); }
-}
-loadUserInfo();
-
-// ============================================
-// DASHBOARD STATS
-// ============================================
-async function loadStats() {
-    try {
-        const res = await fetch('/api/pme/stats', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const stats = data.stats || {};
-        
-        $('#statTotal').text(stats.total_documents || 0);
-        $('#statEnAttente').text(stats.en_attente || 0);
-        $('#statValides').text(stats.valides || 0);
-        $('#statRejetes').text((stats.total_documents || 0) - (stats.valides || 0) - (stats.en_attente || 0));
-        $('#statEmployes').text(stats.total_employes || 0);
-        
-        $('#pendingBadge').text(stats.en_attente || 0);
-        
-        // Graphique évolution
-        if (evolutionChart) evolutionChart.destroy();
-        const ctx = document.getElementById('evolutionChart').getContext('2d');
-        evolutionChart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'], datasets: [{ label: 'Documents', data: [0,0,0,0,0,stats.total_documents || 0], borderColor: '#0ea5e9', tension: 0.3 }] },
-            options: { responsive: true }
-        });
-        
-        // Graphique statuts
-        if (statusChart) statusChart.destroy();
-        const ctx2 = document.getElementById('statusChart').getContext('2d');
-        statusChart = new Chart(ctx2, {
-            type: 'doughnut',
-            data: { labels: ['En attente', 'Validés', 'Rejetés'], datasets: [{ data: [stats.en_attente || 0, stats.valides || 0, (stats.total_documents || 0) - (stats.valides || 0) - (stats.en_attente || 0)], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'] }] },
-            options: { responsive: true }
-        });
-        
-    } catch(e) { console.error(e); }
-}
-
-// ============================================
-// GESTION DOCUMENTS
-// ============================================
-async function chargerDocuments() {
-    const search = $('#docSearch').val();
-    const statut = $('#docStatut').val();
-    let url = `/api/pme/documents?page=${currentPage}&limit=10`;
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-    if (statut) url += `&statut=${statut}`;
-    
-    try {
-        const res = await fetch(url, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const docs = data.documents || [];
-        totalPages = data.total_pages || 1;
-        
-        if (docs.length === 0) {
-            $('#documentsList').html('<tr><td colspan="7" class="text-center py-4 text-muted">Aucun document<\/td><\/tr>');
-            return;
-        }
-        
-        let html = '';
-        for (let doc of docs) {
-            let badge = '';
-            if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
-            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
-            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
-            else badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
-            
-            html += `<tr>
-                <td>${doc.id}<\/td>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
-                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_creation)}<\/td>
-                <td>${badge}<\/td>
-                <td>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary" onclick="visualiserDocument(${doc.id})" title="Voir"><i class="fas fa-eye"></i><\/button>
-                        <button class="btn btn-outline-success" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download"></i><\/button>
-                        ${doc.statut === 'soumis' ? `<button class="btn btn-outline-success" onclick="validerDocument(${doc.id})" title="Valider"><i class="fas fa-check"></i><\/button>
-                        <button class="btn btn-outline-danger" onclick="ouvrirRejet(${doc.id})" title="Rejeter"><i class="fas fa-times"></i><\/button>` : ''}
-                    </div>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#documentsList').html(html);
-        renderPagination();
-    } catch(e) { console.error(e); }
-}
-
-function rechercherDocuments() { currentPage = 1; chargerDocuments(); }
-function renderPagination() {
-    if (totalPages <= 1) { $('#documentsPagination').empty(); return; }
-    let html = '<ul class="pagination pagination-custom">';
-    for (let i = 1; i <= totalPages; i++) {
-        html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
-    }
-    html += '</ul>';
-    $('#documentsPagination').html(html);
-}
-function changePage(page) { currentPage = page; chargerDocuments(); }
-
-function visualiserDocument(id) { window.open(`/documents/${id}/download?token=${token}`, '_blank'); }
-function telechargerDocument(id) { window.open(`/documents/${id}/download?token=${token}`, '_blank'); }
-
-async function validerDocument(id) {
-    try {
-        const res = await fetch(`/documents/${id}/valider`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
-        });
-        if (res.ok) {
-            showToast('Document validé avec succès');
-            chargerDocuments();
-            chargerValidation();
-            loadStats();
-        } else {
-            showToast('Erreur lors de la validation', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-function ouvrirRejet(id) {
-    currentRejectDocId = id;
-    $('#rejectMotif').val('');
-    $('#rejectModal').modal('show');
-}
-
-async function confirmerRejet() {
-    const motif = $('#rejectMotif').val();
-    if (!motif) {
-        showToast('Veuillez saisir un motif', true);
-        return;
-    }
-    try {
-        const res = await fetch(`/documents/${currentRejectDocId}/rejeter`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ motif: motif })
-        });
-        if (res.ok) {
-            showToast('Document rejeté');
-            $('#rejectModal').modal('hide');
-            chargerDocuments();
-            chargerValidation();
-            loadStats();
-        } else {
-            showToast('Erreur lors du rejet', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-function ajouterDocumentModal() {
-    const file = $('#modalFileInput')[0].files[0];
-    const titre = $('#modalTitre').val();
-    if (!file || !titre) {
-        showToast('Fichier et titre requis', true);
-        return;
-    }
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('titre', titre);
-    formData.append('description', $('#modalDescription').val());
-    formData.append('categorie_id', $('#modalCategorie').val());
-    
-    fetch('/documents/upload', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        body: formData
-    }).then(res => res.json()).then(data => {
-        if (data.success) {
-            showToast('Document ajouté');
-            $('#addDocumentModal').modal('hide');
-            chargerDocuments();
-            loadStats();
-            $('#modalFileInput').val('');
-            $('#modalTitre').val('');
-            $('#modalDescription').val('');
-        } else {
-            showToast(data.message || 'Erreur', true);
-        }
-    }).catch(e => showToast('Erreur', true));
-}
-
-// ============================================
-// GESTION CATÉGORIES
-// ============================================
-async function chargerCategories() {
-    try {
-        const res = await fetch('/categories', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.categories) {
-            $('#statCategories').text(data.categories.length);
-            let html = '';
-            for (let cat of data.categories) {
-                html += `<tr>
-                    <td>${cat.id}<\/td>
-                    <td class="fw-semibold">${escapeHtml(cat.nom)}<\/td>
-                    <td>${escapeHtml(cat.description) || '-'}<\/td>
-                    <td>0<\/td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger" onclick="supprimerCategorie(${cat.id})"><i class="fas fa-trash"></i><\/button>
-                    <\/td>
-                <\/tr>`;
-            }
-            $('#categoriesList').html(html);
-        }
-    } catch(e) { console.error(e); }
-}
-
-async function ajouterCategorie() {
-    const nom = $('#newCategorieNom').val();
-    if (!nom) { showToast('Nom requis', true); return; }
-    try {
-        const res = await fetch('/categories', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ nom: nom, description: $('#newCategorieDesc').val() })
-        });
-        if (res.ok) {
-            showToast('Catégorie créée');
-            $('#addCategorieModal').modal('hide');
-            chargerCategories();
-            $('#newCategorieNom').val('');
-            $('#newCategorieDesc').val('');
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-async function supprimerCategorie(id) {
-    if (!confirm('Supprimer cette catégorie ?')) return;
-    try {
-        await fetch(`/categories/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        showToast('Catégorie supprimée');
-        chargerCategories();
-    } catch(e) { showToast('Erreur', true); }
-}
-
-// ============================================
-// GESTION EMPLOYÉS
-// ============================================
-async function chargerEmployes() {
-    try {
-        const res = await fetch('/api/pme/employes', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const employes = data.employes || [];
-        if (employes.length === 0) {
-            $('#employesList').html('<tr><td colspan="8" class="text-center py-4 text-muted">Aucun employé<\/td><\/tr>');
-            return;
-        }
-        let html = '';
-        for (let emp of employes) {
-            let badge = emp.actif ? '<span class="badge-custom badge-actif">Actif</span>' : '<span class="badge-custom badge-inactif">Inactif</span>';
-            html += `<tr>
-                <td>${emp.id}<\/td>
-                <td class="fw-semibold">${escapeHtml(emp.nom)}<\/td>
-                <td>${escapeHtml(emp.email)}<\/td>
-                <td>${escapeHtml(emp.telephone) || '-'}<\/td>
-                <td>${emp.role}<\/td>
-                <td>${badge}<\/td>
-                <td>${formatDate(emp.date_inscription)}<\/td>
-                <td>
-                    <button class="btn btn-sm btn-outline-danger" onclick="desactiverEmploye(${emp.id})"><i class="fas fa-ban"></i><\/button>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#employesList').html(html);
-    } catch(e) { console.error(e); }
-}
-
-async function ajouterEmploye() {
-    const nom = $('#newEmployeNom').val();
-    const email = $('#newEmployeEmail').val();
-    const password = $('#newEmployePassword').val();
-    if (!nom || !email || !password) {
-        showToast('Nom, email et mot de passe requis', true);
-        return;
-    }
-    try {
-        const res = await fetch('/admin/employes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ nom: nom, email: email, password: password, telephone: $('#newEmployeTelephone').val() })
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast('Employé créé');
-            $('#addEmployeModal').modal('hide');
-            chargerEmployes();
-            loadStats();
-            $('#newEmployeNom').val('');
-            $('#newEmployeEmail').val('');
-            $('#newEmployePassword').val('');
-            $('#newEmployeTelephone').val('');
-        } else {
-            showToast(data.error || 'Erreur', true);
-        }
-    } catch(e) { showToast('Erreur', true); }
-}
-
-async function desactiverEmploye(id) {
-    if (!confirm('Désactiver cet employé ?')) return;
-    try {
-        await fetch(`/users/${id}/desactiver`, {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        showToast('Employé désactivé');
-        chargerEmployes();
-        loadStats();
-    } catch(e) { showToast('Erreur', true); }
-}
-
-// ============================================
-// WORKFLOW (VALIDATION)
-// ============================================
-async function chargerValidation() {
-    try {
-        const res = await fetch('/api/pme/validation', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const docs = data.documents || [];
-        if (docs.length === 0) {
-            $('#validationList').html('<td><td colspan="6" class="text-center py-4 text-muted">Aucun document en attente<\/td><\/tr>');
-            return;
-        }
-        let html = '';
-        for (let doc of docs) {
-            html += `<tr>
-                <td>${doc.id}<\/td>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_creation)}<\/td>
-                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
-                <td>
-                    <button class="btn btn-sm btn-success me-1" onclick="validerDocument(${doc.id})"><i class="fas fa-check"></i> Valider</button>
-                    <button class="btn btn-sm btn-danger" onclick="ouvrirRejet(${doc.id})"><i class="fas fa-times"></i> Rejeter</button>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#validationList').html(html);
-    } catch(e) { console.error(e); }
-}
-
-// ============================================
-// ARCHIVES
-// ============================================
-async function chargerArchives() {
-    try {
-        const res = await fetch('/api/pme/corbeille', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        const docs = data.documents || [];
-        if (docs.length === 0) {
-            $('#archivesList').html('<tr><td colspan="5" class="text-center py-4 text-muted">Aucune archive<\/td><\/tr>');
-            return;
-        }
-        let html = '';
-        for (let doc of docs) {
-            html += `<tr>
-                <td>${doc.id}<\/td>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_suppression)}<\/td>
-                <td>
-                    <button class="btn btn-sm btn-success me-1" onclick="restaurerDocument(${doc.id})"><i class="fas fa-undo"></i> Restaurer</button>
-                    <button class="btn btn-sm btn-danger" onclick="supprimerDefinitivement(${doc.id})"><i class="fas fa-trash"></i> Détruire</button>
-                <\/td>
-            <\/tr>`;
-        }
-        $('#archivesList').html(html);
-    } catch(e) { console.error(e); }
-}
-
-async function restaurerDocument(id) {
-    await fetch(`/documents/${id}/restaurer`, {
-        method: 'PUT',
-        headers: { 'Authorization': 'Bearer ' + token }
-    });
-    chargerArchives();
-    chargerDocuments();
-    loadStats();
-}
-
-async function supprimerDefinitivement(id) {
-    if (!confirm('Suppression définitive ?')) return;
-    await fetch(`/documents/${id}/effacer`, {
-        method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + token }
-    });
-    chargerArchives();
-    chargerDocuments();
-    loadStats();
-}
-
-// ============================================
-// RECHERCHE AVANCÉE
-// ============================================
-async function chargerCategoriesFiltres() {
-    try {
-        const res = await fetch('/categories', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const data = await res.json();
-        if (data.categories) {
-            let options = '<option value="">Toutes catégories</option>';
-            data.categories.forEach(c => { options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`; });
-            $('#searchCategorieFilter').html(options);
-        }
-    } catch(e) { console.error(e); }
-}
-
-async function rechercheAvancee() {
-    let url = `/api/pme/documents?limit=50`;
-    const titre = $('#searchTitre').val();
-    const categorie = $('#searchCategorieFilter').val();
-    const statut = $('#searchStatutFilter').val();
-    if (titre) url += `&search=${encodeURIComponent(titre)}`;
-    if (categorie) url += `&categorie=${categorie}`;
-    if (statut) url += `&statut=${statut}`;
-    
-    try {
-        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-        const data = await res.json();
-        const docs = data.documents || [];
-        if (docs.length === 0) {
-            $('#searchResultsList').html('<tr><td colspan="6" class="text-center py-4 text-muted">Aucun résultat<\/td><\/tr>');
-            return;
-        }
-        let html = '';
-        for (let doc of docs) {
-            let badge = '';
-            if (doc.statut === 'soumis') badge = '<span class="badge-custom badge-soumis">En attente</span>';
-            else if (doc.statut === 'valide') badge = '<span class="badge-custom badge-valide">Validé</span>';
-            else if (doc.statut === 'rejete') badge = '<span class="badge-custom badge-rejete">Rejeté</span>';
-            else badge = '<span class="badge-custom badge-brouillon">Brouillon</span>';
-            
-            html += `<tr>
-                <td class="fw-semibold">${escapeHtml(doc.titre)}<\/td>
-                <td>${escapeHtml(doc.categorie_nom) || '-'}<\/td>
-                <td>${escapeHtml(doc.auteur_nom) || '-'}<\/td>
-                <td>${formatDate(doc.date_creation)}<\/td>
-                <td>${badge}<\/td>
-                <td><button class="btn btn-sm btn-primary" onclick="visualiserDocument(${doc.id})"><i class="fas fa-eye"></i> Voir</button><\/td>
-            <\/tr>`;
-        }
-        $('#searchResultsList').html(html);
-    } catch(e) { console.error(e); }
-}
-
-function resetRecherche() {
-    $('#searchTitre').val('');
-    $('#searchCategorieFilter').val('');
-    $('#searchStatutFilter').val('');
-    $('#searchDateDebut').val('');
-    $('#searchDateFin').val('');
-    $('#searchAuteur').val('');
-    $('#searchResultsList').html('<td><td colspan="6" class="text-center text-muted py-4">Utilisez les filtres ci-dessus<\/td><\/tr>');
-}
-
-// ============================================
-// AUDIT
-// ============================================
-async function chargerAudit() {
-    let url = `/api/entreprise/logs?page=${auditPage}&limit=20`;
-    const action = $('#auditAction').val();
-    const date = $('#auditDate').val();
-    if (action) url += `&action=${action}`;
-    if (date) url += `&date=${date}`;
-    
-    try {
-        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-        const data = await res.json();
-        const logs = data.logs || [];
-        auditTotalPages = data.total_pages || 1;
-        
-        if (logs.length === 0) {
-            $('#auditList').html('<tr><td colspan="4" class="text-center py-4 text-muted">Aucun log<\/td><\/tr>');
-            return;
-        }
-        let html = '';
-        for (let log of logs) {
-            html += `<tr>
-                <td>${escapeHtml(log.user_nom) || '-'}<br><small class="text-muted">${escapeHtml(log.user_email)}</small><\/td>
-                <td><span class="badge bg-secondary">${escapeHtml(log.action)}<\/span><\/td>
-                <td>${escapeHtml(log.details) || '-'}<\/td>
-                <td>${formatDateTime(log.created_at)}<\/td>
-            <\/tr>`;
-        }
-        $('#auditList').html(html);
-        renderAuditPagination();
-    } catch(e) { console.error(e); }
-}
-
-function renderAuditPagination() {
-    if (auditTotalPages <= 1) { $('#auditPagination').empty(); return; }
-    let html = '<ul class="pagination pagination-custom">';
-    for (let i = 1; i <= auditTotalPages; i++) {
-        html += `<li class="page-item ${auditPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="auditChangePage(${i}); return false;">${i}</a></li>`;
-    }
-    html += '</ul>';
-    $('#auditPagination').html(html);
-}
-
-function auditChangePage(page) { auditPage = page; chargerAudit(); }
-
-// ============================================
-// NOTIFICATIONS
-// ============================================
-async function chargerNotifications() {
-    try {
-        const res = await fetch('/notifications/all', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
+        const res = await fetch('/notifications/all', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
         const notifs = data.notifications || [];
         const nonLues = notifs.filter(n => !n.lue).length;
         $('#notifBadge').text(nonLues);
-        $('#notifTopBadge').text(nonLues).css('display', nonLues > 0 ? 'inline-block' : 'none');
+        if (nonLues > 0) { $('#notifBadge').css('display', 'inline-block'); } 
+        else { $('#notifBadge').css('display', 'none'); }
         
+        let html = '<div class="notif-dropdown-header"><span>Notifications</span>' +
+            (nonLues > 0 ? `<span class="badge bg-danger rounded-pill">${nonLues}</span>` : '') + '</div>';
         if (notifs.length === 0) {
-            $('#notificationsList').html('<div class="text-center py-4 text-muted">Aucune notification</div>');
-            return;
+            html += '<div class="text-center py-4 text-muted small">Aucune notification</div>';
+        } else {
+            for (const n of notifs.slice(0, 10)) {
+                const iconMap = {
+                    'upload': 'fa-file-upload text-primary',
+                    'soumission': 'fa-paper-plane text-info',
+                    'validation': 'fa-check-circle text-success',
+                    'rejet': 'fa-times-circle text-danger',
+                    'partage': 'fa-share-alt text-success'
+                };
+                const icon = iconMap[n.type] || 'fa-bell text-secondary';
+                html += `<div class="notif-item ${!n.lue ? 'unread' : ''}" onclick="marquerLu(${n.id})">
+                    <i class="fas ${icon} me-2"></i>${escapeHtml(n.message || '')}
+                    <small class="d-block text-muted mt-1">${formatDateTime(n.date_creation || n.created_at)}</small>
+                </div>`;
+            }
         }
-        let html = '';
-        for (let n of notifs) {
-            html += `<div class="list-group-item ${!n.lue ? 'bg-light' : ''}">
-                        <div class="d-flex justify-content-between">
-                            <div>${escapeHtml(n.message)}</div>
-                            <small class="text-muted">${formatDateTime(n.created_at)}</small>
-                        </div>
-                    </div>`;
-        }
-        $('#notificationsList').html(html);
+        $('#notifDropdown').html(html);
+    } catch(e) { console.error('Notifications error:', e); }
+}
+
+async function marquerLu(id) {
+    try {
+        await fetch(`/notifications/${id}/lire`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+        loadNotifications();
     } catch(e) { console.error(e); }
 }
 
-async function marquerToutLu() {
-    await fetch('/notifications/lire-tout', {
-        method: 'PUT',
-        headers: { 'Authorization': 'Bearer ' + token }
-    });
-    chargerNotifications();
+function updateStatus() {
+    const s = $('#connectionStatus');
+    if (navigator.onLine) {
+        s.removeClass('status-offline').addClass('status-online');
+        s.html('<span class="dot"></span> Connecté');
+    } else {
+        s.removeClass('status-online').addClass('status-offline');
+        s.html('<span class="dot"></span> Hors ligne');
+    }
 }
+window.addEventListener('online', updateStatus);
+window.addEventListener('offline', updateStatus);
+updateStatus();
 
-// ============================================
-// SAUVEGARDES
-// ============================================
-async function chargerSauvegardes() {
-    // À implémenter avec votre API
-    $('#backupsList').html('<tr><td colspan="4" class="text-center py-4 text-muted">Fonctionnalité à venir<\/td><\/tr>');
-}
+// ========== USER INFO ==========
+let profileWhatsappKeySet = false;
 
-function creerSauvegarde() {
-    showToast('Fonctionnalité à venir');
-}
-
-// ============================================
-// PARAMÈTRES ENTREPRISE
-// ============================================
-async function chargerEntrepriseInfos() {
+async function loadWhatsappNetworkStatus() {
+    const hint = $('#adminWhatsappNetworkHint');
+    if (!hint.length) return;
+    hint.html('<i class="fas fa-spinner fa-spin me-1"></i>Vérification réseau CallMeBot…');
     try {
-        const res = await fetch('/api/entreprise/info', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
+        const res = await fetch('/api/whatsapp/status', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (data.network_ok === false) {
+            hint.html('<span class="text-danger"><i class="fas fa-wifi me-1"></i>' + (data.network_detail || 'API CallMeBot injoignable') + '</span>');
+        } else if (data.network_ok === true) {
+            hint.html('<span class="text-success"><i class="fas fa-check-circle me-1"></i>Serveur connecté à CallMeBot</span>');
+        } else {
+            hint.text('');
+        }
+    } catch (e) {
+        hint.html('<span class="text-warning">Impossible de vérifier la connexion CallMeBot</span>');
+    }
+}
+
+async function loadUserInfo() {
+    try {
+        const res = await fetch('/api/user/profile', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
         if (data.success) {
-            $('#entrepriseNomInput').val(data.nom || '');
+            $('#userName').text(data.nom);
+            $('#userAvatar').text(data.nom.charAt(0).toUpperCase());
+            $('#profileNom').val(data.nom);
+            $('#profileEmail').val(data.email);
+            $('#profileTelephone').val(data.telephone || '');
+            $('#profileNotifyWhatsapp').prop('checked', !!data.notify_whatsapp);
+            profileWhatsappKeySet = !!data.whatsapp_api_key_set;
+            if (data.whatsapp_api_key_set) {
+                $('#profileWhatsappApiKey').attr('placeholder', 'Clé enregistrée — laissez vide pour conserver');
+            }
+            await loadEntrepriseInfo();
+        }
+    } catch(e) { console.error('User info error:', e); }
+}
+loadUserInfo();
+
+async function loadEntrepriseInfo() {
+    try {
+        const res = await fetch('/api/entreprise/info', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (data.success) {
+            $('#entrepriseName').text(data.nom || 'Mon entreprise');
+            $('#entrepriseNom').val(data.nom || '');
             $('#entrepriseEmail').val(data.email || '');
             $('#entrepriseTelephone').val(data.telephone || '');
             $('#entrepriseAdresse').val(data.adresse || '');
-            $('#entrepriseSecteur').val(data.secteur || '');
-            $('#entrepriseNom').text(data.nom || 'Administration');
+            $('#entrepriseNif').val(data.nif || '');
+            $('#entrepriseRccm').val(data.rccm || '');
+            $('#entrepriseSecteur').val(data.secteur_activite || '');
+            const logoWrap = $('#entrepriseLogoWrap');
+            const logoPreview = $('#entrepriseLogoPreview');
+            if (data.logo_url) {
+                logoPreview.attr('src', data.logo_url + '?t=' + Date.now());
+                logoWrap.css('display', 'flex');
+            } else {
+                logoPreview.attr('src', '');
+                logoWrap.hide();
+            }
         }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('Entreprise info error:', e); }
 }
 
-async function saveEntrepriseSettings() {
+$('#entrepriseLogo').on('change', function() {
+    const file = this.files && this.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    $('#entrepriseLogoPreview').attr('src', url);
+    $('#entrepriseLogoWrap').css('display', 'flex');
+});
+
+function openProfileTab() {
+    loadUserInfo();
+    loadWhatsappNetworkStatus();
+    $('#profileModal').modal('show');
+}
+
+async function saveProfile() {
+    const data = {
+        nom: $('#profileNom').val(),
+        telephone: $('#profileTelephone').val(),
+        notify_whatsapp: $('#profileNotifyWhatsapp').is(':checked'),
+    };
+    const waKey = ($('#profileWhatsappApiKey').val() || '').trim();
+    if (waKey) data.whatsapp_api_key = waKey;
     try {
-        await fetch('/api/entreprise/info', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({
-                nom: $('#entrepriseNomInput').val(),
-                email: $('#entrepriseEmail').val(),
-                telephone: $('#entrepriseTelephone').val(),
-                adresse: $('#entrepriseAdresse').val(),
-                secteur: $('#entrepriseSecteur').val()
-            })
-        });
-        showToast('Paramètres enregistrés');
-        loadUserInfo();
+        const res = await fetch('/api/user/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(data) });
+        if (res.ok) { showToast('Profil mis à jour'); $('#profileWhatsappApiKey').val(''); profileWhatsappKeySet = profileWhatsappKeySet || !!waKey; loadUserInfo(); }
+        else { showToast('Erreur', true); }
     } catch(e) { showToast('Erreur', true); }
 }
 
-// ============================================
-// INITIALISATION
-// ============================================
+async function testWhatsappAlert() {
+    if (!$('#profileNotifyWhatsapp').is(':checked')) { showToast('Activez les alertes WhatsApp', true); return; }
+    if (!$('#profileTelephone').val()) { showToast('Renseignez votre téléphone (+243…)', true); return; }
+    const waKey = ($('#profileWhatsappApiKey').val() || '').trim();
+    if (!waKey && !profileWhatsappKeySet) {
+        showToast('Saisissez votre clé CallMeBot puis enregistrez le profil', true);
+        return;
+    }
+    await saveProfile();
+    showToast('Envoi du test…');
+    try {
+        const res = await fetch('/api/user/whatsapp/test', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) showToast(data.message || 'Message test envoyé');
+        else showToast(data.message || 'Échec envoi', true);
+    } catch (e) { showToast('Erreur réseau', true); }
+}
+
+function openAdminPasswordModal() {
+    $('#adminPasswordNew, #adminPasswordConfirm').val('');
+    $('#adminPasswordModal').modal('show');
+}
+
+async function saveAdminPassword() {
+    const pwd = $('#adminPasswordNew').val();
+    const confirm = $('#adminPasswordConfirm').val();
+    if (pwd.length < 6) { showToast('Minimum 6 caractères', true); return; }
+    if (pwd !== confirm) { showToast('Les mots de passe ne correspondent pas', true); return; }
+    try {
+        const res = await fetch('/api/user/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ password: pwd }) });
+        if (res.ok) { showToast('Mot de passe mis à jour'); $('#adminPasswordModal').modal('hide'); }
+        else showToast('Erreur', true);
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ========== DASHBOARD ==========
+let evolutionChart = null, statusChart = null, barChart = null;
+
+async function loadDashboard() {
+    try {
+        const res = await fetch('/api/pme/stats', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const s = data.stats || {};
+        
+        const stats = {
+            brouillon: s.brouillons || 0,
+            soumis: s.en_attente || 0,
+            valide: s.valides || 0,
+            rejete: s.rejetes || 0,
+            publie: s.publies || 0,
+            obsolete: s.obsoletes || 0,
+            detruit: s.detruits || 0
+        };
+        const total = s.total_documents || 0;
+        
+        $('#statEmployes').text(s.total_employes || 0);
+        $('#statDocuments').text(total);
+        $('#statEnAttente').text(stats.soumis);
+        $('#statPublies').text(stats.publie || 0);
+        $('#pendingBadge').text(stats.soumis);
+        
+        $('#wfBrouillon').text(stats.brouillon);
+        $('#wfEnRevision').text(stats.soumis);
+        $('#wfValide').text(stats.valide);
+        $('#wfRejete').text(stats.rejete);
+        $('#wfPublie').text(stats.publie);
+        $('#wfObsolète').text(stats.obsolete);
+        $('#wfDetruit').text(stats.detruit);
+        
+        if (evolutionChart) evolutionChart.destroy();
+        let evoLabels = ['Jan','Fév','Mar','Avr','Mai','Juin'];
+        let evoData = [0,0,0,0,0,total];
+        try {
+            const evoRes = await fetch('/api/pme/evolution', { headers: { 'Authorization': 'Bearer ' + token } });
+            const evoJson = await evoRes.json();
+            if (evoJson.evolution && evoJson.evolution.length > 0) {
+                evoLabels = evoJson.evolution.map(e => e.date_jour);
+                evoData = evoJson.evolution.map(e => e.total);
+            }
+        } catch(e) {}
+        evolutionChart = new Chart(document.getElementById('evolutionChart'), {
+            type: 'line',
+            data: { labels: evoLabels, datasets: [{ label: 'Documents', data: evoData, borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', tension: 0.4, fill: true }] },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+        
+        if (statusChart) statusChart.destroy();
+        statusChart = new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Brouillon', 'En révision', 'Validé', 'Rejeté', 'Publié'],
+                datasets: [{ data: [stats.brouillon, stats.soumis, stats.valide, stats.rejete, stats.publie], backgroundColor: ['#64748b', '#f59e0b', '#10b981', '#ef4444', '#0ea5e9'] }]
+            },
+            options: { responsive: true }
+        });
+    } catch(e) { console.error('Dashboard error:', e); showToast('Erreur chargement dashboard', true); }
+}
+
+// ========== DOCUMENTS ==========
+let docPage = 1, docTotalPages = 1;
+
+async function loadDocuments() {
+    const search = $('#docSearch').val();
+    const statut = $('#docStatutFilter').val();
+    let url = `/api/pme/documents?page=${docPage}&limit=15`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (statut) url += `&statut=${statut}`;
+    
+    $('#documentsList').html('<tr><td colspan="6" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
+    
+    try {
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const docs = data.documents || [];
+        docTotalPages = data.total_pages || 1;
+        
+        if (docs.length === 0) {
+            $('#documentsList').html('<tr><td colspan="6" class="text-center py-4 text-muted">Aucun document trouvé</td></tr>');
+            return;
+        }
+        
+        let html = '';
+        for (const doc of docs) {
+            html += `<tr>
+                <td class="fw-semibold">${doc.titre || '-'}</td>
+                <td>${doc.categorie_nom || '-'}</td>
+                <td>${doc.auteur_nom || '-'}</td>
+                <td>${formatDate(doc.date_creation)}</td>
+                <td>${getBadge(doc.statut)}</td>
+                <td class="text-end">
+                    <div class="doc-actions-cell">
+                        <button type="button" class="btn-action-icon" onclick="voirDocument(${doc.id})" title="Voir"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="btn-action-icon" onclick="telechargerDocument(${doc.id})" title="Télécharger"><i class="fas fa-download"></i></button>
+                        ${doc.statut === 'soumis' ? `<button type="button" class="btn-action-icon text-success" onclick="validerDocument(${doc.id})" title="Valider"><i class="fas fa-check"></i></button>
+                        <button type="button" class="btn-action-icon text-danger" onclick="rejeterDocument(${doc.id})" title="Rejeter"><i class="fas fa-times"></i></button>` : ''}
+                        ${doc.statut === 'valide' ? `<button type="button" class="btn-action-icon" onclick="publierDocument(${doc.id})" title="Publier"><i class="fas fa-globe"></i></button>` : ''}
+                        ${doc.statut === 'publie' ? `<button type="button" class="btn-action-icon text-warning" onclick="marquerObsolete(${doc.id})" title="Obsolète"><i class="fas fa-archive"></i></button>` : ''}
+                        ${doc.statut === 'obsolete' ? `<button type="button" class="btn-action-icon text-danger" onclick="detruireDocument(${doc.id})" title="Détruire"><i class="fas fa-trash"></i></button>` : ''}
+                        <button type="button" class="btn-action-icon" onclick="partagerDocument(${doc.id})" title="Partager"><i class="fas fa-share-alt"></i></button>
+                        <button type="button" class="btn-action-icon" onclick="deplacerDocument(${doc.id})" title="Déplacer"><i class="fas fa-folder"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }
+        $('#documentsList').html(html);
+        renderDocPagination();
+    } catch(e) { console.error('Documents error:', e); }
+}
+
+function renderDocPagination() {
+    if (docTotalPages <= 1) { $('#documentsPagination').empty(); return; }
+    let html = '<nav><ul class="pagination pagination-sm">';
+    for (let i = 1; i <= docTotalPages; i++) {
+        html += `<li class="page-item ${i === docPage ? 'active' : ''}"><a class="page-link" href="#" onclick="docPage=${i};loadDocuments();return false;">${i}</a></li>`;
+    }
+    html += '</ul></nav>';
+    $('#documentsPagination').html(html);
+}
+
+function resetDocFilters() { $('#docSearch').val(''); $('#docStatutFilter').val(''); docPage = 1; loadDocuments(); }
+
+function telechargerDocument(id) { window.open(`/documents/${id}/download?token=${token}`, '_blank'); }
+
+// ========== CATÉGORIES ==========
+async function loadCategories() {
+    $('#categoriesList').html('<tr><td colspan="4" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
+    try {
+        const res = await fetch('/categories', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const cats = data.categories || [];
+        if (cats.length === 0) {
+            $('#categoriesList').html('<tr><td colspan="4" class="text-center py-4 text-muted">Aucune catégorie</td></tr>');
+            return;
+        }
+        let html = '';
+        for (const cat of cats) {
+            // Compter les documents par catégorie
+            const countRes = await fetch(`/documents/categorie/${cat.id}`, { headers: { 'Authorization': 'Bearer ' + token } });
+            const countData = await countRes.json();
+            const docCount = countData.documents ? countData.documents.length : 0;
+            
+            html += `<tr>
+                <td><span class="badge bg-primary">${cat.nom || '-'}</span></td>
+                <td>${cat.description || '-'}</td>
+                <td>${docCount}</td>
+                <td class="text-end">
+                    <div class="doc-actions-cell">
+                        <button type="button" class="btn-action-icon" onclick="voirDocumentsCategorie(${cat.id}, '${escapeHtml(cat.nom).replace(/'/g, "\\'")}')" title="Voir les documents"><i class="fas fa-folder-open"></i></button>
+                        <button type="button" class="btn-action-icon" onclick="editCategorie(${cat.id})" title="Modifier"><i class="fas fa-edit"></i></button>
+                        <button type="button" class="btn-action-icon" onclick="openPartagerCategorie(${cat.id}, '${escapeHtml(cat.nom).replace(/'/g, "\\'")}')" title="Partager"><i class="fas fa-share-alt"></i></button>
+                        <button type="button" class="btn-action-icon text-danger" onclick="deleteCategorie(${cat.id})" title="Supprimer"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }
+        $('#categoriesList').html(html);
+        
+        // Remplir le select des catégories
+        let options = '<option value="">Sans catégorie</option>';
+        cats.forEach(c => { options += `<option value="${c.id}">${c.nom}</option>`; });
+        $('#docCategorie').html(options);
+        $('#selectCategorieDeplacement').html(options);
+    } catch(e) { console.error('Categories error:', e); }
+}
+
+// ========== FONCTIONS CATÉGORIES ==========
+
+// Modifier une catégorie
+function editCategorie(id) {
+    fetch('/categories', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => r.json())
+        .then(data => {
+            const cat = (data.categories || []).find(c => c.id === id);
+            if (!cat) { showToast('Catégorie introuvable', true); return; }
+            $('#editCatId').val(cat.id);
+            $('#editCatNom').val(cat.nom);
+            $('#editCatDesc').val(cat.description || '');
+            $('#editCategorieModal').modal('show');
+        })
+        .catch(() => showToast('Erreur', true));
+}
+
+function saveCategorieEdit() {
+    const id = $('#editCatId').val();
+    const nom = $('#editCatNom').val();
+    const description = $('#editCatDesc').val();
+    
+    if (!nom) {
+        showToast('Le nom est requis', true);
+        return;
+    }
+    
+    fetch(`/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ nom, description })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Catégorie modifiée');
+            $('#editCategorieModal').modal('hide');
+            loadCategories();
+        } else {
+            showToast(data.message || 'Erreur', true);
+        }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+// Voir les documents d'une catégorie
+function voirDocumentsCategorie(categorieId, categorieNom) {
+    $('#modalCategorieTitre').text(`Documents de la catégorie : ${categorieNom}`);
+    $('#modalCategorieBody').html('<div class="text-center py-4"><div class="spinner-border text-primary"></div> Chargement...</div>');
+    $('#modalCategorie').modal('show');
+    
+    fetch(`/documents/categorie/${categorieId}`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.documents && data.documents.length > 0) {
+            let html = `
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Titre</th><th>Auteur</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+                    <tbody>
+            `;
+            data.documents.forEach(doc => {
+                html += `
+                    <tr>
+                        <td class="fw-semibold">${doc.titre}</td>
+                        <td>${doc.auteur_nom}</td>
+                        <td>${formatDate(doc.date_creation)}</td>
+                        <td>${getBadge(doc.statut)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-sm-custom" onclick="voirDocument(${doc.id})"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-success btn-sm-custom" onclick="telechargerDocument(${doc.id})"><i class="fas fa-download"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table></div>';
+            html += `<div class="mt-2"><span class="badge bg-secondary">${data.documents.length} document(s)</span></div>`;
+            $('#modalCategorieBody').html(html);
+        } else {
+            $('#modalCategorieBody').html(`
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-folder-open fs-1 d-block mb-3"></i>
+                    <p>Aucun document dans cette catégorie</p>
+                </div>
+            `);
+        }
+    })
+    .catch(() => {
+        $('#modalCategorieBody').html('<div class="text-center py-4 text-danger">Erreur de chargement</div>');
+    });
+}
+
+// Partager une catégorie
+function openPartagerCategorie(categorieId, categorieNom) {
+    $('#partagerCatId').val(categorieId);
+    $('#partagerCatNom').text(categorieNom);
+    $('#partagerCatEmail').val('');
+    $('#partagerCategorieModal').modal('show');
+}
+
+function confirmerPartageCategorie() {
+    const categorieId = $('#partagerCatId').val();
+    const email = $('#partagerCatEmail').val().trim();
+    if (!email) { showToast('Email requis', true); return; }
+
+    fetch(`/api/categories/${categorieId}/partager`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ email: email })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Catégorie partagée');
+            $('#partagerCategorieModal').modal('hide');
+        } else {
+            showToast(data.error || data.message || 'Erreur', true);
+        }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+// Supprimer une catégorie
+async function deleteCategorie(id) {
+    if (!confirm('Supprimer cette catégorie ?')) return;
+    try {
+        const res = await fetch(`/categories/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Catégorie supprimée');
+            loadCategories();
+        } else {
+            showToast(data.message || 'Erreur', true);
+        }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// Créer une catégorie
+function submitCategorie() {
+    const nom = $('#catNom').val().trim();
+    const description = $('#catDesc').val().trim();
+    if (!nom) { showToast('Le nom est requis', true); return; }
+    
+    fetch('/categories', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ nom, description })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Catégorie créée');
+            $('#addCategorieModal').modal('hide');
+            $('#catNom').val('');
+            $('#catDesc').val('');
+            loadCategories();
+        } else {
+            showToast(data.message || 'Erreur', true);
+        }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+// ========== VALIDATION ==========
+async function loadValidation() {
+    $('#validationList').html('<tr><td colspan="4" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
+    try {
+        const res = await fetch('/api/pme/validation', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const docs = data.documents || [];
+        if (docs.length === 0) {
+            $('#validationList').html('<tr><td colspan="4" class="text-center py-4 text-muted">Aucun document en révision</td></tr>');
+            return;
+        }
+        let html = '';
+        for (const doc of docs) {
+            html += `<tr>
+                <td class="fw-semibold">${doc.titre || '-'}</td>
+                <td>${doc.auteur_nom || '-'}</td>
+                <td>${formatDate(doc.date_creation)}</td>
+                <td class="text-end">
+                    <div class="doc-actions-cell">
+                        <button type="button" class="btn-action-icon" onclick="voirDocument(${doc.id})" title="Aperçu"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="btn-action-icon text-success" onclick="validerDocument(${doc.id})" title="Valider"><i class="fas fa-check"></i></button>
+                        <button type="button" class="btn-action-icon text-danger" onclick="rejeterDocument(${doc.id})" title="Rejeter"><i class="fas fa-times"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }
+        $('#validationList').html(html);
+    } catch(e) { console.error('Validation error:', e); }
+}
+
+async function validerDocument(id) {
+    if (!confirm('Valider ce document ?')) return;
+    try {
+        const res = await fetch(`/documents/${id}/valider`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok && data.success) { showToast('Document validé'); loadValidation(); loadDocuments(); loadDashboard(); loadNotifications(); } 
+        else { showToast(data.message || data.error || 'Erreur validation', true); }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function rejeterDocument(id) {
+    const motif = prompt('Motif du rejet :');
+    if (motif === null) return;
+    try {
+        const res = await fetch(`/documents/${id}/rejeter`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ commentaire: motif }) });
+        const data = await res.json();
+        if (res.ok) { showToast('Document rejeté'); loadValidation(); loadDocuments(); loadDashboard(); loadNotifications(); } 
+        else { showToast(data.message || data.error || 'Erreur rejet', true); }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function publierDocument(id) {
+    if (!confirm('Publier ce document ?')) return;
+    try {
+        const res = await fetch(`/documents/${id}/publier`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok && data.success) { showToast('Document publié'); loadDocuments(); loadDashboard(); loadNotifications(); }
+        else { showToast(data.message || 'Erreur publication', true); }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function marquerObsolete(id) {
+    if (!confirm('Marquer ce document comme obsolète ?')) return;
+    try {
+        const res = await fetch(`/documents/${id}/marquer-obsolete`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok && data.success) { showToast('Document marqué obsolète'); loadDocuments(); loadDashboard(); }
+        else { showToast(data.message || 'Erreur', true); }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function detruireDocument(id) {
+    if (!confirm('Archiver et détruire définitivement ce document ?')) return;
+    try {
+        const res = await fetch(`/documents/${id}/detruire`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok && data.success) { showToast('Document archivé et détruit'); loadDocuments(); loadDashboard(); }
+        else { showToast(data.message || 'Erreur', true); }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function runArchivageAuto() {
+    try {
+        const res = await fetch('/api/archivage/automatique', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok) { showToast(data.message || 'Archivage terminé'); loadDocuments(); loadDashboard(); }
+        else { showToast(data.message || 'Erreur', true); }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ========== EMPLOYÉS ==========
+async function loadEmployes() {
+    $('#employesList').html('<tr><td colspan="5" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
+    try {
+        const res = await fetch('/api/pme/employes', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const employes = data.employes || [];
+        if (employes.length === 0) {
+            $('#employesList').html('<tr><td colspan="5" class="text-center py-4 text-muted">Aucun employé</td></tr>');
+            return;
+        }
+        let html = '';
+        for (const emp of employes) {
+            const actif = emp.actif !== undefined ? emp.actif : true;
+            html += `<tr>
+                <td class="fw-semibold">${emp.nom || '-'}</td>
+                <td>${emp.email || '-'}</td>
+                <td>${emp.role || 'employe'}</td>
+                <td>${actif ? '<span class="badge-custom badge-valide">Actif</span>' : '<span class="badge-custom badge-rejete">Inactif</span>'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary btn-sm-custom" onclick="toggleEmploye(${emp.id}, ${!actif})"><i class="fas ${actif ? 'fa-ban' : 'fa-check'}"></i></button>
+                </td>
+            </tr>`;
+        }
+        $('#employesList').html(html);
+    } catch(e) { console.error('Employes error:', e); }
+}
+
+function submitEmploye() {
+    const data = { nom: $('#empNom').val(), email: $('#empEmail').val(), password: $('#empPassword').val(), telephone: $('#empTelephone').val() };
+    if (!data.nom || !data.email || !data.password) { showToast('Nom, email et mot de passe requis', true); return; }
+    fetch('/admin/employes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json().then(result => ({ ok: r.ok, result })))
+    .then(({ ok, result }) => {
+        if (ok && result.success) {
+            showToast('Employé créé');
+            $('#addEmployeModal').modal('hide');
+            $('#empNom').val('');
+            $('#empEmail').val('');
+            $('#empPassword').val('');
+            $('#empTelephone').val('');
+            loadEmployes();
+            loadDashboard();
+        } else {
+            showToast(result.message || result.error || 'Erreur', true);
+        }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+async function toggleEmploye(id, activer) {
+    const action = activer ? 'activer' : 'désactiver';
+    if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} cet employé ?`)) return;
+    try {
+        const endpoint = activer ? `/users/${id}/activer` : `/users/${id}/desactiver`;
+        const res = await fetch(endpoint, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(`Employé ${activer ? 'activé' : 'désactivé'}`);
+            loadEmployes(); loadDashboard();
+        } else {
+            showToast(data.message || 'Erreur', true);
+        }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ========== CORBEILLE ==========
+async function loadCorbeille() {
+    $('#corbeilleList').html('<tr><td colspan="3" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
+    try {
+        const res = await fetch('/api/pme/corbeille', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const docs = data.documents || [];
+        if (docs.length === 0) {
+            $('#corbeilleList').html('<tr><td colspan="3" class="text-center py-4 text-muted">Corbeille vide</td></tr>');
+            return;
+        }
+        let html = '';
+        for (const doc of docs) {
+            html += `<tr>
+                <td class="fw-semibold">${doc.titre || '-'}</td>
+                <td>${formatDate(doc.date_suppression)}</td>
+                <td>
+                    <button class="btn btn-sm btn-success btn-sm-custom me-1" onclick="restaurerDocument(${doc.id})"><i class="fas fa-undo"></i> Restaurer</button>
+                    <button class="btn btn-sm btn-danger btn-sm-custom" onclick="supprimerDefinitivement(${doc.id})"><i class="fas fa-trash"></i> Détruire</button>
+                </td>
+            </tr>`;
+        }
+        $('#corbeilleList').html(html);
+    } catch(e) { console.error('Corbeille error:', e); }
+}
+
+async function restaurerDocument(id) {
+    try {
+        await fetch(`/documents/${id}/restaurer`, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + token } });
+        showToast('Document restauré');
+        loadCorbeille(); loadDashboard();
+    } catch(e) { showToast('Erreur', true); }
+}
+
+async function supprimerDefinitivement(id) {
+    if (!confirm('Suppression définitive ?')) return;
+    try {
+        await fetch(`/documents/${id}/effacer`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+        showToast('Document détruit');
+        loadCorbeille(); loadDashboard();
+    } catch(e) { showToast('Erreur', true); }
+}
+
+// ========== STATISTIQUES ==========
+async function loadStatsPage() {
+    try {
+        const res = await fetch('/api/pme/stats', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const docsRes = await fetch('/api/pme/documents?limit=500', { headers: { 'Authorization': 'Bearer ' + token } });
+        const docsData = await docsRes.json();
+        const allDocs = docsData.documents || [];
+        const categories = {};
+        allDocs.forEach(d => {
+            const cat = d.categorie_nom || 'Sans catégorie';
+            categories[cat] = (categories[cat] || 0) + 1;
+        });
+        
+        let catHtml = '<h5 class="fw-bold">Documents par catégorie</h5><ul class="list-unstyled">';
+        const colors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
+        let i = 0;
+        for (const [nom, count] of Object.entries(categories)) {
+            catHtml += `<li><span class="badge bg-${colors[i % colors.length]} me-2">${nom}</span> ${count}</li>`;
+            i++;
+        }
+        if (Object.keys(categories).length === 0) { catHtml += '<li class="text-muted">Aucune catégorie définie</li>'; }
+        catHtml += '</ul>';
+        
+        const s = data.stats || {};
+        $('#statDetails').html(catHtml + `
+            <hr>
+            <p class="mb-1"><strong>Total documents :</strong> ${s.total_documents || 0}</p>
+            <p class="mb-1"><strong>Employés :</strong> ${s.total_employes || 0}</p>
+            <p class="mb-0"><strong>En attente de validation :</strong> ${s.en_attente || 0}</p>
+        `);
+        
+        if (barChart) barChart.destroy();
+        const labels = Object.keys(categories);
+        const values = Object.values(categories);
+        if (labels.length > 0) {
+            barChart = new Chart(document.getElementById('statsBarChart'), {
+                type: 'bar',
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        label: 'Documents par catégorie', 
+                        data: values, 
+                        backgroundColor: ['#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899']
+                    }] 
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+    } catch(e) { console.error('Stats page error:', e); $('#statDetails').html('<p class="text-danger">Erreur de chargement</p>'); }
+}
+
+// ========== PARAMÈTRES ==========
+async function saveEntrepriseSettings() {
+    const entrepriseData = {
+        nom: $('#entrepriseNom').val(),
+        email: $('#entrepriseEmail').val(),
+        telephone: $('#entrepriseTelephone').val(),
+        adresse: $('#entrepriseAdresse').val(),
+        nif: $('#entrepriseNif').val(),
+        rccm: $('#entrepriseRccm').val(),
+        secteur_activite: $('#entrepriseSecteur').val()
+    };
+    const formData = new FormData();
+    formData.append('entreprise', JSON.stringify(entrepriseData));
+    const logoInput = document.getElementById('entrepriseLogo');
+    if (logoInput && logoInput.files && logoInput.files[0]) {
+        formData.append('logo', logoInput.files[0]);
+    }
+    try {
+        const res = await fetch('/api/entreprise/info', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        const result = await res.json();
+        if (res.ok && result.success) {
+            showToast('Paramètres enregistrés');
+            if (logoInput) logoInput.value = '';
+            loadEntrepriseInfo();
+        } else {
+            showToast(result.message || 'Erreur', true);
+        }
+    } catch(e) { showToast('Erreur', true); }
+}
+
+function loadEntrepriseSettings() { loadEntrepriseInfo(); }
+
+// ========== NOUVELLES FONCTIONS DOCUMENTS ==========
+
+let currentViewDocId = null;
+
+// Voir un document (visualisation + aperçu fichier)
+async function voirDocument(docId) {
+    currentViewDocId = docId;
+    $('#viewDocBody').html('<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted small">Chargement de l\'aperçu…</p></div>');
+    $('#viewDocumentModal').modal('show');
+
+    try {
+        const res = await fetch(`/documents/${docId}/contenu`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (!data.success || !data.document) {
+            $('#viewDocBody').html('<div class="alert alert-warning mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Document introuvable.</div>');
+            return;
+        }
+
+        const doc = data.document;
+        $('#viewDocTitle').text(doc.titre || 'Document');
+
+        let previewHtml = '<div class="alert alert-warning mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Aucun fichier associé.</div>';
+        const fname = doc.fichier_nom || '';
+
+        if (fname) {
+            try {
+                const { blob, mime, filename } = await GedDocPreview.fetchBlob(docId, fname);
+                previewHtml = await GedDocPreview.buildPreview(blob, mime, filename || fname, doc, `telechargerDocument(${docId})`);
+            } catch (e) {
+                if (doc.contenu_ocr) {
+                    previewHtml = `<div class="border rounded p-3 bg-light"><p class="small fw-semibold mb-2"><i class="fas fa-font me-1"></i>Texte extrait (OCR)</p><pre class="ocr-text mb-0 small" style="max-height:420px;overflow:auto;white-space:pre-wrap;">${escapeHtml(String(doc.contenu_ocr).substring(0, 8000))}</pre></div>`;
+                } else {
+                    previewHtml = `<div class="alert alert-warning mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Impossible de charger le fichier.<br><button type="button" class="btn btn-sm btn-primary mt-2" onclick="telechargerDocument(${docId})"><i class="fas fa-download me-1"></i>Télécharger quand même</button></div>`;
+                }
+            }
+        }
+
+        $('#viewDocBody').html(`
+            <div class="row g-3">
+                <div class="col-lg-5">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Métadonnées</h6>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr><td class="text-muted">Titre</td><td class="fw-semibold">${escapeHtml(doc.titre || '-')}</td></tr>
+                                <tr><td class="text-muted">Catégorie</td><td>${escapeHtml(doc.categorie_nom || 'Sans')}</td></tr>
+                                <tr><td class="text-muted">Auteur</td><td>${escapeHtml(doc.auteur_nom || '-')}</td></tr>
+                                <tr><td class="text-muted">Date</td><td>${formatDate(doc.date_creation)}</td></tr>
+                                <tr><td class="text-muted">Statut</td><td>${getBadge(doc.statut)}</td></tr>
+                                <tr><td class="text-muted">Version</td><td>V${doc.version_actuelle || 1}</td></tr>
+                                <tr><td class="text-muted">Fichier</td><td class="small">${escapeHtml(doc.fichier_nom || '-')}</td></tr>
+                                <tr><td class="text-muted">Taille</td><td>${GedDocPreview.formatSize(doc.fichier_taille || doc.taille)}</td></tr>
+                            </table>
+                            ${doc.description ? `<hr><p class="small mb-0"><strong>Description :</strong> ${escapeHtml(doc.description)}</p>` : ''}
+                            ${doc.commentaire_rejet ? `<div class="alert alert-danger py-2 mt-2 small"><i class="fas fa-times-circle me-1"></i>${escapeHtml(doc.commentaire_rejet)}</div>` : ''}
+                            <hr>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copierContenu(${doc.id})"><i class="fas fa-copy me-1"></i>Copier</button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="deplacerDocument(${doc.id})"><i class="fas fa-folder me-1"></i>Déplacer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-eye me-2 text-primary"></i>Aperçu</h6>
+                    ${previewHtml}
+                </div>
+            </div>`);
+    } catch (e) {
+        console.error('voirDocument:', e);
+        $('#viewDocBody').html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Erreur de chargement.</div>');
+    }
+}
+
+function telechargerDocumentActuel() {
+    if (currentViewDocId) {
+        window.open(`/documents/${currentViewDocId}/download?token=${token}`, '_blank');
+    }
+}
+
+// Imprimer un document
+function imprimerDocument() {
+    const content = document.getElementById('viewDocBody');
+    const title = document.getElementById('viewDocTitle').textContent;
+    
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>${title}</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h1 { color: #0ea5e9; }
+            .meta { color: #666; margin-bottom: 20px; }
+            @media print { .no-print { display: none; } }
+        </style>
+        </head>
+        <body>
+            <h1>${title}</h1>
+            <div class="meta"><p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p></div>
+            <hr>
+            <div>${content ? content.innerHTML : ''}</div>
+            <div class="no-print"><button onclick="window.print()">Imprimer</button></div>
+            <script>
+                window.onload = function() { setTimeout(function() { window.print(); }, 500); }
+            <\/script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
+// Copier le contenu d'un document
+function copierContenu(docId) {
+    fetch(`/documents/${docId}/download?token=${token}`)
+        .then(r => r.text())
+        .then(text => {
+            navigator.clipboard.writeText(text);
+            showToast('Contenu copié dans le presse-papier');
+        })
+        .catch(() => showToast('Erreur de copie', true));
+}
+
+// Déplacer un document vers une autre catégorie
+function deplacerDocument(docId) {
+    fetch('/categories', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.categories) {
+            let options = '';
+            data.categories.forEach(cat => {
+                options += `<option value="${cat.id}">${cat.nom}</option>`;
+            });
+            $('#selectCategorieDeplacement').html(options);
+            $('#deplacerModal').data('docId', docId);
+            $('#deplacerModal').modal('show');
+        }
+    });
+}
+
+function confirmerDeplacement() {
+    const docId = $('#deplacerModal').data('docId');
+    const categorieId = $('#selectCategorieDeplacement').val();
+    
+    if (!categorieId) {
+        showToast('Veuillez sélectionner une catégorie', true);
+        return;
+    }
+    
+    fetch(`/documents/${docId}/categorie`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ categorie_id: categorieId })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Document déplacé');
+            $('#deplacerModal').modal('hide');
+            loadDocuments();
+        } else {
+            showToast(data.error || 'Erreur', true);
+        }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+// Partager un document (depuis la liste des documents)
+function partagerDocument(docId) {
+    $('#partagerDocId').val(docId);
+    $('#partagerEmail').val('');
+    $('#partagerDocumentModal').modal('show');
+}
+
+function confirmerPartageDocument() {
+    const docId = $('#partagerDocId').val();
+    const email = $('#partagerEmail').val().trim();
+    
+    if (!email) {
+        showToast('Veuillez saisir un email', true);
+        return;
+    }
+    
+    fetch(`/api/categories/partager`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ email: email, document_id: docId })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message);
+            $('#partagerDocumentModal').modal('hide');
+        } else {
+            showToast(data.error || 'Erreur', true);
+        }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+// ========== OUVRIR DOCUMENT ==========
+async function openAddDocument() {
+    $('#docTitre, #docDesc').val('');
+    $('#adminUploadFileName').text('');
+    $('#docFile').val('');
+    try {
+        const res = await fetch('/categories', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const cats = data.categories || [];
+        let options = '<option value="">Sans catégorie</option>';
+        cats.forEach(c => { options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`; });
+        $('#docCategorie').html(options);
+    } catch (e) { /* ignore */ }
+    $('#addDocumentModal').modal('show');
+}
+
+$('#docFile').on('change', function() {
+    const name = this.files && this.files[0] ? this.files[0].name : '';
+    $('#adminUploadFileName').text(name);
+});
+function openAddEmploye() { $('#addEmployeModal').modal('show'); }
+function openAddCategorie() { $('#addCategorieModal').modal('show'); }
+
+function submitDocument() {
+    const file = $('#docFile')[0].files[0];
+    const titre = $('#docTitre').val();
+    if (!file || !titre) { showToast('Fichier et titre requis', true); return; }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('titre', titre);
+    formData.append('description', $('#docDesc').val());
+    formData.append('categorie_id', $('#docCategorie').val());
+    fetch('/documents/upload', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) { showToast('Document uploadé'); $('#addDocumentModal').modal('hide'); loadDocuments(); loadDashboard(); loadNotifications(); } 
+        else { showToast(data.message || 'Erreur', true); }
+    })
+    .catch(() => showToast('Erreur', true));
+}
+
+function exportDocuments() {
+    fetch('/api/pme/documents/export', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(res => {
+            if (!res.ok) throw new Error('Export failed');
+            return res.blob();
+        })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `documents_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('Export téléchargé');
+        })
+        .catch(() => showToast('Erreur export CSV', true));
+}
+
+async function runBackup() {
+    const btn = $('#backupBtn');
+    const status = $('#backupStatus');
+    btn.prop('disabled', true);
+    status.text('Sauvegarde en cours...');
+    try {
+        const res = await fetch('/api/pme/backup', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            status.text(data.message);
+            showToast('Sauvegarde réussie');
+        } else {
+            status.text(data.message || 'Échec');
+            showToast(data.message || 'Erreur sauvegarde', true);
+        }
+    } catch(e) {
+        status.text('Erreur de connexion');
+        showToast('Erreur', true);
+    } finally {
+        btn.prop('disabled', false);
+    }
+}
+
+// ========== INIT ==========
 $('#tabDashboard').show();
-loadStats();
-chargerCategoriesFiltres();
-chargerCategories();
+loadDashboard();
+loadNotifications();
 
-// Intervalle notifications
-setInterval(() => { chargerNotifications(); }, 30000);
-chargerNotifications();
-
+setInterval(() => {
+    if ($('#tabDashboard').is(':visible')) loadDashboard();
+    if ($('#tabDocuments').is(':visible')) loadDocuments();
+    if ($('#tabValidation').is(':visible')) loadValidation();
+    if ($('#tabCategories').is(':visible')) loadCategories();
+    loadNotifications();
+}, 30000);
 </script>
 </body>
 </html>

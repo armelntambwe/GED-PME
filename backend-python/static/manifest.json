@@ -1,0 +1,10 @@
+{
+  "name": "GED-PME",
+  "short_name": "GED-PME",
+  "description": "Gestion électronique de documents pour PME",
+  "start_url": "/dashboard-employee",
+  "display": "standalone",
+  "background_color": "#0891b2",
+  "theme_color": "#0891b2",
+  "icons": []
+}

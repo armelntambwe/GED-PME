@@ -1,8 +1,28 @@
 ﻿from extensions import db
 from models_sqlalchemy import Notification as NotificationModel, User as UserModel
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Notification:
     """Classe modèle pour les notifications"""
+
+    @staticmethod
+    def _dispatch_whatsapp(user_id, type_notif, message, lien=None):
+        try:
+            from utils.whatsapp_helper import is_important_notification, send_alert_to_user
+            if not is_important_notification(type_notif):
+                return
+            user = UserModel.query.get(user_id)
+            if not user:
+                return
+            ok, detail = send_alert_to_user(user, message, lien)
+            if ok:
+                logger.info('WhatsApp envoyé à user %s (%s)', user_id, type_notif)
+            else:
+                logger.debug('WhatsApp non envoyé user %s: %s', user_id, detail)
+        except Exception as e:
+            logger.warning('Erreur envoi WhatsApp user %s: %s', user_id, e)
 
     @staticmethod
     def create(user_id, type_notif, message, lien=None):
@@ -15,6 +35,7 @@ class Notification:
         )
         db.session.add(notif)
         db.session.commit()
+        Notification._dispatch_whatsapp(user_id, type_notif, message, lien)
         return notif.id
 
     @staticmethod

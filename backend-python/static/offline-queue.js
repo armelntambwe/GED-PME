@@ -1,400 +1,242 @@
-// ============================================
-// static/offline-queue.js - File d'attente hors-ligne
-// GED-PME - Gestion des actions en mode déconnecté
-// Version avec API réelle et synchronisation
-// ============================================
-
+// File d'attente hors-ligne GED-PME
 class OfflineQueue {
     constructor() {
-        this.queueName = 'ged-pme-offline-queue';
-        this.initDB();
-    }
-    // ============================================
-// DÉTECTER UN CONFLIT
-// ============================================
-async detectConflict(action, response, result) {
-    // Conflit basé sur le code HTTP
-    if (response.status === 409) {
-        console.warn('⚠️ Conflit détecté (HTTP 409)');
-        return true;
-    }
-    
-    // Conflit basé sur le message
-    if (result.message && result.message.includes('conflit')) {
-        console.warn('⚠️ Conflit détecté (message)');
-        return true;
-    }
-    
-    // Conflit basé sur la version (si le serveur renvoie une version)
-    if (result.version && action.data.version && result.version > action.data.version) {
-        console.warn('⚠️ Conflit détecté (version plus récente)');
-        return true;
-    }
-    
-    return false;
-}
-
-    // ============================================
-    // INITIALISATION INDEXEDDB
-    // ============================================
-    initDB() {
-        const request = indexedDB.open('GED-PME-Offline', 1);
-
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('actions')) {
-                db.createObjectStore('actions', { keyPath: 'id', autoIncrement: true });
-            }
-        };
-
-        request.onsuccess = (event) => {
-            this.db = event.target.result;
-            console.log('✅ IndexedDB prête');
-        };
-
-        request.onerror = (event) => {
-            console.error('❌ Erreur IndexedDB:', event.target.error);
-        };
+        this.dbReady = new Promise((resolve, reject) => {
+            const request = indexedDB.open('GED-PME-Offline', 2);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('actions')) {
+                    db.createObjectStore('actions', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+            request.onsuccess = (event) => {
+                this.db = event.target.result;
+                resolve(this.db);
+            };
+            request.onerror = (event) => reject(event.target.error);
+        });
     }
 
-    // ============================================
-    // AJOUTER UNE ACTION À LA FILE D'ATTENTE
-    // ============================================
+    _txDone(tx) {
+        return new Promise((resolve, reject) => {
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
+        });
+    }
+
+    async _store(mode = 'readwrite') {
+        await this.dbReady;
+        return this.db.transaction(['actions'], mode).objectStore('actions');
+    }
+
+    async detectConflict(action, response, result) {
+        if (response.status === 409) return true;
+        const msg = String(result.message || result.error || '').toLowerCase();
+        if (msg.includes('conflit')) return true;
+        if (result.version && action.data.version && result.version > action.data.version) return true;
+        return false;
+    }
+
+    _extractError(result, response) {
+        return result.message || result.error || `Erreur HTTP ${response.status}`;
+    }
+
+    _isAlreadyDone(action, result) {
+        const msg = String(result.message || result.error || '').toLowerCase();
+        if (action.action === 'SOUMISSION' && msg.includes("statut 'soumis'")) return true;
+        if (action.action === 'REPRENDRE_BROUILLON' && msg.includes("statut 'brouillon'")) return true;
+        if (action.action === 'CREATE_CATEGORY' && msg.includes('existe déjà')) return true;
+        return false;
+    }
+
     async addAction(action, data) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['actions'], 'readwrite');
-            const store = transaction.objectStore('actions');
-
-            const actionItem = {
-                action: action,
-                data: data,
+        const db = await this.dbReady;
+        const tx = db.transaction(['actions'], 'readwrite');
+        const store = tx.objectStore('actions');
+        const id = await new Promise((resolve, reject) => {
+            const req = store.add({
+                action,
+                data: data || {},
                 timestamp: new Date().toISOString(),
-                status: 'pending'
-            };
-
-            const request = store.add(actionItem);
-
-            request.onsuccess = () => {
-                console.log('✅ Action mise en attente:', action);
-                resolve(request.result);
-            };
-
-            request.onerror = () => {
-                console.error('❌ Erreur ajout action:', request.error);
-                reject(request.error);
-            };
+                status: 'pending',
+            });
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
         });
+        await this._txDone(tx);
+        return id;
     }
 
-    // ============================================
-    // RÉCUPÉRER TOUTES LES ACTIONS EN ATTENTE
-    // ============================================
     async getPendingActions() {
+        await this.dbReady;
         return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['actions'], 'readonly');
-            const store = transaction.objectStore('actions');
-            const request = store.getAll();
-
-            request.onsuccess = () => {
-                resolve(request.result.filter(item => item.status === 'pending'));
-            };
-
-            request.onerror = () => {
-                reject(request.error);
-            };
+            const req = this.db.transaction(['actions'], 'readonly').objectStore('actions').getAll();
+            req.onsuccess = () => resolve((req.result || []).filter((i) => i.status === 'pending'));
+            req.onerror = () => reject(req.error);
         });
     }
 
-    // ============================================
-    // COMPTER LES ACTIONS EN ATTENTE
-    // ============================================
     async getPendingCount() {
         const actions = await this.getPendingActions();
         return actions.length;
     }
 
-    // ============================================
-    // MARQUER UNE ACTION COMME SYNCHRONISÉE
-    // ============================================
     async markAsSynced(actionId) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['actions'], 'readwrite');
-            const store = transaction.objectStore('actions');
-            
-            const getRequest = store.get(actionId);
-
-            getRequest.onsuccess = () => {
-                const action = getRequest.result;
-                action.status = 'synced';
-                
-                const putRequest = store.put(action);
-                putRequest.onsuccess = () => resolve();
-                putRequest.onerror = () => reject(putRequest.error);
-            };
-
-            getRequest.onerror = () => reject(getRequest.error);
+        const db = await this.dbReady;
+        const tx = db.transaction(['actions'], 'readwrite');
+        const store = tx.objectStore('actions');
+        const row = await new Promise((res, rej) => {
+            const r = store.get(actionId);
+            r.onsuccess = () => res(r.result);
+            r.onerror = () => rej(r.error);
         });
+        if (!row) return;
+        row.status = 'synced';
+        store.put(row);
+        await this._txDone(tx);
+        if (row.data && row.data.fileId && window.gedOfflineStore) {
+            await window.gedOfflineStore.deleteFile(row.data.fileId);
+        }
     }
 
-    // ============================================
-    // NETTOYER LES ANCIENNES ACTIONS
-    // ============================================
-    async cleanOldActions(days = 7) {
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - days);
-
-        const actions = await this.getPendingActions();
-        const toDelete = actions.filter(a => new Date(a.timestamp) < cutoff);
-
-        const transaction = this.db.transaction(['actions'], 'readwrite');
-        const store = transaction.objectStore('actions');
-
-        toDelete.forEach(action => {
-            store.delete(action.id);
-        });
-    }
-
-    // ============================================
-    // REJOUER UNE ACTION SPÉCIFIQUE (VERSION API RÉELLE)
-    // ============================================
     async replayAction(action) {
-        console.log(`🔄 Exécution réelle: ${action.action}`, action.data);
-        
-        // Récupérer le token JWT depuis le localStorage
-        // Récupérer le token (avec le bon nom)
-const token = localStorage.getItem('token');
-console.log('🔑 Token utilisé:', token ? token.substring(0, 20) + '...' : 'Aucun');
+        const token = localStorage.getItem('token');
+        if (!token) return { success: false, error: 'Session expirée — reconnectez-vous' };
 
-if (!token) {
-    console.error('❌ Token manquant - Veuillez vous reconnecter');
-    return { success: false, error: 'Token manquant' };
-}
-        
+        const base = window.location.origin;
         let url = '';
-        let options = {};
-        
-        // Configuration selon le type d'action
-        switch(action.action) {
-            case 'UPLOAD':
-                url = 'http://localhost:5000/documents/upload';
+        let options = { headers: { Authorization: 'Bearer ' + token } };
+
+        switch (action.action) {
+            case 'UPLOAD': {
+                url = `${base}/documents/upload`;
                 const formData = new FormData();
                 formData.append('titre', action.data.titre || 'Document hors-ligne');
                 formData.append('description', action.data.description || '');
-                
-                // Simuler un fichier (pour test)
-                const blob = new Blob(['Contenu test créé en mode hors-ligne'], { type: 'text/plain' });
-                formData.append('file', blob, action.data.fichier || 'document_hors_ligne.txt');
-                
-                options = {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                };
-                break;
-                
-            case 'DELETE':
-                url = `http://localhost:5000/documents/${action.data.id}`;
-                options = {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                const catId = action.data.categorie_id;
+                if (catId && String(catId).trim() && String(catId) !== '0') {
+                    formData.append('categorie_id', catId);
+                }
+
+                let fileBlob;
+                let fileName = action.data.fichier || 'document_hors_ligne.bin';
+
+                if (action.data.fileId && window.gedOfflineStore) {
+                    const stored = await window.gedOfflineStore.getFile(action.data.fileId);
+                    if (stored && stored.buffer) {
+                        fileBlob = new Blob([stored.buffer], { type: stored.type || 'application/octet-stream' });
+                        fileName = stored.name || fileName;
                     }
-                };
+                }
+                if (!fileBlob) {
+                    return { success: false, error: 'Fichier introuvable en cache local — ré-uploadez le document' };
+                }
+                formData.append('file', fileBlob, fileName);
+                options = { method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: formData };
                 break;
-                
+            }
+            case 'CREATE_CATEGORY':
+                url = `${base}/categories`;
+                options.method = 'POST';
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify({
+                    nom: action.data.nom,
+                    description: action.data.description || '',
+                });
+                break;
+            case 'DELETE': {
+                const docId = action.data.id || action.data.doc_id;
+                url = `${base}/documents/${docId}/supprimer`;
+                options.method = 'DELETE';
+                break;
+            }
             case 'SOUMISSION':
-                url = `http://localhost:5000/documents/${action.data.doc_id}/soumettre`;
-                options = {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                };
+                url = `${base}/documents/${action.data.doc_id}/soumettre`;
+                options.method = 'PUT';
+                options.headers['Content-Type'] = 'application/json';
                 break;
-                
+            case 'REPRENDRE_BROUILLON':
+                url = `${base}/documents/${action.data.doc_id}/reprendre-brouillon`;
+                options.method = 'PUT';
+                options.headers['Content-Type'] = 'application/json';
+                break;
             case 'VALIDATION':
-                url = `http://localhost:5000/documents/${action.data.doc_id}/valider-etape`;
-                options = {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ commentaire: action.data.commentaire || 'Validé hors-ligne' })
-                };
+                url = `${base}/documents/${action.data.doc_id}/valider`;
+                options.method = 'PUT';
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify({ commentaire: action.data.commentaire || '' });
                 break;
-                
             case 'REJET':
-                url = `http://localhost:5000/documents/${action.data.doc_id}/rejeter`;
-                options = {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        commentaire: action.data.commentaire || 'Rejeté hors-ligne' 
-                    })
-                };
+                url = `${base}/documents/${action.data.doc_id}/rejeter`;
+                options.method = 'PUT';
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify({ commentaire: action.data.commentaire || '' });
                 break;
-                
             default:
-                console.error(`❌ Type d'action inconnu: ${action.action}`);
-                return { success: false, error: 'Type action inconnu' };
+                return { success: false, error: 'Type action inconnu: ' + action.action };
         }
-        
+
         try {
-    console.log(`📤 Envoi à ${url}`, options);
-    const response = await fetch(url, options);
-    const result = await response.json();
-    
-    // Détection des conflits
-    const hasConflict = await this.detectConflict(action, response, result);
-    
-    if (hasConflict) {
-        console.warn('⚠️ Conflit détecté, action mise en attente');
-        return { 
-            success: false, 
-            conflict: true, 
-            error: 'Conflit détecté',
-            data: result 
-        };
-    }
-    
-    if (response.ok) {
-        console.log(`✅ Action ${action.action} réussie:`, result);
-        return { success: true, data: result };
-    } else {
-        console.error(`❌ Action ${action.action} échouée:`, result);
-        return { success: false, error: result.message || 'Erreur inconnue' };
-    }
+            const response = await fetch(url, options);
+            let result = {};
+            try { result = await response.json(); } catch (e) { result = {}; }
 
-        } catch (error) {
-            console.error(`❌ Erreur réseau:`, error);
-            return { success: false, error: error.message };
-        }
-    }
-
-   // ============================================
-// SYNCHRONISER TOUTES LES ACTIONS
-// ============================================
-async syncAll() {
-    const actions = await this.getPendingActions();
-    
-    if (actions.length === 0) {
-        console.log('✅ Rien à synchroniser');
-        return [];
-    }
-    
-    console.log(`🔄 Synchronisation de ${actions.length} action(s)...`);
-    
-    const results = [];
-    
-    for (const action of actions) {
-        try {
-            const result = await this.replayAction(action);
-            
-            if (result.success) {
-                await this.markAsSynced(action.id);
-                results.push({ 
-                    id: action.id, 
-                    success: true, 
-                    action: action.action 
-                });
-                console.log(`✅ Action ${action.id} (${action.action}) synchronisée`);
-                this.showNotification(`✅ ${action.action} synchronisé`, 'success');
-            } 
-            // 👇 NOUVEAU : GESTION DES CONFLITS
-            else if (result.conflict) {
-                // Conflit détecté - on garde l'action dans la file
-                results.push({ 
-                    id: action.id, 
-                    success: false, 
-                    conflict: true,
-                    action: action.action, 
-                    error: result.error,
-                    data: result.data 
-                });
-                console.warn(`⚠️ Action ${action.id} (${action.action}) en conflit - sera retentée plus tard`);
-                this.showNotification(`⚠️ ${action.action} en conflit`, 'warning');
+            if (response.status === 401) {
+                return { success: false, auth: true, error: 'Session expirée — reconnectez-vous puis resynchronisez' };
             }
-            // 👇 GESTION DES ERREURS NORMALES
-            else {
-                results.push({ 
-                    id: action.id, 
-                    success: false, 
-                    action: action.action, 
-                    error: result.error 
-                });
-                console.error(`❌ Action ${action.id} échouée:`, result.error);
-                this.showNotification(`❌ ${action.action} échoué: ${result.error}`, 'error');
+
+            if (await this.detectConflict(action, response, result)) {
+                return { success: false, conflict: true, error: this._extractError(result, response), data: result };
             }
+
+            if (response.ok) return { success: true, data: result };
+
+            if (this._isAlreadyDone(action, result)) {
+                return { success: true, data: result, skipped: true };
+            }
+
+            return { success: false, error: this._extractError(result, response) };
         } catch (error) {
-            results.push({ 
-                id: action.id, 
-                success: false, 
-                action: action.action, 
-                error: error.message 
-            });
-            console.error(`❌ Erreur action ${action.id}:`, error);
-            this.showNotification(`❌ Erreur: ${error.message}`, 'error');
+            return { success: false, error: error.message || 'Erreur réseau' };
         }
     }
-    
-    return results;
-}
 
-    // ============================================
-    // AFFICHER UNE NOTIFICATION
-    // ============================================
-    showNotification(message, type = 'info') {
-        if (typeof window.showNotification === 'function') {
-            window.showNotification(message, type);
-        } else {
-            console.log(`[${type}] ${message}`);
+    async syncAll() {
+        const actions = await this.getPendingActions();
+        if (!actions.length) return [];
+
+        const results = [];
+        for (const action of actions) {
+            try {
+                const result = await this.replayAction(action);
+                if (result.success) {
+                    await this.markAsSynced(action.id);
+                    results.push({ id: action.id, success: true, action: action.action, skipped: !!result.skipped });
+                } else if (result.conflict) {
+                    results.push({ id: action.id, success: false, conflict: true, action: action.action, error: result.error });
+                } else {
+                    results.push({ id: action.id, success: false, action: action.action, error: result.error, auth: !!result.auth });
+                }
+            } catch (error) {
+                results.push({ id: action.id, success: false, action: action.action, error: error.message });
+            }
         }
+        return results;
     }
 }
 
-// ============================================
-// INSTANCE GLOBALE UNIQUE
-// ============================================
-const offlineQueue = new OfflineQueue();
+window.offlineQueue = new OfflineQueue();
 
-// Exposer globalement pour le navigateur
-window.offlineQueue = offlineQueue;
-
-console.log('✅ File d\'attente hors-ligne initialisée avec API réelle');
-
-
-// Ajouter à la fin du fichier offline-queue.js
-// Fonction pour afficher le nombre d'actions en attente
-window.getPendingActionsCount = async function() {
-    if (window.offlineQueue) {
-        return await window.offlineQueue.getPendingCount();
-    }
-    return 0;
+window.getPendingActionsCount = async function () {
+    return window.offlineQueue ? window.offlineQueue.getPendingCount() : 0;
 };
 
-// Afficher un badge sur l'icône de synchronisation
-window.updateSyncBadge = async function() {
+window.updateSyncBadge = async function () {
     const count = await window.getPendingActionsCount();
     const badge = document.getElementById('syncBadge');
     if (badge) {
-        if (count > 0) {
-            badge.style.display = 'inline-block';
-            badge.textContent = count;
-        } else {
-            badge.style.display = 'none';
-        }
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+        badge.textContent = count;
     }
 };
-
-// Appeler périodiquement
-setInterval(() => {
-    if (window.updateSyncBadge) window.updateSyncBadge();
-}, 5000);

@@ -4,25 +4,44 @@ env/
 ENV/
 .venv/
 
-# Fichiers Python
+# Python
 __pycache__/
 *.py[cod]
 *.so
 .Python
+*.egg-info/
+dist/
+build/
 
-# Base de données
+# Base de données locale
 *.db
 *.sqlite3
+
+# Configuration sensible
+.env
+*.local
 
 # IDE
 .vscode/
 .idea/
 
-# Fichiers de configuration locaux
-.env
-*.local
+# Données utilisateur (ne pas versionner)
+backend-python/uploads/*
+!backend-python/uploads/.gitkeep
+backend-python/static/uploads/logos/*
+!backend-python/static/uploads/logos/.gitkeep
+backend-python/static/uploads/profiles/
+backend-python/backups/
 
-# Distributions / packages
-dist/
-build/
-*.egg-info/
+# Scripts de test ad hoc (garder tests/smoke_tests.py)
+backend-python/test_*.py
+backend-python/quick_test.py
+backend-python/python debug_employes.py
+test_ocr.png
+
+# Logs et couverture
+debug.log
+*.log
+.pytest_cache/
+htmlcov/
+.coverage

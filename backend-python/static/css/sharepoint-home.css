@@ -1,0 +1,217 @@
+/* SharePoint-inspired landing */
+:root {
+    --sp-blue: #0078d4;
+    --sp-blue-dark: #106ebe;
+    --sp-blue-light: #deecf9;
+    --sp-bg: #faf9f8;
+    --sp-bg-alt: #f3f2f1;
+    --sp-text: #323130;
+    --sp-text-secondary: #605e5c;
+    --sp-border: #edebe9;
+    --sp-font: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body.sp-home {
+    margin: 0;
+    font-family: var(--sp-font);
+    background: var(--sp-bg);
+    color: var(--sp-text);
+}
+
+/* Top suite bar */
+.sp-suite-bar {
+    background: var(--sp-blue);
+    color: #fff;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 14px;
+}
+.sp-suite-bar .waffle {
+    width: 20px; height: 20px;
+    display: grid; grid-template-columns: repeat(3, 4px); gap: 2px;
+    margin-right: 12px; opacity: 0.9;
+}
+.sp-suite-bar .waffle span { background: #fff; border-radius: 1px; }
+.sp-suite-bar .brand { font-weight: 600; font-size: 15px; }
+.sp-suite-bar .spacer { flex: 1; }
+.sp-suite-bar a {
+    color: #fff; text-decoration: none; margin-left: 16px; opacity: 0.95;
+}
+.sp-suite-bar a:hover { text-decoration: underline; }
+
+/* Site header */
+.sp-site-header {
+    background: #fff;
+    border-bottom: 1px solid var(--sp-border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.sp-site-header .site-title {
+    font-size: 22px; font-weight: 600; color: var(--sp-text);
+    display: flex; align-items: center; gap: 10px;
+}
+.sp-site-icon {
+    width: 36px; height: 36px; background: var(--sp-blue);
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px;
+}
+.sp-search {
+    flex: 1; max-width: 480px; min-width: 200px;
+    position: relative;
+}
+.sp-search input {
+    width: 100%; padding: 8px 12px 8px 36px;
+    border: 1px solid var(--sp-border); border-radius: 4px;
+    background: var(--sp-bg-alt); font-size: 14px;
+}
+.sp-search input:focus { outline: 2px solid var(--sp-blue); border-color: var(--sp-blue); background: #fff; }
+.sp-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--sp-text-secondary); }
+
+/* Nav tabs */
+.sp-nav {
+    background: #fff;
+    border-bottom: 1px solid var(--sp-border);
+    padding: 0 24px;
+    display: flex; gap: 4px; overflow-x: auto;
+}
+.sp-nav a {
+    padding: 12px 16px; color: var(--sp-text-secondary);
+    text-decoration: none; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+}
+.sp-nav a:hover { color: var(--sp-blue); }
+.sp-nav a.active { color: var(--sp-blue); border-bottom-color: var(--sp-blue); }
+
+/* Hero banner */
+.sp-hero {
+    background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+    color: #fff;
+    padding: 40px 24px;
+    margin: 0;
+}
+.sp-hero h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 600; margin: 0 0 8px; }
+.sp-hero p { margin: 0; opacity: 0.92; max-width: 640px; font-size: 15px; line-height: 1.6; }
+.sp-hero-actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+.sp-btn-white {
+    background: #fff; color: var(--sp-blue); border: none;
+    padding: 10px 20px; border-radius: 4px; font-weight: 600;
+    font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.sp-btn-white:hover { background: #f3f2f1; color: var(--sp-blue-dark); }
+.sp-btn-outline {
+    background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.7);
+    padding: 10px 20px; border-radius: 4px; font-weight: 600; font-size: 14px;
+    text-decoration: none;
+}
+.sp-btn-outline:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* Web parts grid */
+.sp-main { padding: 24px; max-width: 1280px; margin: 0 auto; }
+.sp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.sp-tile {
+    background: #fff;
+    border: 1px solid var(--sp-border);
+    border-radius: 4px;
+    padding: 20px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    text-decoration: none; color: inherit; display: block;
+}
+.sp-tile:hover {
+    box-shadow: 0 3.2px 7.2px rgba(0,0,0,0.13);
+    border-color: #c8c6c4;
+    color: inherit;
+}
+.sp-tile-icon {
+    width: 40px; height: 40px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 12px;
+}
+.sp-tile h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+.sp-tile p { font-size: 13px; color: var(--sp-text-secondary); margin: 0; line-height: 1.5; }
+
+.sp-stats-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 24px;
+}
+@media (max-width: 768px) { .sp-stats-bar { grid-template-columns: 1fr; } }
+.sp-stat-card {
+    background: #fff; border: 1px solid var(--sp-border); border-radius: 4px;
+    padding: 16px 20px; text-align: center;
+}
+.sp-stat-card .num { font-size: 28px; font-weight: 600; color: var(--sp-blue); }
+.sp-stat-card .lbl { font-size: 13px; color: var(--sp-text-secondary); margin-top: 4px; }
+
+.sp-section-title {
+    font-size: 18px; font-weight: 600; margin: 0 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--sp-border);
+}
+
+.sp-footer {
+    background: var(--sp-bg-alt);
+    border-top: 1px solid var(--sp-border);
+    padding: 24px;
+    margin-top: 40px;
+    font-size: 12px; color: var(--sp-text-secondary);
+    text-align: center;
+}
+
+/* Registration form SharePoint style */
+body.sp-register {
+    font-family: var(--sp-font);
+    background: var(--sp-bg);
+    min-height: 100vh;
+}
+.sp-form-page { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+.sp-form-card {
+    background: #fff;
+    border: 1px solid var(--sp-border);
+    border-radius: 4px;
+    box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.08);
+}
+.sp-form-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--sp-border);
+    background: var(--sp-bg-alt);
+}
+.sp-form-header h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+.sp-form-header p { margin: 0; font-size: 13px; color: var(--sp-text-secondary); }
+.sp-form-body { padding: 24px; }
+.sp-form-body label {
+    display: block; font-size: 13px; font-weight: 600;
+    margin-bottom: 6px; color: var(--sp-text);
+}
+.sp-form-body .form-control, .sp-form-body .form-select {
+    border-radius: 4px; border: 1px solid #8a8886;
+    padding: 8px 12px; font-size: 14px;
+}
+.sp-form-body .form-control:focus, .sp-form-body .form-select:focus {
+    border-color: var(--sp-blue); box-shadow: 0 0 0 1px var(--sp-blue); outline: none;
+}
+.sp-form-footer {
+    padding: 16px 24px; border-top: 1px solid var(--sp-border);
+    background: var(--sp-bg-alt);
+    display: flex; justify-content: flex-end; gap: 10px;
+}
+.sp-btn-primary {
+    background: var(--sp-blue); color: #fff; border: none;
+    padding: 8px 20px; border-radius: 4px; font-weight: 600; font-size: 14px;
+}
+.sp-btn-primary:hover { background: var(--sp-blue-dark); color: #fff; }
+.sp-btn-secondary {
+    background: #fff; color: var(--sp-text); border: 1px solid #8a8886;
+    padding: 8px 20px; border-radius: 4px; font-weight: 600; font-size: 14px;
+}
+.sp-step-badge {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    background: var(--sp-blue-light); color: var(--sp-blue);
+    padding: 2px 10px; border-radius: 12px; margin-bottom: 8px;
+}

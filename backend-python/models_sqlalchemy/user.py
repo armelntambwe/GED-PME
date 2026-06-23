@@ -15,18 +15,18 @@ class User(db.Model):
     date_inscription = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     entreprise_id = db.Column(db.Integer, db.ForeignKey('entreprises.id'))
+    poste = db.Column(db.String(100))
+    service = db.Column(db.String(100))
+    photo_url = db.Column(db.String(255))
+    notify_whatsapp = db.Column(db.Boolean, default=False)
+    whatsapp_api_key = db.Column(db.String(64))
+    totp_secret = db.Column(db.String(64))
+    totp_enabled = db.Column(db.Boolean, default=False)
 
-    # NOUVELLES COLONNES AJOUTEES
-    #date_expiration = db.Column(db.Date)
-    #sessions_max = db.Column(db.Integer, default=2)
-    #centre_cout = db.Column(db.String(50))
-    #metadonnees_defaut = db.Column(db.Text)
-
-    # Relations
     entreprise = db.relationship('Entreprise', backref='users')
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_password=False):
+        data = {
             'id': self.id,
             'nom': self.nom,
             'email': self.email,
@@ -34,13 +34,17 @@ class User(db.Model):
             'role': self.role,
             'actif': self.actif,
             'entreprise_id': self.entreprise_id,
+            'poste': self.poste or '',
+            'service': self.service or '',
+            'photo_url': self.photo_url or '',
+            'notify_whatsapp': bool(self.notify_whatsapp),
+            'whatsapp_api_key_set': bool(self.whatsapp_api_key),
+            'totp_enabled': bool(self.totp_enabled),
             'date_inscription': self.date_inscription.isoformat() if self.date_inscription else None,
-            'password': self.password,
-            #'date_expiration': self.date_expiration.isoformat() if self.date_expiration else None,
-            #'sessions_max': self.sessions_max,
-            #'centre_cout': self.centre_cout or '',
-            #'metadonnees_defaut': self.metadonnees_defaut or '',
         }
+        if include_password:
+            data['password'] = self.password
+        return data
 
 
 class DroitsUtilisateur(db.Model):

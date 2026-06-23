@@ -1,0 +1,223 @@
+/* GED-PME — Design system unifié */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+:root {
+    --ged-font: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+    --ged-primary: #0891b2;
+    --ged-primary-dark: #0e7490;
+    --ged-primary-light: #ecfeff;
+    --ged-accent: #6366f1;
+    --ged-accent-2: #8b5cf6;
+    --ged-success: #10b981;
+    --ged-warning: #f59e0b;
+    --ged-danger: #ef4444;
+    --ged-dark: #0f172a;
+    --ged-dark-2: #1e293b;
+    --ged-gray: #64748b;
+    --ged-gray-light: #f1f5f9;
+    --ged-white: #ffffff;
+    --ged-radius: 16px;
+    --ged-radius-lg: 24px;
+    --ged-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+    --ged-shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
+    --ged-gradient: linear-gradient(135deg, #0891b2 0%, #6366f1 50%, #8b5cf6 100%);
+    --ged-gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0e7490 100%);
+}
+
+* { box-sizing: border-box; }
+
+body.ged-app {
+    font-family: var(--ged-font);
+    background: var(--ged-gray-light);
+    color: var(--ged-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Boutons */
+.btn-ged-primary {
+    background: var(--ged-gradient);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.65rem 1.5rem;
+    border-radius: 999px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
+}
+.btn-ged-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    color: white;
+}
+
+.btn-ged-outline {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.35);
+    color: white;
+    font-weight: 600;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+    transition: all 0.2s;
+}
+.btn-ged-outline:hover {
+    background: rgba(255,255,255,0.12);
+    color: white;
+    border-color: rgba(255,255,255,0.6);
+}
+
+.btn-ged-outline-dark {
+    background: white;
+    border: 2px solid #e2e8f0;
+    color: var(--ged-dark);
+    font-weight: 600;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+}
+.btn-ged-outline-dark:hover {
+    border-color: var(--ged-primary);
+    color: var(--ged-primary);
+}
+
+/* Cards dashboard */
+.ged-card {
+    background: var(--ged-white);
+    border-radius: var(--ged-radius);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: var(--ged-shadow);
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.ged-card:hover { box-shadow: var(--ged-shadow-lg); }
+
+.ged-stat-card {
+    background: var(--ged-white);
+    border-radius: var(--ged-radius);
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--ged-shadow);
+}
+.ged-stat-card .number {
+    font-size: 2rem;
+    font-weight: 800;
+    background: var(--ged-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1.1;
+}
+.ged-stat-card .label { font-size: 0.85rem; color: var(--ged-gray); font-weight: 500; }
+
+/* Sidebar dashboard */
+.ged-sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: var(--ged-gradient-dark);
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    padding-bottom: 2rem;
+    transition: transform 0.3s;
+}
+.ged-sidebar .logo {
+    padding: 1.25rem 1.5rem;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: white;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ged-sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    margin: 0.15rem 0.75rem;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.ged-sidebar a:hover, .ged-sidebar a.active {
+    background: rgba(255,255,255,0.12);
+    color: white;
+}
+.ged-sidebar a.active {
+    background: rgba(8, 145, 178, 0.45);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.ged-sidebar .section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.4);
+    padding: 1.25rem 1.5rem 0.5rem;
+    font-weight: 600;
+}
+
+.ged-main {
+    margin-left: 260px;
+    min-height: 100vh;
+    padding: 1.5rem 2rem;
+}
+
+.ged-header {
+    background: var(--ged-white);
+    border-radius: var(--ged-radius);
+    padding: 0.85rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--ged-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+}
+
+/* Badges statut */
+.badge-ged { padding: 0.3rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.badge-ged-brouillon { background: #f1f5f9; color: #475569; }
+.badge-ged-soumis { background: #fef3c7; color: #b45309; }
+.badge-ged-valide { background: #d1fae5; color: #047857; }
+.badge-ged-rejete { background: #fee2e2; color: #b91c1c; }
+.badge-ged-publie { background: #dbeafe; color: #1d4ed8; }
+
+/* Toast */
+.ged-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 14px 24px;
+    border-radius: 14px;
+    color: white;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: var(--ged-shadow-lg);
+    animation: gedSlideUp 0.3s ease;
+}
+@keyframes gedSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Table */
+.ged-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.ged-table th {
+    background: var(--ged-gray-light);
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ged-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.ged-table th:first-child { border-radius: 12px 0 0 0; }
+.ged-table th:last-child { border-radius: 0 12px 0 0; }
+.ged-table td { padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.ged-table tr:hover td { background: #fafbfc; }
+
+@media (max-width: 992px) {
+    .ged-sidebar { transform: translateX(-100%); }
+    .ged-sidebar.open { transform: translateX(0); }
+    .ged-main { margin-left: 0; }
+}

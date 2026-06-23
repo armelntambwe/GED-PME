@@ -27,5 +27,6 @@ class Log(db.Model):
             'role': self.user.role if self.user else None,
             'entreprise_nom': self.user.entreprise.nom if self.user and self.user.entreprise else None,
             'document_id': self.document_id,
+            'document_titre': self.document.titre if self.document else None,
             'adresse_ip': self.adresse_ip
         }

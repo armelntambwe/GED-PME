@@ -1,26 +1,24 @@
 from extensions import db
-from sqlalchemy import or_
-from models_sqlalchemy import Categorie
+from models_sqlalchemy import Categorie, Document
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class CategoryService:
-    """Service de gestion des catégories via SQLAlchemy ORM."""
+    """Service de gestion des catégories."""
+
+    @staticmethod
+    def _base_query(entreprise_id=None):
+        query = Categorie.query
+        if entreprise_id is not None:
+            query = query.filter(Categorie.entreprise_id == entreprise_id)
+        return query.order_by(Categorie.nom.asc())
 
     @staticmethod
     def get_categories(entreprise_id=None):
         try:
-            query = Categorie.query
-            if entreprise_id is not None:
-                query = query.filter(
-                    or_(
-                        Categorie.entreprise_id == entreprise_id,
-                        Categorie.entreprise_id == None
-                    )
-                )
-            categories = query.order_by(Categorie.nom.asc()).all()
+            categories = CategoryService._base_query(entreprise_id).all()
             return [categorie.to_dict() for categorie in categories]
         except Exception as e:
             logger.error(f"Erreur get_categories: {e}")
@@ -29,10 +27,20 @@ class CategoryService:
     @staticmethod
     def create_category(nom, description, entreprise_id=None):
         try:
+            nom = (nom or '').strip()
+            if not nom:
+                raise ValueError('Le nom de la catégorie est requis')
+
+            dup_query = Categorie.query.filter(Categorie.nom.ilike(nom))
+            if entreprise_id is not None:
+                dup_query = dup_query.filter(Categorie.entreprise_id == entreprise_id)
+            if dup_query.first():
+                raise ValueError(f'La catégorie « {nom} » existe déjà')
+
             categorie = Categorie(
                 nom=nom,
                 description=description,
-                entreprise_id=entreprise_id
+                entreprise_id=entreprise_id,
             )
             db.session.add(categorie)
             db.session.commit()
@@ -45,13 +53,10 @@ class CategoryService:
     @staticmethod
     def update_category(category_id, nom, description, entreprise_id=None):
         try:
-            categorie = Categorie.query.filter(
-                Categorie.id == category_id,
-                or_(
-                    Categorie.entreprise_id == entreprise_id,
-                    Categorie.entreprise_id == None
-                )
-            ).first()
+            query = Categorie.query.filter_by(id=category_id)
+            if entreprise_id is not None:
+                query = query.filter(Categorie.entreprise_id == entreprise_id)
+            categorie = query.first()
             if not categorie:
                 return False
             categorie.nom = nom
@@ -66,15 +71,21 @@ class CategoryService:
     @staticmethod
     def delete_category(category_id, entreprise_id=None):
         try:
-            categorie = Categorie.query.filter(
-                Categorie.id == category_id,
-                or_(
-                    Categorie.entreprise_id == entreprise_id,
-                    Categorie.entreprise_id == None
-                )
-            ).first()
+            query = Categorie.query.filter_by(id=category_id)
+            if entreprise_id is not None:
+                query = query.filter(Categorie.entreprise_id == entreprise_id)
+            categorie = query.first()
             if not categorie:
                 return False
+
+            doc_count = Document.query.filter_by(
+                categorie_id=category_id
+            ).filter(Document.supprime_le.is_(None)).count()
+            if doc_count > 0:
+                raise ValueError(
+                    f"Impossible de supprimer : {doc_count} document(s) utilisent cette catégorie"
+                )
+
             db.session.delete(categorie)
             db.session.commit()
             return True
