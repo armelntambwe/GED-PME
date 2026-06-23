@@ -230,6 +230,26 @@
             <h4><i class="fas fa-users me-2 text-primary"></i>Employés</h4>
             <p>Gérez les comptes et accès de votre équipe.</p>
         </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="stat-card-pro">
+                    <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                    <div class="stat-body"><div class="number" id="empTotalCount">0</div><div class="label">Total employés</div></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card-pro">
+                    <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-body"><div class="number" id="empActifCount">0</div><div class="label">Actifs</div></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card-pro">
+                    <div class="stat-icon warning"><i class="fas fa-user-slash"></i></div>
+                    <div class="stat-body"><div class="number" id="empInactifCount">0</div><div class="label">Inactifs</div></div>
+                </div>
+            </div>
+        </div>
         <div class="card-custom">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div class="card-title mb-0"><i class="fas fa-user-friends me-2 text-primary"></i>Liste des employés</div>
@@ -237,8 +257,8 @@
             </div>
             <div class="table-doc-wrap">
                 <table class="table-custom">
-                    <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
-                    <tbody id="employesList"><tr><td colspan="5" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr></tbody>
+                    <thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Inscription</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody id="employesList"><tr><td colspan="6" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -249,6 +269,20 @@
         <div class="page-intro">
             <h4><i class="fas fa-tags me-2 text-primary"></i>Catégories</h4>
             <p>Organisez vos documents par thématiques.</p>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon info"><i class="fas fa-folder-tree"></i></div>
+                    <div class="stat-body"><div class="number" id="catTotalCount">0</div><div class="label">Catégories</div></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card-pro">
+                    <div class="stat-icon primary"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-body"><div class="number" id="catDocTotalCount">0</div><div class="label">Documents classés</div></div>
+                </div>
+            </div>
         </div>
         <div class="card-custom">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -278,6 +312,12 @@
         <div class="page-intro">
             <h4><i class="fas fa-chart-bar me-2 text-primary"></i>Statistiques</h4>
             <p>Analyses et répartition des documents par catégorie.</p>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon primary"><i class="fas fa-file-alt"></i></div><div class="stat-body"><div class="number" id="statsPageDocs">0</div><div class="label">Documents</div></div></div></div>
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon info"><i class="fas fa-users"></i></div><div class="stat-body"><div class="number" id="statsPageEmployes">0</div><div class="label">Employés</div></div></div></div>
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon warning"><i class="fas fa-clock"></i></div><div class="stat-body"><div class="number" id="statsPageAttente">0</div><div class="label">En révision</div></div></div></div>
+            <div class="col-md-3"><div class="stat-card-pro"><div class="stat-icon success"><i class="fas fa-check-circle"></i></div><div class="stat-body"><div class="number" id="statsPagePublies">0</div><div class="label">Publiés</div></div></div></div>
         </div>
         <div class="card-custom">
             <div class="card-title"><i class="fas fa-chart-column me-2 text-primary"></i>Vue analytique</div>
@@ -659,6 +699,24 @@
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login';
 GedDocPreview.init({ token, apiBase: window.location.origin });
+
+// Compat Bootstrap 5 : rétablit .modal() pour jQuery
+(function() {
+    const _modals = {};
+    function bsModal(el) {
+        if (!el || !el.id) return null;
+        if (!_modals[el.id]) _modals[el.id] = bootstrap.Modal.getOrCreateInstance(el);
+        return _modals[el.id];
+    }
+    $.fn.modal = function(action) {
+        return this.each(function() {
+            const m = bsModal(this);
+            if (!m) return;
+            if (action === 'show') m.show();
+            else if (action === 'hide') m.hide();
+        });
+    };
+})();
 
 // ========== UTILITIES ==========
 function showToast(msg, isError = false) {
@@ -1067,16 +1125,14 @@ async function loadCategories() {
             return;
         }
         let html = '';
+        let totalDocs = 0;
         for (const cat of cats) {
-            // Compter les documents par catégorie
-            const countRes = await fetch(`/documents/categorie/${cat.id}`, { headers: { 'Authorization': 'Bearer ' + token } });
-            const countData = await countRes.json();
-            const docCount = countData.documents ? countData.documents.length : 0;
-            
+            const docCount = cat.nb_documents != null ? cat.nb_documents : 0;
+            totalDocs += docCount;
             html += `<tr>
-                <td><span class="badge bg-primary">${cat.nom || '-'}</span></td>
-                <td>${cat.description || '-'}</td>
-                <td>${docCount}</td>
+                <td><span class="badge bg-primary">${escapeHtml(cat.nom || '-')}</span></td>
+                <td>${escapeHtml(cat.description || '-')}</td>
+                <td><span class="badge bg-secondary">${docCount}</span></td>
                 <td class="text-end">
                     <div class="doc-actions-cell">
                         <button type="button" class="btn-action-icon" onclick="voirDocumentsCategorie(${cat.id}, '${escapeHtml(cat.nom).replace(/'/g, "\\'")}')" title="Voir les documents"><i class="fas fa-folder-open"></i></button>
@@ -1088,10 +1144,12 @@ async function loadCategories() {
             </tr>`;
         }
         $('#categoriesList').html(html);
-        
+        $('#catTotalCount').text(cats.length);
+        $('#catDocTotalCount').text(totalDocs);
+
         // Remplir le select des catégories
         let options = '<option value="">Sans catégorie</option>';
-        cats.forEach(c => { options += `<option value="${c.id}">${c.nom}</option>`; });
+        cats.forEach(c => { options += `<option value="${c.id}">${escapeHtml(c.nom)}</option>`; });
         $('#docCategorie').html(options);
         $('#selectCategorieDeplacement').html(options);
     } catch(e) { console.error('Categories error:', e); }
@@ -1360,30 +1418,40 @@ async function runArchivageAuto() {
 
 // ========== EMPLOYÉS ==========
 async function loadEmployes() {
-    $('#employesList').html('<tr><td colspan="5" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
+    $('#employesList').html('<tr><td colspan="6" class="loading"><div class="spinner-border text-primary spinner-border-sm"></div> Chargement...</td></tr>');
     try {
         const res = await fetch('/api/pme/employes', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
         const employes = data.employes || [];
+        const actifs = employes.filter(e => e.actif !== false).length;
+        $('#empTotalCount').text(employes.length);
+        $('#empActifCount').text(actifs);
+        $('#empInactifCount').text(employes.length - actifs);
         if (employes.length === 0) {
-            $('#employesList').html('<tr><td colspan="5" class="text-center py-4 text-muted">Aucun employé</td></tr>');
+            $('#employesList').html('<tr><td colspan="6" class="text-center py-4 text-muted">Aucun employé — cliquez sur Ajouter pour en créer un.</td></tr>');
             return;
         }
         let html = '';
         for (const emp of employes) {
             const actif = emp.actif !== undefined ? emp.actif : true;
             html += `<tr>
-                <td class="fw-semibold">${emp.nom || '-'}</td>
-                <td>${emp.email || '-'}</td>
-                <td>${emp.role || 'employe'}</td>
+                <td class="fw-semibold">${escapeHtml(emp.nom || '-')}</td>
+                <td>${escapeHtml(emp.email || '-')}</td>
+                <td>${escapeHtml(emp.telephone || '-')}</td>
+                <td>${formatDate(emp.date_inscription)}</td>
                 <td>${actif ? '<span class="badge-custom badge-valide">Actif</span>' : '<span class="badge-custom badge-rejete">Inactif</span>'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-secondary btn-sm-custom" onclick="toggleEmploye(${emp.id}, ${!actif})"><i class="fas ${actif ? 'fa-ban' : 'fa-check'}"></i></button>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-${actif ? 'danger' : 'success'} btn-sm-custom" onclick="toggleEmploye(${emp.id}, ${!actif})" title="${actif ? 'Désactiver' : 'Activer'}">
+                        <i class="fas ${actif ? 'fa-ban' : 'fa-check'} me-1"></i>${actif ? 'Désactiver' : 'Activer'}
+                    </button>
                 </td>
             </tr>`;
         }
         $('#employesList').html(html);
-    } catch(e) { console.error('Employes error:', e); }
+    } catch(e) {
+        console.error('Employes error:', e);
+        $('#employesList').html('<tr><td colspan="6" class="text-center py-4 text-danger">Erreur de chargement</td></tr>');
+    }
 }
 
 function submitEmploye() {
@@ -1473,54 +1541,65 @@ async function supprimerDefinitivement(id) {
 
 // ========== STATISTIQUES ==========
 async function loadStatsPage() {
+    $('#statDetails').html('<div class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div></div>');
     try {
         const res = await fetch('/api/pme/stats', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
-        const docsRes = await fetch('/api/pme/documents?limit=500', { headers: { 'Authorization': 'Bearer ' + token } });
-        const docsData = await docsRes.json();
-        const allDocs = docsData.documents || [];
+        const s = data.stats || {};
+        const parCat = s.par_categorie || [];
+
+        $('#statsPageDocs').text(s.total_documents || 0);
+        $('#statsPageEmployes').text(s.total_employes || 0);
+        $('#statsPageAttente').text(s.en_attente || 0);
+        $('#statsPagePublies').text(s.publies || 0);
+
         const categories = {};
-        allDocs.forEach(d => {
-            const cat = d.categorie_nom || 'Sans catégorie';
-            categories[cat] = (categories[cat] || 0) + 1;
-        });
-        
-        let catHtml = '<h5 class="fw-bold">Documents par catégorie</h5><ul class="list-unstyled">';
+        parCat.forEach(c => { categories[c.nom] = c.count; });
+
+        let catHtml = '<h5 class="fw-bold mb-3">Documents par catégorie</h5><ul class="list-unstyled mb-0">';
         const colors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
         let i = 0;
         for (const [nom, count] of Object.entries(categories)) {
-            catHtml += `<li><span class="badge bg-${colors[i % colors.length]} me-2">${nom}</span> ${count}</li>`;
+            catHtml += `<li class="mb-2 d-flex justify-content-between align-items-center"><span><span class="badge bg-${colors[i % colors.length]} me-2">${escapeHtml(nom)}</span></span><strong>${count}</strong></li>`;
             i++;
         }
-        if (Object.keys(categories).length === 0) { catHtml += '<li class="text-muted">Aucune catégorie définie</li>'; }
+        if (Object.keys(categories).length === 0) {
+            catHtml += '<li class="text-muted">Aucune catégorie avec documents</li>';
+        }
         catHtml += '</ul>';
-        
-        const s = data.stats || {};
+
         $('#statDetails').html(catHtml + `
             <hr>
-            <p class="mb-1"><strong>Total documents :</strong> ${s.total_documents || 0}</p>
-            <p class="mb-1"><strong>Employés :</strong> ${s.total_employes || 0}</p>
-            <p class="mb-0"><strong>En attente de validation :</strong> ${s.en_attente || 0}</p>
+            <p class="mb-1"><strong>Validés :</strong> ${s.valides || 0}</p>
+            <p class="mb-1"><strong>Rejetés :</strong> ${s.rejetes || 0}</p>
+            <p class="mb-1"><strong>Obsolètes :</strong> ${s.obsoletes || 0}</p>
+            <p class="mb-0"><strong>Détruits :</strong> ${s.detruits || 0}</p>
         `);
-        
+
         if (barChart) barChart.destroy();
         const labels = Object.keys(categories);
         const values = Object.values(categories);
         if (labels.length > 0) {
             barChart = new Chart(document.getElementById('statsBarChart'), {
                 type: 'bar',
-                data: { 
-                    labels: labels, 
-                    datasets: [{ 
-                        label: 'Documents par catégorie', 
-                        data: values, 
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Documents par catégorie',
+                        data: values,
                         backgroundColor: ['#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899']
-                    }] 
+                    }]
                 },
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
+        } else {
+            const ctx = document.getElementById('statsBarChart');
+            if (ctx) barChart = new Chart(ctx, { type: 'bar', data: { labels: ['Aucune'], datasets: [{ data: [0], backgroundColor: ['#e2e8f0'] }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
         }
-    } catch(e) { console.error('Stats page error:', e); $('#statDetails').html('<p class="text-danger">Erreur de chargement</p>'); }
+    } catch(e) {
+        console.error('Stats page error:', e);
+        $('#statDetails').html('<p class="text-danger">Erreur de chargement</p>');
+    }
 }
 
 // ========== PARAMÈTRES ==========
@@ -1861,8 +1940,16 @@ async function runBackup() {
 }
 
 // ========== INIT ==========
-$('#tabDashboard').show();
-loadDashboard();
+function openTabFromUrl() {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab) {
+        const link = $(`.sidebar a[data-tab="${tab}"]`);
+        if (link.length) { link.click(); return; }
+    }
+    $('#tabDashboard').show();
+    loadDashboard();
+}
+openTabFromUrl();
 loadNotifications();
 
 setInterval(() => {
@@ -1870,6 +1957,8 @@ setInterval(() => {
     if ($('#tabDocuments').is(':visible')) loadDocuments();
     if ($('#tabValidation').is(':visible')) loadValidation();
     if ($('#tabCategories').is(':visible')) loadCategories();
+    if ($('#tabEmployes').is(':visible')) loadEmployes();
+    if ($('#tabStatistiques').is(':visible')) loadStatsPage();
     loadNotifications();
 }, 30000);
 </script>

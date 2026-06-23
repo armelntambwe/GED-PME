@@ -1,4 +1,5 @@
 from extensions import db
+from sqlalchemy import func
 from models_sqlalchemy import Categorie, Document
 import logging
 
@@ -19,7 +20,24 @@ class CategoryService:
     def get_categories(entreprise_id=None):
         try:
             categories = CategoryService._base_query(entreprise_id).all()
-            return [categorie.to_dict() for categorie in categories]
+            counts = {}
+            if entreprise_id is not None:
+                rows = (
+                    db.session.query(Document.categorie_id, func.count(Document.id))
+                    .filter(
+                        Document.entreprise_id == entreprise_id,
+                        Document.supprime_le.is_(None),
+                    )
+                    .group_by(Document.categorie_id)
+                    .all()
+                )
+                counts = {cid: n for cid, n in rows if cid}
+            result = []
+            for categorie in categories:
+                data = categorie.to_dict()
+                data['nb_documents'] = counts.get(categorie.id, 0)
+                result.append(data)
+            return result
         except Exception as e:
             logger.error(f"Erreur get_categories: {e}")
             raise

@@ -249,6 +249,9 @@ def pme_stats():
                 "brouillons": stats.get('brouillons', 0),
                 "rejetes": stats.get('rejetes', 0),
                 "publies": stats.get('publies', 0),
+                "obsoletes": stats.get('obsoletes', 0),
+                "detruits": stats.get('detruits', 0),
+                "par_categorie": AdminService.get_category_document_counts(entreprise_id),
             }
         }), 200
     except Exception as e:

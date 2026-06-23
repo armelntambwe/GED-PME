@@ -3,7 +3,7 @@ Service administrateur - ORM SQLAlchemy pur (sans SQL brut)
 Gère les opérations administrateur avec ORM SQLAlchemy
 """
 
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from extensions import db
 from models_sqlalchemy import User, Entreprise, Document, WorkflowConfig, Log, Categorie
 from datetime import datetime
@@ -299,6 +299,28 @@ class AdminService:
             return stats
         except Exception as e:
             logger.error(f"Erreur get_pme_stats: {e}")
+            raise
+
+    @staticmethod
+    def get_category_document_counts(entreprise_id: int) -> list:
+        """Nombre de documents par catégorie pour une entreprise."""
+        try:
+            rows = (
+                db.session.query(Categorie.nom, func.count(Document.id))
+                .outerjoin(
+                    Document,
+                    (Document.categorie_id == Categorie.id)
+                    & (Document.supprime_le.is_(None))
+                    & (Document.entreprise_id == entreprise_id),
+                )
+                .filter(Categorie.entreprise_id == entreprise_id)
+                .group_by(Categorie.id, Categorie.nom)
+                .order_by(func.count(Document.id).desc())
+                .all()
+            )
+            return [{'nom': nom, 'count': count} for nom, count in rows]
+        except Exception as e:
+            logger.error(f"Erreur get_category_document_counts: {e}")
             raise
     
     @staticmethod
