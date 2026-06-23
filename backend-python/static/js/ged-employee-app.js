@@ -1617,8 +1617,9 @@
     if (docParam) setTimeout(() => viewDocument(parseInt(docParam, 10)), 400);
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=4').then((reg) => {
             reg.update();
+            if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         }).catch(() => {});
     }
 

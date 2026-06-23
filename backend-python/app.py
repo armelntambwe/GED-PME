@@ -68,7 +68,10 @@ register_company_routes(app)
 # ==============================
 @app.route('/sw.js')
 def serve_sw():
-    return send_from_directory('static', 'sw.js')
+    resp = send_from_directory('static', 'sw.js')
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 @app.route('/offline.html')
 def serve_offline():
