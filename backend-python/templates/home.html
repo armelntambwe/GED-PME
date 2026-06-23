@@ -3,153 +3,482 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME — Accueil</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/static/css/sharepoint-home.css">
+    <meta name="description" content="GED-PME — Gestion électronique de documents pour les PME à Lubumbashi. Workflow, OCR Tesseract, alertes WhatsApp, multi-entreprises.">
+    <title>GED-PME — Gestion documentaire pour PME</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/home-landing.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230891b2' rx='20' width='100' height='100'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>G</text></svg>">
 </head>
-<body class="sp-home">
+<body class="hl-page">
 
-<!-- Barre suite Microsoft-style -->
-<div class="sp-suite-bar">
-    <div class="waffle" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-    <span class="brand">Microsoft 365 · GED-PME</span>
-    <div class="spacer"></div>
-    <a href="/login">Connexion</a>
-    <a href="/register-company">Inscription</a>
-</div>
-
-<!-- En-tête site -->
-<header class="sp-site-header">
-    <div class="site-title">
-        <div class="site-icon"><i class="bi bi-folder2-open"></i></div>
-        GED-PME
+<!-- Header -->
+<header class="hl-header" id="siteHeader">
+    <div class="hl-header-inner">
+        <a href="/" class="hl-logo">
+            <div class="hl-logo-icon"><i class="fas fa-folder-open"></i></div>
+            GED-PME
+        </a>
+        <nav class="hl-nav" id="mainNav">
+            <a href="#fonctionnalites">Fonctionnalités</a>
+            <a href="#roles">Espaces</a>
+            <a href="#workflow">Workflow</a>
+            <a href="/guide" target="_blank" rel="noopener">Guide</a>
+        </nav>
+        <div class="hl-header-actions">
+            <a href="/login" class="hl-btn hl-btn-ghost">Connexion</a>
+            <a href="/register-company" class="hl-btn hl-btn-primary"><i class="fas fa-building"></i> Inscrire ma PME</a>
+        </div>
+        <button class="hl-menu-toggle" id="menuToggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
     </div>
-    <div class="sp-search">
-        <i class="bi bi-search"></i>
-        <input type="search" placeholder="Rechercher des documents, sites, personnes…" disabled title="Connectez-vous pour rechercher">
-    </div>
-    <a href="/login" class="sp-btn-primary text-decoration-none" style="padding:8px 16px;border-radius:4px;background:#0078d4;color:#fff;font-size:14px;font-weight:600;">Se connecter</a>
 </header>
 
-<!-- Navigation -->
-<nav class="sp-nav">
-    <a href="/" class="active">Accueil</a>
-    <a href="#documents">Documents</a>
-    <a href="#sites">Sites</a>
-    <a href="#workflow">Workflow</a>
-    <a href="/register-company">Inscrire mon entreprise</a>
-</nav>
+<!-- Hero -->
+<section class="hl-hero">
+    <div class="hl-hero-bg" aria-hidden="true"></div>
+    <div class="hl-hero-inner">
+        <div class="hl-hero-content hl-reveal">
+            <div class="hl-badge">
+                <span class="hl-badge-dot"></span>
+                Projet open source · Lubumbashi, RDC
+            </div>
+            <h1>GED-PME<br><span>votre gestion documentaire</span></h1>
+            <p class="hl-hero-lead">
+                Déposez, validez et retrouvez vos fichiers au même endroit :
+                workflow par statuts, extraction OCR, tableaux de bord par rôle et alertes WhatsApp.
+            </p>
+            <div class="hl-hero-cta">
+                <a href="/register-company" class="hl-btn hl-btn-white"><i class="fas fa-building"></i> Inscrire ma PME</a>
+                <a href="/login" class="hl-btn hl-btn-glass"><i class="fas fa-sign-in-alt"></i> Se connecter</a>
+            </div>
+            <div class="hl-trust">
+                <span><i class="fas fa-check-circle"></i> Multi-entreprises</span>
+                <span><i class="fas fa-check-circle"></i> Déploiement LAN</span>
+                <span><i class="fas fa-check-circle"></i> Interface en français</span>
+            </div>
+        </div>
 
-<!-- Bannière héro -->
-<section class="sp-hero">
-    <div class="sp-main" style="padding-top:0;padding-bottom:0;max-width:1280px;">
-        <h1>Bienvenue sur GED-PME</h1>
-        <p>Espace de gestion documentaire pour PME — workflow de validation, OCR, mode hors ligne et alertes WhatsApp. Organisez, partagez et sécurisez vos documents comme sur un intranet SharePoint.</p>
-        <div class="sp-hero-actions">
-            <a href="/register-company" class="sp-btn-white"><i class="bi bi-building-add"></i> Inscrire mon entreprise</a>
-            <a href="/login" class="sp-btn-outline">Accéder à mon espace</a>
+        <div class="hl-mockup hl-reveal">
+            <div class="hl-mockup-frame">
+                <div class="hl-mockup-bar">
+                    <span class="hl-mockup-dot r"></span>
+                    <span class="hl-mockup-dot y"></span>
+                    <span class="hl-mockup-dot g"></span>
+                    <span class="hl-mockup-url">ged-pme.local/dashboard-pme</span>
+                </div>
+                <div class="hl-mockup-body">
+                    <div class="hl-mockup-sidebar">
+                        <i class="fas fa-tachometer-alt active"></i>
+                        <i class="fas fa-file-alt"></i>
+                        <i class="fas fa-check-double"></i>
+                        <i class="fas fa-users"></i>
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="hl-mockup-main">
+                        <div class="hl-mockup-stats">
+                            <div class="hl-mockup-stat"><div class="n" id="mockStat1">—</div><div class="l">Utilisateurs</div></div>
+                            <div class="hl-mockup-stat"><div class="n" id="mockStat2">—</div><div class="l">Documents</div></div>
+                            <div class="hl-mockup-stat"><div class="n" id="mockStat3">7</div><div class="l">Statuts</div></div>
+                        </div>
+                        <div class="hl-mockup-doc">
+                            <div class="hl-mockup-doc-row">
+                                <div class="hl-mockup-doc-icon" style="background:#dbeafe;color:#2563eb"><i class="fas fa-file-pdf"></i></div>
+                                <div><strong>Contrat client 2026</strong><br><small style="color:#64748b">Finance · Il y a 2 h</small></div>
+                                <span class="hl-status pub">Publié</span>
+                            </div>
+                            <div class="hl-mockup-doc-row">
+                                <div class="hl-mockup-doc-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-file-image"></i></div>
+                                <div><strong>Facture fournisseur</strong><br><small style="color:#64748b">Scan OCR · Il y a 5 h</small></div>
+                                <span class="hl-status rev">Révision</span>
+                            </div>
+                            <div class="hl-mockup-doc-row">
+                                <div class="hl-mockup-doc-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-file-word"></i></div>
+                                <div><strong>Rapport RH mensuel</strong><br><small style="color:#64748b">RH · Hier</small></div>
+                                <span class="hl-status val">Validé</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hl-mockup-float-card card1">
+                <i class="fab fa-whatsapp" style="color:#25d366"></i>
+                <div><strong>Alerte envoyée</strong><br><small style="color:#64748b">Document validé</small></div>
+            </div>
+            <div class="hl-mockup-float-card card2">
+                <i class="fas fa-wifi-slash"></i>
+                <div><strong>File hors ligne</strong><br><small style="color:#64748b">Espace employé</small></div>
+            </div>
         </div>
     </div>
 </section>
 
-<main class="sp-main">
-
-    <!-- Statistiques -->
-    <div class="sp-stats-bar">
-        <div class="sp-stat-card"><div class="num" id="statEnt">0</div><div class="lbl">Entreprises</div></div>
-        <div class="sp-stat-card"><div class="num" id="statUsers">0</div><div class="lbl">Utilisateurs actifs</div></div>
-        <div class="sp-stat-card"><div class="num" id="statDocs">0</div><div class="lbl">Documents gérés</div></div>
-    </div>
-
-    <!-- Tuiles rapides (style web parts SharePoint) -->
-    <h2 class="sp-section-title"><i class="bi bi-grid-3x3-gap me-2"></i>Accès rapide</h2>
-    <div class="sp-grid mb-5">
-        <a href="/register-company" class="sp-tile">
-            <div class="sp-tile-icon" style="background:#deecf9;color:#0078d4"><i class="bi bi-building-add"></i></div>
-            <h3>Inscrire une entreprise</h3>
-            <p>Créez votre espace PME avec NIF, RCCM et logo.</p>
-        </a>
-        <a href="/login" class="sp-tile">
-            <div class="sp-tile-icon" style="background:#dff6dd;color:#107c10"><i class="bi bi-box-arrow-in-right"></i></div>
-            <h3>Connexion employé</h3>
-            <p>Accédez à vos documents, soumissions et notifications.</p>
-        </a>
-        <a href="/login" class="sp-tile">
-            <div class="sp-tile-icon" style="background:#fff4ce;color:#797775"><i class="bi bi-shield-check"></i></div>
-            <h3>Espace administrateur</h3>
-            <p>Validation, employés, statistiques et paramètres PME.</p>
-        </a>
-        <a href="#workflow" class="sp-tile">
-            <div class="sp-tile-icon" style="background:#fde7e9;color:#d13438"><i class="bi bi-diagram-3"></i></div>
-            <h3>Workflow documentaire</h3>
-            <p>Brouillon → Révision → Validé → Publié.</p>
-        </a>
-    </div>
-
-    <h2 class="sp-section-title" id="documents"><i class="bi bi-file-earmark-text me-2"></i>Fonctionnalités</h2>
-    <div class="sp-grid mb-5">
-        <div class="sp-tile" style="cursor:default">
-            <div class="sp-tile-icon" style="background:#e8eaf6;color:#5c2d91"><i class="bi bi-eye"></i></div>
-            <h3>OCR & recherche</h3>
-            <p>Indexation automatique du texte dans PDF et images.</p>
+<!-- Live stats -->
+<section class="hl-stats-band hl-reveal">
+    <div class="hl-stats-grid">
+        <div class="hl-stat-item">
+            <div class="num" data-count="0" id="statEnt">0</div>
+            <div class="lbl">Entreprises inscrites</div>
         </div>
-        <div class="sp-tile" style="cursor:default">
-            <div class="sp-tile-icon" style="background:#deecf9;color:#0078d4"><i class="bi bi-wifi-off"></i></div>
-            <h3>Mode hors ligne</h3>
-            <p>Travaillez sans réseau, synchronisation automatique.</p>
+        <div class="hl-stat-item">
+            <div class="num" data-count="0" id="statUsers">0</div>
+            <div class="lbl">Utilisateurs actifs</div>
         </div>
-        <div class="sp-tile" style="cursor:default">
-            <div class="sp-tile-icon" style="background:#dff6dd;color:#107c10"><i class="bi bi-whatsapp"></i></div>
-            <h3>Alertes WhatsApp</h3>
-            <p>Notifications validation, rejet et soumission.</p>
+        <div class="hl-stat-item">
+            <div class="num" data-count="0" id="statDocs">0</div>
+            <div class="lbl">Documents gérés</div>
         </div>
-        <div class="sp-tile" style="cursor:default">
-            <div class="sp-tile-icon" style="background:#fff4ce;color:#797775"><i class="bi bi-lock"></i></div>
-            <h3>Sécurité 2FA</h3>
-            <p>Authentification à deux facteurs et isolation par utilisateur.</p>
+        <div class="hl-stat-item">
+            <div class="num">7</div>
+            <div class="lbl">Étapes de workflow</div>
         </div>
     </div>
+</section>
 
-    <h2 class="sp-section-title" id="workflow">Parcours document</h2>
-    <div class="sp-grid" id="sites">
-        <div class="sp-tile" style="cursor:default;text-align:center">
-            <div class="sp-tile-icon mx-auto" style="background:#0078d4;color:#fff;width:48px;height:48px;border-radius:50%">1</div>
-            <h3>Brouillon</h3>
-            <p>Création et upload par l'employé.</p>
+<!-- Features with real images -->
+<section class="hl-section" id="fonctionnalites">
+    <div class="hl-section-header hl-reveal">
+        <span class="hl-label">Fonctionnalités</span>
+        <h2>Ce que propose GED-PME</h2>
+        <p>Fonctionnalités réellement disponibles dans l'application, selon votre rôle (employé, admin PME ou admin global).</p>
+    </div>
+    <div class="hl-features-grid">
+        <article class="hl-feature-card hl-reveal">
+            <div class="hl-feature-img" style="background-image:url('https://images.unsplash.com/photo-1586281380349-aa9b9816a92e?w=600&q=80')"></div>
+            <div class="hl-feature-body">
+                <div class="hl-feature-icon" style="background:#ecfeff;color:#0891b2"><i class="fas fa-font"></i></div>
+                <h3>OCR & recherche</h3>
+                <p>Après numérisation (scan puis upload), Tesseract extrait le texte des PDF et images. La recherche couvre titre, nom de fichier, auteur et contenu OCR.</p>
+            </div>
+        </article>
+        <article class="hl-feature-card hl-reveal">
+            <div class="hl-feature-img" style="background-image:url('https://images.unsplash.com/photo-1454165804606-0263173a849?w=600&q=80')"></div>
+            <div class="hl-feature-body">
+                <div class="hl-feature-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-project-diagram"></i></div>
+                <h3>Workflow de validation</h3>
+                <p>Statuts : brouillon, révision, validé, rejeté, publié, obsolète, détruit. L'admin PME valide ou rejette avec commentaire ; chaque transition est journalisée.</p>
+            </div>
+        </article>
+        <article class="hl-feature-card hl-reveal">
+            <div class="hl-feature-img" style="background-image:url('https://images.unsplash.com/photo-1512941937669-90a1d4464169?w=600&q=80')"></div>
+            <div class="hl-feature-body">
+                <div class="hl-feature-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-wifi-slash"></i></div>
+                <h3>Mode hors ligne (employé)</h3>
+                <p>Sur le tableau de bord employé uniquement : file d'attente locale pour déposer et soumettre, puis synchronisation automatique au retour du réseau.</p>
+            </div>
+        </article>
+        <article class="hl-feature-card hl-reveal">
+            <div class="hl-feature-img" style="background-image:url('https://images.unsplash.com/photo-1633265486064-086baf415af8?w=600&q=80')"></div>
+            <div class="hl-feature-body">
+                <div class="hl-feature-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-shield-alt"></i></div>
+                <h3>Sécurité & 2FA</h3>
+                <p>Connexion JWT, mots de passe hashés, données isolées par entreprise, authentification TOTP optionnelle et journal d'audit des actions.</p>
+            </div>
+        </article>
+        <article class="hl-feature-card hl-reveal">
+            <div class="hl-feature-img" style="background-image:url('https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80')"></div>
+            <div class="hl-feature-body">
+                <div class="hl-feature-icon" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></div>
+                <h3>Alertes WhatsApp</h3>
+                <p>Notifications sur validation, rejet ou soumission via CallMeBot — à configurer dans le profil (numéro + clé API personnelle).</p>
+            </div>
+        </article>
+        <article class="hl-feature-card hl-reveal">
+            <div class="hl-feature-img" style="background-image:url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80')"></div>
+            <div class="hl-feature-body">
+                <div class="hl-feature-icon" style="background:#dbeafe;color:#2563eb"><i class="fas fa-chart-line"></i></div>
+                <h3>Tableaux de bord</h3>
+                <p>Statistiques et graphiques d'évolution par rôle. Export CSV des logs côté admin global ; export et corbeille côté admin PME.</p>
+            </div>
+        </article>
+    </div>
+</section>
+
+<!-- Role tabs -->
+<section class="hl-section" id="roles">
+    <div class="hl-section-header hl-reveal">
+        <span class="hl-label">Espaces utilisateurs</span>
+        <h2>Trois interfaces, un seul système</h2>
+        <p>Chaque rôle dispose de son tableau de bord adapté à ses responsabilités.</p>
+    </div>
+    <div class="hl-roles hl-reveal">
+        <div class="hl-role-tabs">
+            <button type="button" class="hl-role-tab active" data-role="employe"><i class="fas fa-user"></i> Employé</button>
+            <button type="button" class="hl-role-tab" data-role="admin_pme"><i class="fas fa-building"></i> Admin PME</button>
+            <button type="button" class="hl-role-tab" data-role="admin_global"><i class="fas fa-globe-africa"></i> Admin global</button>
         </div>
-        <div class="sp-tile" style="cursor:default;text-align:center">
-            <div class="sp-tile-icon mx-auto" style="background:#0078d4;color:#fff;width:48px;height:48px;border-radius:50%">2</div>
-            <h3>Révision</h3>
-            <p>Soumission à l'administrateur PME.</p>
+        <div class="hl-role-panel active" id="panel-employe">
+            <div>
+                <h3>Espace Employé</h3>
+                <p>Déposez vos documents, suivez leur statut et consultez les fichiers publiés par votre entreprise.</p>
+                <ul class="hl-role-list">
+                    <li><i class="fas fa-check"></i> Upload PDF, images, Word, Excel…</li>
+                    <li><i class="fas fa-check"></i> Soumission au workflow (brouillon → révision)</li>
+                    <li><i class="fas fa-check"></i> Consultation des documents publiés de l'entreprise</li>
+                    <li><i class="fas fa-check"></i> PWA et file d'attente hors ligne</li>
+                </ul>
+                <a href="/login" class="hl-btn hl-btn-primary">Accéder <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="hl-role-visual">
+                <img src="https://images.unsplash.com/photo-1586281380349-aa9b9816a92e?w=800&q=80" alt="Classement et dépôt de documents papier" loading="lazy">
+            </div>
         </div>
-        <div class="sp-tile" style="cursor:default;text-align:center">
-            <div class="sp-tile-icon mx-auto" style="background:#107c10;color:#fff;width:48px;height:48px;border-radius:50%">3</div>
-            <h3>Validé</h3>
-            <p>Approbation ou rejet avec commentaire.</p>
+        <div class="hl-role-panel" id="panel-admin_pme">
+            <div>
+                <h3>Administration PME</h3>
+                <p>Pilotez votre entreprise : validez les documents, gérez les employés et configurez le workflow.</p>
+                <ul class="hl-role-list">
+                    <li><i class="fas fa-check"></i> Validation / rejet avec commentaire</li>
+                    <li><i class="fas fa-check"></i> Gestion employés et catégories par entreprise</li>
+                    <li><i class="fas fa-check"></i> Upload publié directement par l'admin PME</li>
+                    <li><i class="fas fa-check"></i> Corbeille, versions, sauvegarde SQL</li>
+                </ul>
+                <a href="/login" class="hl-btn hl-btn-primary">Accéder <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="hl-role-visual">
+                <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&q=80" alt="Administrateur PME au poste de travail" loading="lazy">
+            </div>
         </div>
-        <div class="sp-tile" style="cursor:default;text-align:center">
-            <div class="sp-tile-icon mx-auto" style="background:#5c2d91;color:#fff;width:48px;height:48px;border-radius:50%">4</div>
-            <h3>Publié</h3>
-            <p>Archivage et partage sécurisé.</p>
+        <div class="hl-role-panel" id="panel-admin_global">
+            <div>
+                <h3>Administration globale</h3>
+                <p>Supervisez la plateforme multi-PME : création d'entreprises, consultation des documents et logs, sans intervention sur la validation.</p>
+                <ul class="hl-role-list">
+                    <li><i class="fas fa-check"></i> Onboarding PME (NIF, RCCM, logo)</li>
+                    <li><i class="fas fa-check"></i> Vue lecture seule des documents</li>
+                    <li><i class="fas fa-check"></i> Journal d'activité et export CSV</li>
+                    <li><i class="fas fa-check"></i> Sauvegarde SQL et mode maintenance</li>
+                </ul>
+                <a href="/login" class="hl-btn hl-btn-primary">Accéder <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="hl-role-visual">
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80" alt="Infrastructure serveur et supervision" loading="lazy">
+            </div>
         </div>
     </div>
-</main>
+</section>
 
-<footer class="sp-footer">
-    <p class="mb-1"><strong>GED-PME</strong> — Gestion Électronique de Documents pour PME · RDC</p>
-    <p class="mb-0">© 2025–2026 · Projet open source</p>
+<!-- Workflow -->
+<section class="hl-workflow" id="workflow">
+    <div class="hl-workflow-inner">
+        <div class="hl-section-header hl-reveal">
+            <span class="hl-label">Workflow</span>
+            <h2>Cycle de vie documentaire en 7 étapes</h2>
+            <p>Cliquez sur une étape pour voir le détail. Chaque transition est tracée dans le journal d'audit.</p>
+        </div>
+        <div class="hl-timeline hl-reveal">
+            <div class="hl-step active" data-step="0">
+                <div class="hl-step-num"><i class="fas fa-pencil-alt"></i></div>
+                <h4>Brouillon</h4>
+                <p>Création</p>
+            </div>
+            <div class="hl-step" data-step="1">
+                <div class="hl-step-num"><i class="fas fa-clock"></i></div>
+                <h4>Révision</h4>
+                <p>Soumis</p>
+            </div>
+            <div class="hl-step" data-step="2">
+                <div class="hl-step-num"><i class="fas fa-check"></i></div>
+                <h4>Validé</h4>
+                <p>Approuvé</p>
+            </div>
+            <div class="hl-step" data-step="3">
+                <div class="hl-step-num"><i class="fas fa-times"></i></div>
+                <h4>Rejeté</h4>
+                <p>À corriger</p>
+            </div>
+            <div class="hl-step" data-step="4">
+                <div class="hl-step-num"><i class="fas fa-globe"></i></div>
+                <h4>Publié</h4>
+                <p>Visible</p>
+            </div>
+            <div class="hl-step" data-step="5">
+                <div class="hl-step-num"><i class="fas fa-archive"></i></div>
+                <h4>Obsolète</h4>
+                <p>Archivé</p>
+            </div>
+            <div class="hl-step" data-step="6">
+                <div class="hl-step-num"><i class="fas fa-trash"></i></div>
+                <h4>Détruit</h4>
+                <p>Supprimé</p>
+            </div>
+        </div>
+        <div class="hl-step-detail hl-reveal" id="stepDetail">
+            L'employé crée et upload un document. Il reste en brouillon jusqu'à soumission à l'admin PME.
+        </div>
+    </div>
+</section>
+
+<!-- Showcase -->
+<section class="hl-section">
+    <div class="hl-showcase hl-reveal">
+        <div class="hl-showcase-img">
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=900&q=80" alt="Serveur local pour déploiement LAN" loading="lazy">
+            <div class="hl-showcase-badge"><i class="fas fa-server"></i> Déploiement sur serveur local (LAN)</div>
+        </div>
+        <div>
+            <span class="hl-label">GED-PME en bref</span>
+            <h2 style="font-size:1.75rem;font-weight:800;margin:0 0 16px;letter-spacing:-0.02em">Une GED multi-PME pour Lubumbashi</h2>
+            <p style="color:#64748b;line-height:1.7;margin-bottom:8px">
+                Application web open source (Python, Flask, MySQL) hébergée sur votre propre serveur.
+                Chaque entreprise dispose de son espace isolé, de ses catégories et de son workflow documentaire.
+            </p>
+            <ul class="hl-check-list">
+                <li><i class="fas fa-check-circle"></i> Inscription PME avec NIF, RCCM et administrateur</li>
+                <li><i class="fas fa-check-circle"></i> Numérisation : scan externe → upload → OCR Tesseract</li>
+                <li><i class="fas fa-check-circle"></i> Prévisualisation PDF, Office, images et feuilles CSV</li>
+                <li><i class="fas fa-check-circle"></i> Projet académique — Université Nouveaux Horizons, 2026</li>
+            </ul>
+            <a href="/register-company" class="hl-btn hl-btn-primary"><i class="fas fa-building"></i> Inscrire mon entreprise</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="hl-cta hl-reveal">
+    <h2>Prêt à digitaliser vos documents ?</h2>
+    <p>Inscrivez votre PME avec NIF, RCCM et le compte administrateur associé.</p>
+    <div class="hl-cta-actions">
+        <a href="/register-company" class="hl-btn hl-btn-white"><i class="fas fa-rocket"></i> Commencer maintenant</a>
+        <a href="/guide" class="hl-btn hl-btn-glass" target="_blank" rel="noopener"><i class="fas fa-book"></i> Lire le guide</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="hl-footer">
+    <div class="hl-footer-inner">
+        <div>
+            <div class="hl-footer-brand"><i class="fas fa-folder-open"></i> GED-PME</div>
+            <p>Gestion Électronique de Documents pour les Petites et Moyennes Entreprises en République Démocratique du Congo.</p>
+        </div>
+        <div>
+            <h4>Produit</h4>
+            <ul>
+                <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+                <li><a href="#workflow">Workflow</a></li>
+                <li><a href="/guide">Guide utilisateur</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Accès</h4>
+            <ul>
+                <li><a href="/login">Connexion</a></li>
+                <li><a href="/register-company">Inscription PME</a></li>
+                <li><a href="https://github.com/armelntambwe/GED-PME" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Auteur</h4>
+            <ul>
+                <li>Mbuyi Ntambwe Armel</li>
+                <li>Université Nouveaux Horizons</li>
+                <li>Travail de fin d'études 2026</li>
+            </ul>
+        </div>
+    </div>
+    <div class="hl-footer-bottom">
+        © 2025–2026 GED-PME · Projet open source · Lubumbashi, RDC
+    </div>
 </footer>
 
 <script>
-fetch('/api/public/stats').then(r => r.json()).then(data => {
-    if (!data.success) return;
-    const s = data.stats;
-    const fmt = n => n >= 1000 ? (n/1000).toFixed(1) + 'k' : String(n);
-    const ent = document.getElementById('statEnt'); if (ent) ent.textContent = fmt(s.entreprises);
-    const usr = document.getElementById('statUsers'); if (usr) usr.textContent = fmt(s.utilisateurs);
-    const doc = document.getElementById('statDocs'); if (doc) doc.textContent = fmt(s.documents);
-}).catch(() => {});
+(function () {
+    const STEP_TEXTS = [
+        "L'employé crée et upload un document. Il reste en brouillon jusqu'à soumission à l'admin PME.",
+        "Document soumis à l'admin PME, qui peut valider ou rejeter (alerte WhatsApp si CallMeBot est configuré).",
+        "Document approuvé par l'administrateur. Prêt à être publié pour toute l'entreprise.",
+        "Document refusé avec un commentaire. L'employé peut corriger et resoumettre.",
+        "Document visible par tous les employés de l'entreprise. Recherche et OCR actifs.",
+        "Document marqué obsolète manuellement ou via la règle d'archivage configurée.",
+        "Suppression définitive depuis la corbeille (admin PME). Action tracée dans les logs.",
+    ];
+
+    /* Header scroll */
+    const header = document.getElementById('siteHeader');
+    window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    /* Mobile menu */
+    document.getElementById('menuToggle')?.addEventListener('click', () => {
+        header.classList.toggle('nav-open');
+    });
+
+    /* Role tabs */
+    document.querySelectorAll('.hl-role-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.hl-role-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.hl-role-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('panel-' + tab.dataset.role)?.classList.add('active');
+        });
+    });
+
+    /* Workflow steps */
+    const detailEl = document.getElementById('stepDetail');
+    document.querySelectorAll('.hl-step').forEach(step => {
+        step.addEventListener('click', () => {
+            document.querySelectorAll('.hl-step').forEach(s => s.classList.remove('active'));
+            step.classList.add('active');
+            const idx = parseInt(step.dataset.step, 10);
+            if (detailEl) detailEl.textContent = STEP_TEXTS[idx] || '';
+        });
+    });
+
+    /* Animated counters */
+    function animateCount(el, target) {
+        const duration = 1800;
+        const start = performance.now();
+        const from = 0;
+        function tick(now) {
+            const p = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            const val = Math.round(from + (target - from) * eased);
+            el.textContent = val >= 1000 ? (val / 1000).toFixed(1) + 'k' : String(val);
+            if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    let statsLoaded = false;
+    function loadStats() {
+        if (statsLoaded) return;
+        fetch('/api/public/stats')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                statsLoaded = true;
+                const s = data.stats;
+                const ent = document.getElementById('statEnt');
+                const usr = document.getElementById('statUsers');
+                const doc = document.getElementById('statDocs');
+                if (ent) animateCount(ent, s.entreprises || 0);
+                if (usr) animateCount(usr, s.utilisateurs || 0);
+                if (doc) animateCount(doc, s.documents || 0);
+                const m1 = document.getElementById('mockStat1');
+                const m2 = document.getElementById('mockStat2');
+                if (m1) animateCount(m1, s.utilisateurs || 0);
+                if (m2) animateCount(m2, s.documents || 0);
+            })
+            .catch(() => {});
+    }
+
+    /* Scroll reveal + stats trigger */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                if (entry.target.closest('.hl-stats-band')) loadStats();
+            }
+        });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.hl-reveal').forEach(el => observer.observe(el));
+
+    loadStats();
+
+    /* Smooth nav close on link click */
+    document.querySelectorAll('.hl-nav a').forEach(a => {
+        a.addEventListener('click', () => header.classList.remove('nav-open'));
+    });
+})();
 </script>
 </body>
 </html>
