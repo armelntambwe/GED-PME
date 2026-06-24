@@ -1,0 +1,6 @@
+<div class="ged-lang-switch" role="navigation" aria-label="{{ t('common.lang_switch') }}">
+    <a href="{{ url_for('set_language_route', lang_code='fr', next=request.path) }}"
+       class="ged-lang-btn{% if lang == 'fr' %} active{% endif %}" hreflang="fr" lang="fr">FR</a>
+    <a href="{{ url_for('set_language_route', lang_code='en', next=request.path) }}"
+       class="ged-lang-btn{% if lang == 'en' %} active{% endif %}" hreflang="en" lang="en">EN</a>
+</div>

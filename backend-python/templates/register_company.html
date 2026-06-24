@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME — Inscription entreprise</title>
+    <title>{{ t('register.title') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/static/css/sharepoint-home.css">
+    <link rel="stylesheet" href="/static/css/ged-theme.css">
 </head>
 <body class="sp-register">
 
@@ -14,16 +15,17 @@
     <div class="waffle" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
     <span class="brand">GED-PME</span>
     <div class="spacer"></div>
-    <a href="/">Accueil</a>
-    <a href="/login">Connexion</a>
+    {% include 'partials/lang_switcher.html' %}
+    <a href="/">{{ t('register.home_link') }}</a>
+    <a href="/login">{{ t('common.login') }}</a>
 </div>
 
 <div class="sp-form-page">
     <div class="sp-form-card">
         <div class="sp-form-header">
             <span class="sp-step-badge" id="stepBadge">Étape 1 sur 2 — Entreprise</span>
-            <h1>Inscription entreprise</h1>
-            <p>Renseignez les informations légales et administratives de votre PME.</p>
+            <h1>{{ t('register.heading') }}</h1>
+            <p>{{ t('register.subtitle') }}</p>
         </div>
 
         <form id="registerCompanyForm" enctype="multipart/form-data">

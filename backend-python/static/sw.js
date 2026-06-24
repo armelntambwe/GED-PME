@@ -1,5 +1,5 @@
-// Service Worker GED-PME — shell hors-ligne
-const CACHE_NAME = 'ged-pme-v4';
+// Service Worker GED-PME — shell hors-ligne (employé uniquement)
+const CACHE_NAME = 'ged-pme-v5';
 
 const SHELL_URLS = [
     '/',
@@ -27,73 +27,79 @@ function isApiRequest(url) {
         p.startsWith('/api/') ||
         p.startsWith('/categories') ||
         p.startsWith('/notifications') ||
-        p.startsWith('/login') && url.search.includes('json');
+        (p.startsWith('/login') && url.search.includes('json'));
 }
 
-self.addEventListener('install', (event) => {
+/** Ne jamais intercepter : extensions, antivirus (Kaspersky), blob, etc. */
+function shouldBypass(request) {
+    const url = new URL(request.url);
+    const scheme = url.protocol;
+    if (scheme !== 'http:' && scheme !== 'https:') return true;
+    if (/kaspersky|kis\.v2\.scr/i.test(url.hostname)) return true;
+    if (url.origin === self.location.origin) return false;
+    return !SHELL_URLS.includes(request.url);
+}
+
+function safeCachePut(cache, request, response) {
+    if (!response || !response.ok) return Promise.resolve();
+    try {
+        return cache.put(request, response.clone()).catch(function () {});
+    } catch (e) {
+        return Promise.resolve();
+    }
+}
+
+self.addEventListener('install', function (event) {
     event.waitUntil(
-        caches.open(CACHE_NAME).then(async (cache) => {
-            await Promise.allSettled(SHELL_URLS.map((u) => cache.add(u).catch(() => null)));
-            self.skipWaiting();
-        })
+        caches.open(CACHE_NAME).then(function (cache) {
+            return Promise.allSettled(
+                SHELL_URLS.map(function (u) { return cache.add(u).catch(function () {}); })
+            );
+        }).then(function () { return self.skipWaiting(); })
     );
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', function (event) {
     event.waitUntil(
-        caches.keys().then((keys) =>
-            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-        ).then(() => self.clients.claim())
+        caches.keys().then(function (keys) {
+            return Promise.all(
+                keys.filter(function (k) { return k !== CACHE_NAME; }).map(function (k) { return caches.delete(k); })
+            );
+        }).then(function () { return self.clients.claim(); })
     );
 });
 
-self.addEventListener('message', (event) => {
+self.addEventListener('message', function (event) {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
 });
 
-self.addEventListener('fetch', (event) => {
-    const { request } = event;
+self.addEventListener('fetch', function (event) {
+    var request = event.request;
     if (request.method !== 'GET') return;
+    if (shouldBypass(request)) return;
 
-    const url = new URL(request.url);
-    if (url.origin !== self.location.origin && !SHELL_URLS.includes(request.url)) {
-        // CDN : cache-first si disponible
-        event.respondWith(
-            caches.match(request).then((cached) =>
-                cached || fetch(request).then((res) => {
-                    if (res.ok) {
-                        const clone = res.clone();
-                        caches.open(CACHE_NAME).then((c) => c.put(request, clone));
-                    }
-                    return res;
-                }).catch(() => cached)
-            )
-        );
-        return;
-    }
+    var url = new URL(request.url);
 
     if (isApiRequest(url)) return;
 
     event.respondWith(
-        caches.match(request).then((cached) => {
-            const network = fetch(request).then((res) => {
+        caches.match(request).then(function (cached) {
+            return fetch(request).then(function (res) {
                 if (res && res.ok) {
-                    const clone = res.clone();
-                    caches.open(CACHE_NAME).then((c) => c.put(request, clone));
+                    caches.open(CACHE_NAME).then(function (cache) {
+                        safeCachePut(cache, request, res);
+                    });
                 }
                 return res;
-            }).catch(() => null);
-
-            return network.then((res) => {
-                if (res) return res;
+            }).catch(function () {
                 if (cached) return cached;
                 if (request.mode === 'navigate') {
                     return caches.match('/dashboard-employee')
-                        || caches.match('/offline.html');
+                        .then(function (r) { return r || caches.match('/offline.html'); });
                 }
-                return new Response('Hors ligne', { status: 503 });
+                return cached || new Response('', { status: 504, statusText: 'Offline' });
             });
         })
     );

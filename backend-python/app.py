@@ -1,5 +1,5 @@
 # app.py - Version nettoyée sans doublons
-from flask import Flask, send_from_directory, render_template, request, jsonify, send_file
+from flask import Flask, send_from_directory, render_template, request, jsonify, send_file, redirect
 from config import Config
 from utils.db import get_db, test_connection
 from middleware.auth import token_required, role_required, get_current_user
@@ -11,6 +11,8 @@ from services.indexation_service import IndexationService
 from services.version_service import VersionService
 from services.archivage_service import ArchivageService
 from extensions import db, migrate
+from utils.home_svg import load_home_svgs
+from utils.i18n import get_lang, set_language, translate, workflow_step_texts, SUPPORTED
 
 # Importer les modèles SQLAlchemy
 from models_sqlalchemy import Entreprise, User, Document, Categorie, Log, VersionDocument, Notification
@@ -40,6 +42,26 @@ db.init_app(app)
 migrate.init_app(app, db)
 ensure_schema(app)
 
+
+@app.context_processor
+def inject_i18n():
+    lang = get_lang()
+    return {
+        'lang': lang,
+        't': lambda key, **kw: translate(key, lang, **kw),
+    }
+
+
+@app.route('/lang/<lang_code>')
+def set_language_route(lang_code):
+    next_url = request.args.get('next') or request.referrer or '/'
+    if not next_url.startswith('/'):
+        next_url = '/'
+    resp = redirect(next_url)
+    code = lang_code if lang_code in SUPPORTED else 'fr'
+    return set_language(resp, code)
+
+
 with app.app_context():
     try:
         archived = ArchivageService.run_auto_archivage()
@@ -57,7 +79,7 @@ def check_maintenance_mode():
     path = (request.path or '').rstrip('/') or '/'
     allowed = (
         '/static', '/sw.js', '/offline', '/dashboard-admin-global',
-        '/api/admin-global', '/api/user/profile', '/api/whatsapp',
+        '/api/admin-global', '/api/user/profile', '/api/whatsapp', '/lang',
     )
     if any(path.startswith(p) for p in allowed):
         return None
@@ -106,12 +128,25 @@ def serve_offline():
 def serve_offline_queue():
     return send_from_directory('static', 'offline-queue.js')
 
+@app.route('/static/img/home/<path:filename>')
+def serve_home_images(filename):
+    """Illustrations page d'accueil (cache long, servies locale)."""
+    resp = send_from_directory(os.path.join('static', 'img', 'home'), filename)
+    if filename.endswith('.svg'):
+        resp.headers['Content-Type'] = 'image/svg+xml; charset=utf-8'
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
 # ==============================
 # PAGES HTML
 # ==============================
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template(
+        'home.html',
+        home_svgs=load_home_svgs(app),
+        workflow_steps=workflow_step_texts(),
+    )
 
 
 @app.route('/api/public/stats', methods=['GET'])

@@ -221,3 +221,47 @@ body.ged-app {
     .ged-sidebar.open { transform: translateX(0); }
     .ged-main { margin-left: 0; }
 }
+
+/* Language switcher (shared) */
+.ged-lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.ged-lang-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s, color 0.2s;
+}
+.ged-lang-btn:hover { background: rgba(255, 255, 255, 0.2); }
+.ged-lang-btn.active {
+    background: #fff;
+    color: var(--ged-primary);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+.sp-suite-bar .ged-lang-switch {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    margin-right: 8px;
+}
+.sp-suite-bar .ged-lang-btn { color: #64748b; }
+.sp-suite-bar .ged-lang-btn.active { color: var(--ged-primary); }
+.card-login ~ .ged-lang-switch,
+body.ged-app .ged-lang-switch {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+body.ged-app .ged-lang-btn { color: #64748b; }
+body.ged-app .ged-lang-btn.active { color: var(--ged-primary); }

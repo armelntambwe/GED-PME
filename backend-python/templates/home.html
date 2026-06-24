@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="GED-PME — Gestion électronique de documents pour les PME à Lubumbashi. Workflow, OCR Tesseract, alertes WhatsApp, multi-entreprises.">
-    <title>GED-PME — Gestion documentaire pour PME</title>
+    <meta name="description" content="{{ t('home.meta.description') }}">
+    <title>{{ t('home.title') }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/home-landing.css">
+    <link rel="stylesheet" href="/static/css/home-landing.css?v=6">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230891b2' rx='20' width='100' height='100'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white'>G</text></svg>">
 </head>
 <body class="hl-page">
 
-<!-- Header -->
 <header class="hl-header" id="siteHeader">
     <div class="hl-header-inner">
         <a href="/" class="hl-logo">
@@ -19,44 +18,43 @@
             GED-PME
         </a>
         <nav class="hl-nav" id="mainNav">
-            <a href="#fonctionnalites">Fonctionnalités</a>
-            <a href="#roles">Espaces</a>
-            <a href="#workflow">Workflow</a>
-            <a href="/guide" target="_blank" rel="noopener">Guide</a>
+            <a href="#fonctionnalites">{{ t('home.nav.features') }}</a>
+            <a href="#roles">{{ t('home.nav.roles') }}</a>
+            <a href="#workflow">{{ t('home.nav.workflow') }}</a>
+            <a href="/guide" target="_blank" rel="noopener">{{ t('home.nav.guide') }}</a>
         </nav>
         <div class="hl-header-actions">
-            <a href="/login" class="hl-btn hl-btn-ghost">Connexion</a>
-            <a href="/register-company" class="hl-btn hl-btn-primary"><i class="fas fa-building"></i> Inscrire ma PME</a>
+            {% include 'partials/lang_switcher.html' %}
+            <a href="/login" class="hl-btn hl-btn-ghost">{{ t('common.login') }}</a>
+            <a href="/register-company" class="hl-btn hl-btn-primary"><i class="fas fa-building"></i> {{ t('common.register_pme') }}</a>
         </div>
-        <button class="hl-menu-toggle" id="menuToggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
+        <button class="hl-menu-toggle" id="menuToggle" aria-label="{{ t('common.menu') }}"><i class="fas fa-bars"></i></button>
     </div>
 </header>
 
-<!-- Hero -->
 <section class="hl-hero">
-    <div class="hl-hero-bg" aria-hidden="true"></div>
+    <div class="hl-hero-bg" aria-hidden="true">
+        <div class="hl-hero-photo">{{ home_svgs.hero|safe }}</div>
+        <div class="hl-hero-overlay"></div>
+    </div>
     <div class="hl-hero-inner">
         <div class="hl-hero-content hl-reveal">
             <div class="hl-badge">
                 <span class="hl-badge-dot"></span>
-                Projet open source · Lubumbashi, RDC
+                {{ t('home.hero.badge') }}
             </div>
-            <h1>GED-PME<br><span>votre gestion documentaire</span></h1>
-            <p class="hl-hero-lead">
-                Déposez, validez et retrouvez vos fichiers au même endroit :
-                workflow par statuts, extraction OCR, tableaux de bord par rôle et alertes WhatsApp.
-            </p>
+            <h1>{{ t('home.hero.title') }}<br><span>{{ t('home.hero.subtitle') }}</span></h1>
+            <p class="hl-hero-lead">{{ t('home.hero.lead') }}</p>
             <div class="hl-hero-cta">
-                <a href="/register-company" class="hl-btn hl-btn-white"><i class="fas fa-building"></i> Inscrire ma PME</a>
-                <a href="/login" class="hl-btn hl-btn-glass"><i class="fas fa-sign-in-alt"></i> Se connecter</a>
+                <a href="/register-company" class="hl-btn hl-btn-white"><i class="fas fa-building"></i> {{ t('common.register_pme') }}</a>
+                <a href="/login" class="hl-btn hl-btn-glass"><i class="fas fa-sign-in-alt"></i> {{ t('home.hero.login') }}</a>
             </div>
             <div class="hl-trust">
-                <span><i class="fas fa-check-circle"></i> Multi-entreprises</span>
-                <span><i class="fas fa-check-circle"></i> Déploiement LAN</span>
-                <span><i class="fas fa-check-circle"></i> Interface en français</span>
+                <span><i class="fas fa-check-circle"></i> {{ t('home.trust.multi') }}</span>
+                <span><i class="fas fa-check-circle"></i> {{ t('home.trust.lan') }}</span>
+                <span><i class="fas fa-check-circle"></i> {{ t('home.trust.lang') }}</span>
             </div>
         </div>
-
         <div class="hl-mockup hl-reveal">
             <div class="hl-mockup-frame">
                 <div class="hl-mockup-bar">
@@ -75,25 +73,25 @@
                     </div>
                     <div class="hl-mockup-main">
                         <div class="hl-mockup-stats">
-                            <div class="hl-mockup-stat"><div class="n" id="mockStat1">—</div><div class="l">Utilisateurs</div></div>
-                            <div class="hl-mockup-stat"><div class="n" id="mockStat2">—</div><div class="l">Documents</div></div>
-                            <div class="hl-mockup-stat"><div class="n" id="mockStat3">7</div><div class="l">Statuts</div></div>
+                            <div class="hl-mockup-stat"><div class="n" id="mockStat1">—</div><div class="l">{{ t('home.mock.users') }}</div></div>
+                            <div class="hl-mockup-stat"><div class="n" id="mockStat2">—</div><div class="l">{{ t('home.mock.documents') }}</div></div>
+                            <div class="hl-mockup-stat"><div class="n" id="mockStat3">7</div><div class="l">{{ t('home.mock.statuses') }}</div></div>
                         </div>
                         <div class="hl-mockup-doc">
                             <div class="hl-mockup-doc-row">
                                 <div class="hl-mockup-doc-icon" style="background:#dbeafe;color:#2563eb"><i class="fas fa-file-pdf"></i></div>
-                                <div><strong>Contrat client 2026</strong><br><small style="color:#64748b">Finance · Il y a 2 h</small></div>
-                                <span class="hl-status pub">Publié</span>
+                                <div><strong>{{ t('home.mock.doc1.title') }}</strong><br><small style="color:#64748b">{{ t('home.mock.doc1.meta') }}</small></div>
+                                <span class="hl-status pub">{{ t('home.status.published') }}</span>
                             </div>
                             <div class="hl-mockup-doc-row">
                                 <div class="hl-mockup-doc-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-file-image"></i></div>
-                                <div><strong>Facture fournisseur</strong><br><small style="color:#64748b">Scan OCR · Il y a 5 h</small></div>
-                                <span class="hl-status rev">Révision</span>
+                                <div><strong>{{ t('home.mock.doc2.title') }}</strong><br><small style="color:#64748b">{{ t('home.mock.doc2.meta') }}</small></div>
+                                <span class="hl-status rev">{{ t('home.status.review') }}</span>
                             </div>
                             <div class="hl-mockup-doc-row">
                                 <div class="hl-mockup-doc-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-file-word"></i></div>
-                                <div><strong>Rapport RH mensuel</strong><br><small style="color:#64748b">RH · Hier</small></div>
-                                <span class="hl-status val">Validé</span>
+                                <div><strong>{{ t('home.mock.doc3.title') }}</strong><br><small style="color:#64748b">{{ t('home.mock.doc3.meta') }}</small></div>
+                                <span class="hl-status val">{{ t('home.status.validated') }}</span>
                             </div>
                         </div>
                     </div>
@@ -101,308 +99,243 @@
             </div>
             <div class="hl-mockup-float-card card1">
                 <i class="fab fa-whatsapp" style="color:#25d366"></i>
-                <div><strong>Alerte envoyée</strong><br><small style="color:#64748b">Document validé</small></div>
+                <div><strong>{{ t('home.float.alert_title') }}</strong><br><small style="color:#64748b">{{ t('home.float.alert_sub') }}</small></div>
             </div>
             <div class="hl-mockup-float-card card2">
                 <i class="fas fa-wifi-slash"></i>
-                <div><strong>File hors ligne</strong><br><small style="color:#64748b">Espace employé</small></div>
+                <div><strong>{{ t('home.float.offline_title') }}</strong><br><small style="color:#64748b">{{ t('home.float.offline_sub') }}</small></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Live stats -->
 <section class="hl-stats-band hl-reveal">
     <div class="hl-stats-grid">
-        <div class="hl-stat-item">
-            <div class="num" data-count="0" id="statEnt">0</div>
-            <div class="lbl">Entreprises inscrites</div>
-        </div>
-        <div class="hl-stat-item">
-            <div class="num" data-count="0" id="statUsers">0</div>
-            <div class="lbl">Utilisateurs actifs</div>
-        </div>
-        <div class="hl-stat-item">
-            <div class="num" data-count="0" id="statDocs">0</div>
-            <div class="lbl">Documents gérés</div>
-        </div>
-        <div class="hl-stat-item">
-            <div class="num">7</div>
-            <div class="lbl">Étapes de workflow</div>
-        </div>
+        <div class="hl-stat-item"><div class="num" id="statEnt">0</div><div class="lbl">{{ t('home.stats.companies') }}</div></div>
+        <div class="hl-stat-item"><div class="num" id="statUsers">0</div><div class="lbl">{{ t('home.stats.users') }}</div></div>
+        <div class="hl-stat-item"><div class="num" id="statDocs">0</div><div class="lbl">{{ t('home.stats.documents') }}</div></div>
+        <div class="hl-stat-item"><div class="num">7</div><div class="lbl">{{ t('home.stats.workflow') }}</div></div>
     </div>
 </section>
 
-<!-- Features with real images -->
 <section class="hl-section" id="fonctionnalites">
     <div class="hl-section-header hl-reveal">
-        <span class="hl-label">Fonctionnalités</span>
-        <h2>Ce que propose GED-PME</h2>
-        <p>Fonctionnalités réellement disponibles dans l'application, selon votre rôle (employé, admin PME ou admin global).</p>
+        <span class="hl-label">{{ t('home.features.label') }}</span>
+        <h2>{{ t('home.features.title') }}</h2>
+        <p>{{ t('home.features.lead') }}</p>
     </div>
     <div class="hl-features-grid">
         <article class="hl-feature-card hl-reveal">
-            <div class="hl-feature-img"><img src="/static/img/home/feature-ocr.svg" alt="OCR et recherche de documents" loading="lazy"></div>
+            <div class="hl-feature-img">{{ home_svgs.ocr|safe }}</div>
             <div class="hl-feature-body">
                 <div class="hl-feature-icon" style="background:#ecfeff;color:#0891b2"><i class="fas fa-font"></i></div>
-                <h3>OCR & recherche</h3>
-                <p>Après numérisation (scan puis upload), Tesseract extrait le texte des PDF et images. La recherche couvre titre, nom de fichier, auteur et contenu OCR.</p>
+                <h3>{{ t('home.feat.ocr.title') }}</h3>
+                <p>{{ t('home.feat.ocr.text') }}</p>
             </div>
         </article>
         <article class="hl-feature-card hl-reveal">
-            <div class="hl-feature-img"><img src="/static/img/home/feature-workflow.svg" alt="Workflow de validation documentaire" loading="lazy"></div>
+            <div class="hl-feature-img">{{ home_svgs.workflow|safe }}</div>
             <div class="hl-feature-body">
                 <div class="hl-feature-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-project-diagram"></i></div>
-                <h3>Workflow de validation</h3>
-                <p>Statuts : brouillon, révision, validé, rejeté, publié, obsolète, détruit. L'admin PME valide ou rejette avec commentaire ; chaque transition est journalisée.</p>
+                <h3>{{ t('home.feat.workflow.title') }}</h3>
+                <p>{{ t('home.feat.workflow.text') }}</p>
             </div>
         </article>
         <article class="hl-feature-card hl-reveal">
-            <div class="hl-feature-img"><img src="/static/img/home/feature-offline.svg" alt="Mode hors ligne espace employé" loading="lazy"></div>
+            <div class="hl-feature-img">{{ home_svgs.offline|safe }}</div>
             <div class="hl-feature-body">
                 <div class="hl-feature-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-wifi-slash"></i></div>
-                <h3>Mode hors ligne (employé)</h3>
-                <p>Sur le tableau de bord employé uniquement : file d'attente locale pour déposer et soumettre, puis synchronisation automatique au retour du réseau.</p>
+                <h3>{{ t('home.feat.offline.title') }}</h3>
+                <p>{{ t('home.feat.offline.text') }}</p>
             </div>
         </article>
         <article class="hl-feature-card hl-reveal">
-            <div class="hl-feature-img"><img src="/static/img/home/feature-security.svg" alt="Sécurité JWT et double authentification" loading="lazy"></div>
+            <div class="hl-feature-img">{{ home_svgs.security|safe }}</div>
             <div class="hl-feature-body">
                 <div class="hl-feature-icon" style="background:#d1fae5;color:#059669"><i class="fas fa-shield-alt"></i></div>
-                <h3>Sécurité & 2FA</h3>
-                <p>Connexion JWT, mots de passe hashés, données isolées par entreprise, authentification TOTP optionnelle et journal d'audit des actions.</p>
+                <h3>{{ t('home.feat.security.title') }}</h3>
+                <p>{{ t('home.feat.security.text') }}</p>
             </div>
         </article>
         <article class="hl-feature-card hl-reveal">
-            <div class="hl-feature-img"><img src="/static/img/home/feature-whatsapp.svg" alt="Alertes WhatsApp CallMeBot" loading="lazy"></div>
+            <div class="hl-feature-img">{{ home_svgs.whatsapp|safe }}</div>
             <div class="hl-feature-body">
                 <div class="hl-feature-icon" style="background:#dcfce7;color:#16a34a"><i class="fab fa-whatsapp"></i></div>
-                <h3>Alertes WhatsApp</h3>
-                <p>Notifications sur validation, rejet ou soumission via CallMeBot — à configurer dans le profil (numéro + clé API personnelle).</p>
+                <h3>{{ t('home.feat.whatsapp.title') }}</h3>
+                <p>{{ t('home.feat.whatsapp.text') }}</p>
             </div>
         </article>
         <article class="hl-feature-card hl-reveal">
-            <div class="hl-feature-img"><img src="/static/img/home/feature-dashboard.svg" alt="Tableaux de bord et statistiques" loading="lazy"></div>
+            <div class="hl-feature-img">{{ home_svgs.dashboard|safe }}</div>
             <div class="hl-feature-body">
                 <div class="hl-feature-icon" style="background:#dbeafe;color:#2563eb"><i class="fas fa-chart-line"></i></div>
-                <h3>Tableaux de bord</h3>
-                <p>Statistiques et graphiques d'évolution par rôle. Export CSV des logs côté admin global ; export et corbeille côté admin PME.</p>
+                <h3>{{ t('home.feat.dashboard.title') }}</h3>
+                <p>{{ t('home.feat.dashboard.text') }}</p>
             </div>
         </article>
     </div>
 </section>
 
-<!-- Role tabs -->
 <section class="hl-section" id="roles">
     <div class="hl-section-header hl-reveal">
-        <span class="hl-label">Espaces utilisateurs</span>
-        <h2>Trois interfaces, un seul système</h2>
-        <p>Chaque rôle dispose de son tableau de bord adapté à ses responsabilités.</p>
+        <span class="hl-label">{{ t('home.roles.label') }}</span>
+        <h2>{{ t('home.roles.title') }}</h2>
+        <p>{{ t('home.roles.lead') }}</p>
     </div>
     <div class="hl-roles hl-reveal">
         <div class="hl-role-tabs">
-            <button type="button" class="hl-role-tab active" data-role="employe"><i class="fas fa-user"></i> Employé</button>
-            <button type="button" class="hl-role-tab" data-role="admin_pme"><i class="fas fa-building"></i> Admin PME</button>
-            <button type="button" class="hl-role-tab" data-role="admin_global"><i class="fas fa-globe-africa"></i> Admin global</button>
+            <button type="button" class="hl-role-tab active" data-role="employe"><i class="fas fa-user"></i> {{ t('home.roles.tab.employe') }}</button>
+            <button type="button" class="hl-role-tab" data-role="admin_pme"><i class="fas fa-building"></i> {{ t('home.roles.tab.admin_pme') }}</button>
+            <button type="button" class="hl-role-tab" data-role="admin_global"><i class="fas fa-globe-africa"></i> {{ t('home.roles.tab.admin_global') }}</button>
         </div>
         <div class="hl-role-panel active" id="panel-employe">
             <div>
-                <h3>Espace Employé</h3>
-                <p>Déposez vos documents, suivez leur statut et consultez les fichiers publiés par votre entreprise.</p>
+                <h3>{{ t('home.roles.employe.title') }}</h3>
+                <p>{{ t('home.roles.employe.lead') }}</p>
                 <ul class="hl-role-list">
-                    <li><i class="fas fa-check"></i> Upload PDF, images, Word, Excel…</li>
-                    <li><i class="fas fa-check"></i> Soumission au workflow (brouillon → révision)</li>
-                    <li><i class="fas fa-check"></i> Consultation des documents publiés de l'entreprise</li>
-                    <li><i class="fas fa-check"></i> PWA et file d'attente hors ligne</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.employe.l1') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.employe.l2') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.employe.l3') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.employe.l4') }}</li>
                 </ul>
-                <a href="/login" class="hl-btn hl-btn-primary">Accéder <i class="fas fa-arrow-right"></i></a>
+                <a href="/login" class="hl-btn hl-btn-primary">{{ t('common.access') }} <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="hl-role-visual">
-                <img src="/static/img/home/role-employe.svg" alt="Espace employé — dépôt de documents" loading="lazy">
-            </div>
+            <div class="hl-role-visual">{{ home_svgs.role_employe|safe }}</div>
         </div>
         <div class="hl-role-panel" id="panel-admin_pme">
             <div>
-                <h3>Administration PME</h3>
-                <p>Pilotez votre entreprise : validez les documents, gérez les employés et configurez le workflow.</p>
+                <h3>{{ t('home.roles.admin_pme.title') }}</h3>
+                <p>{{ t('home.roles.admin_pme.lead') }}</p>
                 <ul class="hl-role-list">
-                    <li><i class="fas fa-check"></i> Validation / rejet avec commentaire</li>
-                    <li><i class="fas fa-check"></i> Gestion employés et catégories par entreprise</li>
-                    <li><i class="fas fa-check"></i> Upload publié directement par l'admin PME</li>
-                    <li><i class="fas fa-check"></i> Corbeille, versions, sauvegarde SQL</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_pme.l1') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_pme.l2') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_pme.l3') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_pme.l4') }}</li>
                 </ul>
-                <a href="/login" class="hl-btn hl-btn-primary">Accéder <i class="fas fa-arrow-right"></i></a>
+                <a href="/login" class="hl-btn hl-btn-primary">{{ t('common.access') }} <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="hl-role-visual">
-                <img src="/static/img/home/role-admin-pme.svg" alt="Administration PME — validation" loading="lazy">
-            </div>
+            <div class="hl-role-visual">{{ home_svgs.role_admin_pme|safe }}</div>
         </div>
         <div class="hl-role-panel" id="panel-admin_global">
             <div>
-                <h3>Administration globale</h3>
-                <p>Supervisez la plateforme multi-PME : création d'entreprises, consultation des documents et logs, sans intervention sur la validation.</p>
+                <h3>{{ t('home.roles.admin_global.title') }}</h3>
+                <p>{{ t('home.roles.admin_global.lead') }}</p>
                 <ul class="hl-role-list">
-                    <li><i class="fas fa-check"></i> Onboarding PME (NIF, RCCM, logo)</li>
-                    <li><i class="fas fa-check"></i> Vue lecture seule des documents</li>
-                    <li><i class="fas fa-check"></i> Journal d'activité et export CSV</li>
-                    <li><i class="fas fa-check"></i> Sauvegarde SQL et mode maintenance</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_global.l1') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_global.l2') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_global.l3') }}</li>
+                    <li><i class="fas fa-check"></i> {{ t('home.roles.admin_global.l4') }}</li>
                 </ul>
-                <a href="/login" class="hl-btn hl-btn-primary">Accéder <i class="fas fa-arrow-right"></i></a>
+                <a href="/login" class="hl-btn hl-btn-primary">{{ t('common.access') }} <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="hl-role-visual">
-                <img src="/static/img/home/role-admin-global.svg" alt="Administration globale multi-PME" loading="lazy">
-            </div>
+            <div class="hl-role-visual">{{ home_svgs.role_admin_global|safe }}</div>
         </div>
     </div>
 </section>
 
-<!-- Workflow -->
 <section class="hl-workflow" id="workflow">
     <div class="hl-workflow-inner">
         <div class="hl-section-header hl-reveal">
-            <span class="hl-label">Workflow</span>
-            <h2>Cycle de vie documentaire en 7 étapes</h2>
-            <p>Cliquez sur une étape pour voir le détail. Chaque transition est tracée dans le journal d'audit.</p>
+            <span class="hl-label">{{ t('home.workflow.label') }}</span>
+            <h2>{{ t('home.workflow.title') }}</h2>
+            <p>{{ t('home.workflow.lead') }}</p>
         </div>
         <div class="hl-timeline hl-reveal">
-            <div class="hl-step active" data-step="0">
-                <div class="hl-step-num"><i class="fas fa-pencil-alt"></i></div>
-                <h4>Brouillon</h4>
-                <p>Création</p>
+            {% for i in range(7) %}
+            <div class="hl-step{% if i == 0 %} active{% endif %}" data-step="{{ i }}">
+                <div class="hl-step-num"><i class="fas fa-{% if i == 0 %}pencil-alt{% elif i == 1 %}clock{% elif i == 2 %}check{% elif i == 3 %}times{% elif i == 4 %}globe{% elif i == 5 %}archive{% else %}trash{% endif %}"></i></div>
+                <h4>{{ t('home.workflow.step' ~ i ~ '.name') }}</h4>
+                <p>{{ t('home.workflow.step' ~ i ~ '.sub') }}</p>
             </div>
-            <div class="hl-step" data-step="1">
-                <div class="hl-step-num"><i class="fas fa-clock"></i></div>
-                <h4>Révision</h4>
-                <p>Soumis</p>
-            </div>
-            <div class="hl-step" data-step="2">
-                <div class="hl-step-num"><i class="fas fa-check"></i></div>
-                <h4>Validé</h4>
-                <p>Approuvé</p>
-            </div>
-            <div class="hl-step" data-step="3">
-                <div class="hl-step-num"><i class="fas fa-times"></i></div>
-                <h4>Rejeté</h4>
-                <p>À corriger</p>
-            </div>
-            <div class="hl-step" data-step="4">
-                <div class="hl-step-num"><i class="fas fa-globe"></i></div>
-                <h4>Publié</h4>
-                <p>Visible</p>
-            </div>
-            <div class="hl-step" data-step="5">
-                <div class="hl-step-num"><i class="fas fa-archive"></i></div>
-                <h4>Obsolète</h4>
-                <p>Archivé</p>
-            </div>
-            <div class="hl-step" data-step="6">
-                <div class="hl-step-num"><i class="fas fa-trash"></i></div>
-                <h4>Détruit</h4>
-                <p>Supprimé</p>
-            </div>
+            {% endfor %}
         </div>
-        <div class="hl-step-detail hl-reveal" id="stepDetail">
-            L'employé crée et upload un document. Il reste en brouillon jusqu'à soumission à l'admin PME.
-        </div>
+        <div class="hl-step-detail hl-reveal" id="stepDetail">{{ workflow_steps[0] }}</div>
     </div>
 </section>
 
-<!-- Showcase -->
 <section class="hl-section">
     <div class="hl-showcase hl-reveal">
         <div class="hl-showcase-img">
-            <img src="/static/img/home/showcase-server.svg" alt="Serveur local GED-PME" loading="lazy">
-            <div class="hl-showcase-badge"><i class="fas fa-server"></i> Déploiement sur serveur local (LAN)</div>
+            {{ home_svgs.showcase|safe }}
+            <div class="hl-showcase-badge"><i class="fas fa-network-wired"></i> {{ t('home.showcase.badge') }}</div>
         </div>
         <div>
-            <span class="hl-label">GED-PME en bref</span>
-            <h2 style="font-size:1.75rem;font-weight:800;margin:0 0 16px;letter-spacing:-0.02em">Une GED multi-PME pour Lubumbashi</h2>
-            <p style="color:#64748b;line-height:1.7;margin-bottom:8px">
-                Application web open source (Python, Flask, MySQL) hébergée sur votre propre serveur.
-                Chaque entreprise dispose de son espace isolé, de ses catégories et de son workflow documentaire.
-            </p>
+            <span class="hl-label">{{ t('home.showcase.label') }}</span>
+            <h2 style="font-size:1.75rem;font-weight:800;margin:0 0 16px;letter-spacing:-0.02em">{{ t('home.showcase.title') }}</h2>
+            <p style="color:#64748b;line-height:1.7;margin-bottom:8px">{{ t('home.showcase.text') }}</p>
             <ul class="hl-check-list">
-                <li><i class="fas fa-check-circle"></i> Inscription PME avec NIF, RCCM et administrateur</li>
-                <li><i class="fas fa-check-circle"></i> Numérisation : scan externe → upload → OCR Tesseract</li>
-                <li><i class="fas fa-check-circle"></i> Prévisualisation PDF, Office, images et feuilles CSV</li>
-                <li><i class="fas fa-check-circle"></i> Projet académique — Université Nouveaux Horizons, 2026</li>
+                <li><i class="fas fa-check-circle"></i> {{ t('home.showcase.l1') }}</li>
+                <li><i class="fas fa-check-circle"></i> {{ t('home.showcase.l2') }}</li>
+                <li><i class="fas fa-check-circle"></i> {{ t('home.showcase.l3') }}</li>
+                <li><i class="fas fa-check-circle"></i> {{ t('home.showcase.l4') }}</li>
             </ul>
-            <a href="/register-company" class="hl-btn hl-btn-primary"><i class="fas fa-building"></i> Inscrire mon entreprise</a>
+            <a href="/register-company" class="hl-btn hl-btn-primary"><i class="fas fa-building"></i> {{ t('home.showcase.cta') }}</a>
         </div>
     </div>
 </section>
 
-<!-- CTA -->
 <section class="hl-cta hl-reveal">
-    <h2>Prêt à digitaliser vos documents ?</h2>
-    <p>Inscrivez votre PME avec NIF, RCCM et le compte administrateur associé.</p>
+    <h2>{{ t('home.cta.title') }}</h2>
+    <p>{{ t('home.cta.text') }}</p>
     <div class="hl-cta-actions">
-        <a href="/register-company" class="hl-btn hl-btn-white"><i class="fas fa-rocket"></i> Commencer maintenant</a>
-        <a href="/guide" class="hl-btn hl-btn-glass" target="_blank" rel="noopener"><i class="fas fa-book"></i> Lire le guide</a>
+        <a href="/register-company" class="hl-btn hl-btn-white"><i class="fas fa-rocket"></i> {{ t('home.cta.start') }}</a>
+        <a href="/guide" class="hl-btn hl-btn-glass" target="_blank" rel="noopener"><i class="fas fa-book"></i> {{ t('home.cta.guide') }}</a>
     </div>
 </section>
 
-<!-- Footer -->
 <footer class="hl-footer">
     <div class="hl-footer-inner">
         <div>
             <div class="hl-footer-brand"><i class="fas fa-folder-open"></i> GED-PME</div>
-            <p>Gestion Électronique de Documents pour les Petites et Moyennes Entreprises en République Démocratique du Congo.</p>
+            <p>{{ t('home.footer.desc') }}</p>
         </div>
         <div>
-            <h4>Produit</h4>
+            <h4>{{ t('home.footer.product') }}</h4>
             <ul>
-                <li><a href="#fonctionnalites">Fonctionnalités</a></li>
-                <li><a href="#workflow">Workflow</a></li>
-                <li><a href="/guide">Guide utilisateur</a></li>
+                <li><a href="#fonctionnalites">{{ t('home.nav.features') }}</a></li>
+                <li><a href="#workflow">{{ t('home.nav.workflow') }}</a></li>
+                <li><a href="/guide">{{ t('home.footer.guide') }}</a></li>
             </ul>
         </div>
         <div>
-            <h4>Accès</h4>
+            <h4>{{ t('home.footer.access') }}</h4>
             <ul>
-                <li><a href="/login">Connexion</a></li>
-                <li><a href="/register-company">Inscription PME</a></li>
+                <li><a href="/login">{{ t('common.login') }}</a></li>
+                <li><a href="/register-company">{{ t('home.footer.register') }}</a></li>
                 <li><a href="https://github.com/armelntambwe/GED-PME" target="_blank" rel="noopener">GitHub</a></li>
             </ul>
         </div>
         <div>
-            <h4>Auteur</h4>
+            <h4>{{ t('home.footer.author') }}</h4>
             <ul>
                 <li>Mbuyi Ntambwe Armel</li>
                 <li>Université Nouveaux Horizons</li>
-                <li>Travail de fin d'études 2026</li>
+                <li>{{ t('home.footer.tfe') }}</li>
             </ul>
         </div>
     </div>
-    <div class="hl-footer-bottom">
-        © 2025–2026 GED-PME · Projet open source · Lubumbashi, RDC
-    </div>
+    <div class="hl-footer-bottom">{{ t('home.footer.copy') }}</div>
 </footer>
 
 <script>
 (function () {
-    const STEP_TEXTS = [
-        "L'employé crée et upload un document. Il reste en brouillon jusqu'à soumission à l'admin PME.",
-        "Document soumis à l'admin PME, qui peut valider ou rejeter (alerte WhatsApp si CallMeBot est configuré).",
-        "Document approuvé par l'administrateur. Prêt à être publié pour toute l'entreprise.",
-        "Document refusé avec un commentaire. L'employé peut corriger et resoumettre.",
-        "Document visible par tous les employés de l'entreprise. Recherche et OCR actifs.",
-        "Document marqué obsolète manuellement ou via la règle d'archivage configurée.",
-        "Suppression définitive depuis la corbeille (admin PME). Action tracée dans les logs.",
-    ];
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) { r.unregister(); });
+        });
+    }
 
-    /* Header scroll */
+    const STEP_TEXTS = {{ workflow_steps|tojson }};
+
     const header = document.getElementById('siteHeader');
     window.addEventListener('scroll', () => {
         header.classList.toggle('scrolled', window.scrollY > 20);
     });
 
-    /* Mobile menu */
     document.getElementById('menuToggle')?.addEventListener('click', () => {
         header.classList.toggle('nav-open');
     });
 
-    /* Role tabs */
     document.querySelectorAll('.hl-role-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.hl-role-tab').forEach(t => t.classList.remove('active'));
@@ -412,7 +345,6 @@
         });
     });
 
-    /* Workflow steps */
     const detailEl = document.getElementById('stepDetail');
     document.querySelectorAll('.hl-step').forEach(step => {
         step.addEventListener('click', () => {
@@ -423,15 +355,13 @@
         });
     });
 
-    /* Animated counters */
     function animateCount(el, target) {
         const duration = 1800;
         const start = performance.now();
-        const from = 0;
         function tick(now) {
             const p = Math.min((now - start) / duration, 1);
             const eased = 1 - Math.pow(1 - p, 3);
-            const val = Math.round(from + (target - from) * eased);
+            const val = Math.round((target - 0) * eased);
             el.textContent = val >= 1000 ? (val / 1000).toFixed(1) + 'k' : String(val);
             if (p < 1) requestAnimationFrame(tick);
         }
@@ -441,27 +371,22 @@
     let statsLoaded = false;
     function loadStats() {
         if (statsLoaded) return;
-        fetch('/api/public/stats')
-            .then(r => r.json())
-            .then(data => {
-                if (!data.success) return;
-                statsLoaded = true;
-                const s = data.stats;
-                const ent = document.getElementById('statEnt');
-                const usr = document.getElementById('statUsers');
-                const doc = document.getElementById('statDocs');
-                if (ent) animateCount(ent, s.entreprises || 0);
-                if (usr) animateCount(usr, s.utilisateurs || 0);
-                if (doc) animateCount(doc, s.documents || 0);
-                const m1 = document.getElementById('mockStat1');
-                const m2 = document.getElementById('mockStat2');
-                if (m1) animateCount(m1, s.utilisateurs || 0);
-                if (m2) animateCount(m2, s.documents || 0);
-            })
-            .catch(() => {});
+        fetch('/api/public/stats').then(r => r.json()).then(data => {
+            if (!data.success) return;
+            statsLoaded = true;
+            const s = data.stats;
+            ['statEnt', 'statUsers', 'statDocs'].forEach((id, i) => {
+                const key = ['entreprises', 'utilisateurs', 'documents'][i];
+                const el = document.getElementById(id);
+                if (el) animateCount(el, s[key] || 0);
+            });
+            const m1 = document.getElementById('mockStat1');
+            const m2 = document.getElementById('mockStat2');
+            if (m1) animateCount(m1, s.utilisateurs || 0);
+            if (m2) animateCount(m2, s.documents || 0);
+        }).catch(() => {});
     }
 
-    /* Scroll reveal + stats trigger */
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -471,10 +396,8 @@
         });
     }, { threshold: 0.15 });
     document.querySelectorAll('.hl-reveal').forEach(el => observer.observe(el));
-
+    setTimeout(() => document.querySelectorAll('.hl-reveal:not(.visible)').forEach(el => el.classList.add('visible')), 800);
     loadStats();
-
-    /* Smooth nav close on link click */
     document.querySelectorAll('.hl-nav a').forEach(a => {
         a.addEventListener('click', () => header.classList.remove('nav-open'));
     });

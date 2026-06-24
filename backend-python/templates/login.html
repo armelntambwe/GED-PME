@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GED-PME - Connexion</title>
+    <title>{{ t('login.title') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -131,6 +131,9 @@
     </style>
 </head>
 <body class="ged-app">
+    <div class="position-fixed top-0 end-0 p-3" style="z-index:1050">
+        {% include 'partials/lang_switcher.html' %}
+    </div>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-5">
@@ -139,50 +142,50 @@
                         <div class="brand-icon">
                             <i class="bi bi-folder2-open"></i>
                         </div>
-                        <h2 class="fw-bold mt-3" style="color: #0f172a;">Bienvenue</h2>
-                        <p class="text-secondary mb-4">Connectez-vous à votre espace GED-PME</p>
+                        <h2 class="fw-bold mt-3" style="color: #0f172a;">{{ t('login.welcome') }}</h2>
+                        <p class="text-secondary mb-4">{{ t('login.subtitle') }}</p>
                     </div>
 
                     <form id="loginForm" autocomplete="on">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Adresse email</label>
-                            <input type="email" id="email" name="username" class="form-control" placeholder="exemple@entreprise.com" autocomplete="username" required>
+                            <label class="form-label fw-semibold">{{ t('login.email') }}</label>
+                            <input type="email" id="email" name="username" class="form-control" placeholder="{{ t('login.email_ph') }}" autocomplete="username" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Mot de passe</label>
+                            <label class="form-label fw-semibold">{{ t('login.password') }}</label>
                             <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="remember">
-                                <label class="form-check-label small" for="remember">Se souvenir de moi</label>
+                                <label class="form-check-label small" for="remember">{{ t('login.remember') }}</label>
                             </div>
-                            <a href="#" class="link-register small">Mot de passe oublié ?</a>
+                            <a href="#" class="link-register small">{{ t('login.forgot') }}</a>
                         </div>
-                        <button type="submit" class="btn btn-login w-100" id="loginBtn">Se connecter</button>
+                        <button type="submit" class="btn btn-login w-100" id="loginBtn">{{ t('login.submit') }}</button>
                     </form>
 
                     <div id="twofaStep" class="d-none mt-3">
-                        <div class="alert alert-info small py-2"><i class="bi bi-shield-lock me-1"></i>Double authentification — saisissez le code à 6 chiffres.</div>
+                        <div class="alert alert-info small py-2"><i class="bi bi-shield-lock me-1"></i>{{ t('login.2fa_info') }}</div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Code d'authentification</label>
+                            <label class="form-label fw-semibold">{{ t('login.2fa_code') }}</label>
                             <input type="text" id="twofaCode" class="form-control text-center fs-5" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
                         </div>
-                        <button type="button" class="btn btn-login w-100" id="twofaVerifyBtn">Valider le code</button>
-                        <button type="button" class="btn btn-link btn-sm w-100 mt-2 text-secondary" id="twofaBackBtn">← Retour</button>
+                        <button type="button" class="btn btn-login w-100" id="twofaVerifyBtn">{{ t('login.2fa_verify') }}</button>
+                        <button type="button" class="btn btn-link btn-sm w-100 mt-2 text-secondary" id="twofaBackBtn">{{ t('login.2fa_back') }}</button>
                     </div>
 
-                    <div class="divider">Nouveau sur GED-PME ?</div>
+                    <div class="divider">{{ t('login.new') }}</div>
 
                     <div class="text-center">
-                        <a href="/register-company" class="btn btn-outline-secondary w-100 rounded-pill py-2">Créer une entreprise</a>
+                        <a href="/register-company" class="btn btn-outline-secondary w-100 rounded-pill py-2">{{ t('login.create_company') }}</a>
                     </div>
 
                     <div id="errorMessage" class="alert alert-danger mt-3 d-none"></div>
                 </div>
 
                 <p class="text-center text-secondary mt-4 small">
-                    <i class="bi bi-shield-check me-1"></i> Sécurisé par JWT, 2FA et chiffrement
+                    <i class="bi bi-shield-check me-1"></i> {{ t('login.secure') }}
                 </p>
             </div>
         </div>
