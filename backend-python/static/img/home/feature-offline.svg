@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Mode hors ligne employé">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#g)"/>
+  <rect x="290" y="50" width="220" height="260" rx="28" fill="#fff" opacity="0.95"/>
+  <rect x="310" y="80" width="180" height="120" rx="12" fill="#ede9fe"/>
+  <path d="M340 200 L400 240 L460 190" stroke="#7c3aed" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="400" cy="270" r="8" fill="#cbd5e1"/>
+  <path d="M350 120 L430 120 M350 145 L410 145" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
+  <text x="400" y="320" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="600" fill="#fff">File d'attente locale</text>
+</svg>

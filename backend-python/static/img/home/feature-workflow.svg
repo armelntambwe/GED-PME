@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Workflow de validation">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#g)"/>
+  <circle cx="200" cy="180" r="52" fill="#fff" opacity="0.95"/>
+  <circle cx="400" cy="180" r="52" fill="#fff" opacity="0.95"/>
+  <circle cx="600" cy="180" r="52" fill="#fff" opacity="0.95"/>
+  <path d="M252 180 H348" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M452 180 H548" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="348,180 336,172 336,188" fill="#fff"/>
+  <polygon points="548,180 536,172 536,188" fill="#fff"/>
+  <text x="200" y="188" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#d97706">Brouillon</text>
+  <text x="400" y="188" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#d97706">Validé</text>
+  <text x="600" y="188" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="700" fill="#d97706">Publié</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="OCR et documents">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#g)"/>
+  <rect x="180" y="70" width="440" height="220" rx="16" fill="#fff" opacity="0.95"/>
+  <rect x="220" y="110" width="280" height="14" rx="4" fill="#cbd5e1"/>
+  <rect x="220" y="140" width="360" height="10" rx="4" fill="#e2e8f0"/>
+  <rect x="220" y="162" width="320" height="10" rx="4" fill="#e2e8f0"/>
+  <rect x="220" y="184" width="340" height="10" rx="4" fill="#e2e8f0"/>
+  <rect x="220" y="206" width="260" height="10" rx="4" fill="#e2e8f0"/>
+  <circle cx="520" cy="240" r="48" fill="#0891b2" opacity="0.15"/>
+  <text x="520" y="252" text-anchor="middle" font-family="system-ui,sans-serif" font-size="42" font-weight="700" fill="#0891b2">Aa</text>
+</svg>

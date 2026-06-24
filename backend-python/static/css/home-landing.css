@@ -120,8 +120,8 @@ body.hl-page {
 .hl-hero-bg {
     position: absolute; inset: 0;
     background:
-        linear-gradient(105deg, rgba(15, 23, 42, 0.88) 0%, rgba(8, 145, 178, 0.75) 45%, rgba(99, 102, 241, 0.65) 100%),
-        url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1920&q=80') center/cover no-repeat;
+        linear-gradient(105deg, rgba(15, 23, 42, 0.92) 0%, rgba(8, 145, 178, 0.82) 45%, rgba(99, 102, 241, 0.72) 100%),
+        url('/static/img/home/showcase-server.svg') center/cover no-repeat;
 }
 .hl-hero-bg::after {
     content: '';
@@ -372,9 +372,15 @@ body.hl-page {
 }
 .hl-feature-img {
     height: 180px;
-    background-size: cover;
-    background-position: center;
     position: relative;
+    overflow: hidden;
+    background: #e2e8f0;
+}
+.hl-feature-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 .hl-feature-img::after {
     content: '';

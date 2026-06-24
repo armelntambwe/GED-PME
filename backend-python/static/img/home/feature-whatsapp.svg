@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Alertes WhatsApp">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#g)"/>
+  <rect x="250" y="80" width="300" height="200" rx="20" fill="#fff" opacity="0.95"/>
+  <rect x="280" y="120" width="200" height="36" rx="18" fill="#dcfce7"/>
+  <text x="380" y="144" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" fill="#166534">Document validé </text>
+  <rect x="320" y="170" width="180" height="36" rx="18" fill="#ecfdf5"/>
+  <text x="410" y="194" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" fill="#166534">Alerte CallMeBot</text>
+  <circle cx="400" cy="250" r="28" fill="#25d366"/>
+  <path d="M388 250 L398 260 L416 238" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

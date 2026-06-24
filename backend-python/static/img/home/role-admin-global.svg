@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Administration globale">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#g)"/>
+  <rect x="180" y="90" width="120" height="200" rx="8" fill="#1e293b"/>
+  <rect x="340" y="90" width="120" height="200" rx="8" fill="#1e293b"/>
+  <rect x="500" y="90" width="120" height="200" rx="8" fill="#1e293b"/>
+  <circle cx="240" cy="130" r="8" fill="#22c55e"/>
+  <circle cx="400" cy="130" r="8" fill="#22c55e"/>
+  <circle cx="560" cy="130" r="8" fill="#eab308"/>
+  <rect x="200" y="160" width="80" height="6" rx="2" fill="#475569"/>
+  <rect x="360" y="160" width="80" height="6" rx="2" fill="#475569"/>
+  <rect x="520" y="160" width="80" height="6" rx="2" fill="#475569"/>
+  <text x="400" y="330" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" font-weight="600" fill="#fff">Supervision multi-PME · LAN</text>
+</svg>
